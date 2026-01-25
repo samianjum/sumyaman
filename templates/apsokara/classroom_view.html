@@ -1,0 +1,198 @@
+{% extends 'apsokara/base_admin.html' %}
+{% block content %}
+<style>
+    :root { --navy: #1a252f; --aps-red: #d9534f; --light: #f8fafc; }
+    body { background: #f1f3f5; font-family: 'Segoe UI', sans-serif; }
+
+    /* Banner & Nav */
+    .nav-header { background: white; padding: 12px 25px; border-bottom: 1px solid #dee2e6; }
+    .god-banner { background: linear-gradient(135deg, var(--navy) 0%, #2c3e50 100%); color: white; padding: 30px 40px; margin: 20px; border-radius: 15px; border-left: 10px solid var(--aps-red); position: relative; }
+    
+    /* Analytics Isolation */
+    .analytics-section { background: white; margin: 0 20px 25px 20px; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 3fr; gap: 20px; border: 1px solid #e2e8f0; }
+    .stat-circle { text-align: center; border-right: 1px solid #f0f0f0; }
+    .stat-circle:last-child { border-right: none; }
+    .stat-val { font-size: 2.2rem; font-weight: 800; color: var(--navy); line-height: 1; }
+    .stat-lbl { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 8px; }
+
+    /* Modular Content Tabs */
+    .content-box { background: white; margin: 0 20px 40px 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden; }
+    .nav-tabs-custom .nav-link { padding: 20px 30px; border: none; font-weight: 700; color: #94a3b8; }
+    .nav-tabs-custom .nav-link.active { color: var(--aps-red); background: white; border-bottom: 4px solid var(--aps-red); }
+
+    /* Toolbars */
+    .tool-bar { background: #f8fafc; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #edf2f7; }
+    .search-bar { border-radius: 50px; border: 1px solid #cbd5e1; padding: 6px 20px; width: 250px; outline: none; }
+    .pill-group { display: flex; background: #e2e8f0; border-radius: 50px; padding: 3px; }
+    .pill-btn { border: none; background: none; padding: 5px 15px; border-radius: 50px; font-size: 11px; font-weight: 700; color: #475569; }
+    .pill-btn.active { background: white; color: var(--aps-red); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+    /* Student Rows */
+    .stu-row:hover { background: #f8fafc !important; cursor: pointer; }
+
+    @media print {
+        .no-print { display: none !important; }
+        .print-area { display: block !important; }
+        .content-box { box-shadow: none; border: none; }
+        .table { width: 100%; border: 1px solid #000; }
+    }
+</style>
+
+<div class="nav-header no-print">
+    <a href="/gatekeeper-v3-okara-786/attendance/wing/{{ wing_name }}/" class="btn btn-sm btn-dark rounded-pill px-3">
+        <i class="fas fa-chevron-left me-1"></i> Back to {{ wing_name }} Wing
+    </a>
+</div>
+
+<div class="god-banner no-print">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="fw-bold m-0">Class {{ class_name }} - {{ section }}</h1>
+            <p class="mb-0 opacity-75 fw-semibold"><i class="fas fa-university me-2"></i> {{ wing_name }} WING | APS OKARA CAMPUS</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="small opacity-75">PORTAL ACCESS DATE</div>
+            <h4 class="fw-bold m-0">{{ today }}</h4>
+        </div>
+    </div>
+</div>
+
+<div class="analytics-section no-print shadow-sm">
+    <div class="border-end pe-4">
+        <label class="stat-lbl mb-2 d-block text-navy">Performance Range</label>
+        <div class="btn-group w-100 btn-group-sm mb-3">
+            <a href="?range=today&hist_date={{ hist_date }}" class="btn btn-{% if range == 'today' %}dark{% else %}outline-dark{% endif %}">Today</a>
+            <a href="?range=weekly&hist_date={{ hist_date }}" class="btn btn-{% if range == 'weekly' %}dark{% else %}outline-dark{% endif %}">Weekly</a>
+            <a href="?range=monthly&hist_date={{ hist_date }}" class="btn btn-{% if range == 'monthly' %}dark{% else %}outline-dark{% endif %}">Monthly</a>
+        </div>
+        <div class="small text-muted"><i class="fas fa-sync-alt me-1"></i> Data sync for <b>{{ range|upper }}</b></div>
+    </div>
+    <div class="d-flex justify-content-around align-items-center">
+        <div class="stat-circle"><div class="stat-val">{{ stats.total }}</div><div class="stat-lbl">Total Students</div></div>
+        <div class="stat-circle"><div class="stat-val text-success">{{ stats.present }}</div><div class="stat-lbl">Present</div></div>
+        <div class="stat-circle"><div class="stat-val text-danger">{{ stats.absent }}</div><div class="stat-lbl">Absent</div></div>
+        <div class="stat-circle"><div class="stat-val text-warning">{{ stats.leave }}</div><div class="stat-lbl">Leaves</div></div>
+    </div>
+</div>
+
+<div class="content-box">
+    <ul class="nav nav-tabs nav-tabs-custom border-0 no-print bg-light" id="godTabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#attendance-pane">ATTENDANCE HISTORY</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#leaves-pane">LEAVE MANAGEMENT</button></li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="attendance-pane">
+            <div class="tool-bar no-print">
+                <div class="d-flex align-items-center gap-3">
+                    <input type="text" id="attSearch" class="search-bar" placeholder="Search by name or ID...">
+                    <div class="pill-group">
+                        <button class="pill-btn active" onclick="filterAtt('all', this)">All</button>
+                        <button class="pill-btn" onclick="filterAtt('PRESENT', this)">Present</button>
+                        <button class="pill-btn" onclick="filterAtt('ABSENT', this)">Absent</button>
+                        <button class="pill-btn" onclick="filterAtt('LEAVE', this)">Leave</button>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="text-end me-2">
+                        <span class="small fw-bold text-muted d-block">VIEWING: {{ hist_date }}</span>
+                        <form class="m-0"><input type="date" name="hist_date" value="{{ hist_date }}" onchange="this.form.submit()" class="form-control form-control-sm border-danger rounded-pill"><input type="hidden" name="range" value="{{ range }}"></form>
+                    </div>
+                    <button onclick="window.print()" class="btn btn-dark btn-sm rounded-pill px-4"><i class="fas fa-print me-2"></i>Print Sheet</button>
+                </div>
+            </div>
+
+            <div class="print-area p-4">
+                <div class="d-none d-print-block text-center mb-4">
+                    <h2>ARMY PUBLIC SCHOOL OKARA</h2>
+                    <h4>Attendance Registry | Class {{ class_name }}-{{ section }} | Date: {{ hist_date }}</h4>
+                </div>
+                <table class="table table-hover border align-middle" id="attTable">
+                    <thead class="table-light">
+                        <tr class="small fw-bold"><th>STUDENT / FATHER NAME</th><th>IDENTITY NUMBER</th><th class="text-center">DAILY STATUS</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for r in history %}
+                        <tr class="stu-row" ondblclick="location.href='/gatekeeper-v3-okara-786/student/profile/{{ r.student.id }}/'">
+                            <td><div class="fw-bold">{{ r.student.full_name }}</div><div class="small text-muted">{{ r.student.father_name }}</div></td>
+                            <td><code class="text-danger fw-bold">{{ r.display_id }}</code></td>
+                            <td class="text-center"><span class="badge status-badge rounded-pill px-3 py-2 {% if r.status == 'Present' %}bg-success{% elif r.status == 'Absent' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ r.status|upper }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade p-4" id="leaves-pane">
+            <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+                <div class="pill-group">
+                    <button class="pill-btn active" onclick="filterLeave('all', this)">All</button>
+                    <button class="pill-btn" onclick="filterLeave('Approved', this)">Approved</button>
+                    <button class="pill-btn" onclick="filterLeave('Pending', this)">Pending</button>
+                    <button class="pill-btn" onclick="filterLeave('Rejected', this)">Rejected</button>
+                </div>
+                <form class="d-flex align-items-center gap-2">
+                    <span class="small fw-bold text-muted">DATE FILTER:</span>
+                    <input type="date" name="leave_date" value="{{ leave_date }}" onchange="this.form.submit()" class="form-control form-control-sm rounded-pill">
+                </form>
+            </div>
+            <table class="table border" id="leaveTable">
+                <thead class="table-light small"><tr><th>STUDENT</th><th>PERIOD</th><th>REASON</th><th class="text-center">STATUS</th></tr></thead>
+                <tbody>
+                    {% for l in leaves %}
+                    <tr class="stu-row" ondblclick="location.href='/gatekeeper-v3-okara-786/student/profile/{{ l.student.id }}/'">
+                        <td class="fw-bold">{{ l.student.full_name }}</td>
+                        <td>{{ l.from_date }} to {{ l.to_date }}</td>
+                        <td class="small">{{ l.reason }}</td>
+                        <td class="text-center"><span class="badge leave-badge {% if l.status == 'Approved' %}bg-success{% elif l.status == 'Rejected' %}bg-danger{% else %}bg-dark{% endif %}">{{ l.status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tab Controller
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
+            document.querySelector(this.dataset.bsTarget).classList.add('show', 'active');
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Attendance Filter Engine
+    let currentAttFilter = 'all';
+    const attSearch = document.getElementById('attSearch');
+
+    function applyAtt() {
+        const q = attSearch.value.toLowerCase();
+        document.querySelectorAll('#attTable tbody tr').forEach(row => {
+            const txt = row.innerText.toLowerCase();
+            const stat = row.querySelector('.status-badge').innerText.trim().toUpperCase();
+            row.style.display = (txt.includes(q) && (currentAttFilter === 'all' || stat === currentAttFilter)) ? '' : 'none';
+        });
+    }
+    function filterAtt(s, b) {
+        document.querySelectorAll('#attendance-pane .pill-btn').forEach(btn => btn.classList.remove('active'));
+        b.classList.add('active');
+        currentAttFilter = s.toUpperCase();
+        applyAtt();
+    }
+    attSearch.addEventListener('input', applyAtt);
+
+    // Leave Filter Engine
+    function filterLeave(s, b) {
+        document.querySelectorAll('#leaves-pane .pill-btn').forEach(btn => btn.classList.remove('active'));
+        b.classList.add('active');
+        document.querySelectorAll('#leaveTable tbody tr').forEach(row => {
+            const stat = row.querySelector('.leave-badge').innerText.trim();
+            row.style.display = (s === 'all' || stat === s) ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}

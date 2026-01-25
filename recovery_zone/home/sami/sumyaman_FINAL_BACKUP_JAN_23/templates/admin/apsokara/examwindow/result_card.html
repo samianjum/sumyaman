@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page { size: A4; margin: 1cm; }
+        body { font-family: "Times New Roman", serif; margin: 0; padding: 0; color: black; }
+        .wrapper { border: 2px solid #000; padding: 25px; width: 17.5cm; margin: auto; min-height: 25cm; position: relative; }
+        .header { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 15px; }
+        .logo { width: 80px; }
+        .school-title { font-size: 24px; font-weight: bold; text-transform: uppercase; margin: 5px 0; }
+        .result-heading { font-size: 16px; font-weight: bold; text-align: center; margin: 10px 0; background: #f0f0f0; border: 1px solid black; padding: 5px; }
+        .info-table { width: 100%; font-size: 14px; margin-bottom: 20px; }
+        .marks-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .marks-table th, .marks-table td { border: 1px solid black; padding: 10px; text-align: center; }
+        .marks-table th { background: #f2f2f2; }
+        .subj-name { text-align: left; padding-left: 15px; font-weight: bold; }
+        .summary-box { border: 2px solid black; padding: 12px; margin-top: 20px; display: flex; justify-content: space-around; font-size: 16px; font-weight: bold; }
+        .remarks-box { border-bottom: 1px solid black; padding: 5px; font-style: italic; margin-top: 10px; }
+        .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 10px; border-top: 1px solid #ccc; padding-top: 10px; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align:center; padding: 15px;"><button onclick="window.print()">PRINT</button></div>
+    <div class="wrapper">
+        <div class="header">
+            {% if logo_base64 %}<img src="data:image/png;base64,{{ logo_base64 }}" class="logo">{% endif %}
+            <div class="school-title">Army Public School & College</div>
+            <div style="font-size: 18px; font-weight: bold;">OKARA CANTT</div>
+        </div>
+        <div class="result-heading">OFFICIAL PROGRESS REPORT: {{ exam.title|upper }} 2026</div>
+        <table class="info-table">
+            <tr>
+                <td width="20%"><strong>Student:</strong> {{ student.full_name }}</td>
+                <td width="20%"><strong>Wing:</strong> {{ student.wing }}</td>
+            </tr>
+            <tr>
+                <td><strong>Class-Sec:</strong> {{ student.student_class }}-{{ student.student_section }}</td>
+                <td><strong>Admn No:</strong> {{ student.identity_number }}</td>
+            </tr>
+        </table>
+        <table class="marks-table">
+            <thead>
+                <tr>
+                    <th class="subj-name">Subject Description</th>
+                    <th>Max</th><th>Obtained</th><th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in marks %}
+                <tr>
+                    <td class="subj-name">{{ m.subject_assignment.subject_name|default:m.subject_assignment.subject.name|default:"Subject" }}</td>
+                    <td>{{ m.total_marks }}</td><td>{{ m.obtained_marks }}</td>
+                    <td>{% if m.obtained_marks >= 80 %}A1{% elif m.obtained_marks >= 70 %}A{% else %}B{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="summary-box">
+            <span>AGGREGATE: {{ total_obtained }} / {{ total_max }}</span>
+            <span>PERCENTAGE: {{ percentage }}%</span>
+        </div>
+        <div style="margin-top:25px;">
+            <strong>Class Teacher's Remarks:</strong>
+            <div class="remarks-box">"{{ remarks }}"</div>
+        </div>
+        <div class="footer">
+            <span>Verification ID: {{ security_hash }}</span>
+            <span>Computer Generated - APS Okara</span>
+        </div>
+    </div>
+</body>
+</html>

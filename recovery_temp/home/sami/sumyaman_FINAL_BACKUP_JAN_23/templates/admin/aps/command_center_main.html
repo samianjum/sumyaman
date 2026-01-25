@@ -1,0 +1,64 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<style>
+    body { background-color: #0d1117; color: #c9d1d9; }
+    .header-hub { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; background: #161b22; padding: 20px; border-radius: 12px; border: 1px solid #30363d; }
+    .add-btn { background: #238636; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; }
+    .wing-block { margin-bottom: 40px; }
+    .wing-header { border-bottom: 2px solid #30363d; padding-bottom: 10px; margin-bottom: 20px; color: #58a6ff; font-size: 1.8rem; text-transform: uppercase; }
+    .class-row { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: center; margin-bottom: 15px; background: #0d1117; padding: 10px; border-radius: 8px; }
+    .section-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .sec-card { background: #161b22; border: 1px solid #30363d; padding: 12px; border-radius: 6px; text-align: center; }
+    .p-bar { height: 4px; background: #21262d; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .p-fill { height: 100%; transition: width 0.5s; }
+    .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+</style>
+
+<div class="header-hub">
+    <div>
+        <h1 style="margin:0; color:#fff;">🎮 ACADEMIC COMMAND GRID</h1>
+        <p style="color:#8b949e;">Current Focus: 
+            {% if active_exam %}
+                <span style="color:#58a6ff; font-weight:bold;">{{ active_exam.title }}</span>
+            {% else %}
+                <span style="color:#f85149;">NO ACTIVE EXAM</span>
+            {% endif %}
+        </p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <select onchange="window.location.href='?exam='+this.value" style="background:#0d1117; color:white; border:1px solid #30363d; padding:8px; border-radius:6px;">
+            <option>Switch Exam History...</option>
+            {% for ex in all_exams %}
+                <option value="{{ ex.id }}">{{ ex.title }}</option>
+            {% endfor %}
+        </select>
+        <a href="add/" class="add-btn">+ ADD NEW EXAM WINDOW</a>
+    </div>
+</div>
+
+{% for wing, classes in grid_data.items %}
+<div class="wing-block">
+    <div class="wing-header">🏛️ {{ wing }} Wing</div>
+    {% for class_name, sections in classes.items %}
+    <div class="class-row">
+        <div style="font-size: 1.2rem; font-weight: bold; color: #f0f6fc;">CLASS {{ class_name }}</div>
+        <div class="section-grid">
+            {% for sec in sections %}
+            <div class="sec-card">
+                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;">
+                    <span>Sec <b>{{ sec.section }}</b></span>
+                    <span style="color:{% if sec.percent == 100 %}#3fb950{% else %}#d29922{% endif %};">{{ sec.percent }}%</span>
+                </div>
+                <div style="font-size:10px; color:#8b949e;">{{ sec.done }}/{{ sec.total }} Subjects</div>
+                <div class="p-bar">
+                    <div class="p-fill" style="width: {{ sec.percent }}%; background: {% if sec.percent == 100 %}#238636{% else %}#9e6a03{% endif %};"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+{% endblock %}

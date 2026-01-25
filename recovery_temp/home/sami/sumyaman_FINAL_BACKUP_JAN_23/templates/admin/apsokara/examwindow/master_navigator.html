@@ -1,0 +1,26 @@
+{% extends "admin/change_list.html" %}
+{% block content %}
+<div id="content-main">
+    <div style="margin-bottom: 20px;">
+        <a href="add/" class="addlink" style="background:#417690; color:white; padding:10px 15px; border-radius:4px; text-decoration:none;">+ Add New Exam Window</a>
+    </div>
+
+    {% for wing, classes in structure.items %}
+    <div class="module" style="margin-bottom: 30px;">
+        <table style="width:100%">
+            <caption><a href="#" class="section">{{ wing|upper }} WING</a></caption>
+            {% for cls, sections in classes.items %}
+            <tr class="model-student">
+                <th scope="row" style="width:150px">Class {{ cls }}</th>
+                <td>
+                    {% for sec in sections %}
+                    <a href="view-exams/{{ wing }}/{{ cls }}/{{ sec }}/" class="changelink" style="margin-right:15px; font-weight:bold;">Section {{ sec }}</a>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

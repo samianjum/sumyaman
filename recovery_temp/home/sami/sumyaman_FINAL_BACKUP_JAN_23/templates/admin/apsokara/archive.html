@@ -1,0 +1,63 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<style>
+    .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
+    .year-box { 
+        background: linear-gradient(135deg, #1a237e 0%, #283593 100%); 
+        color: white; padding: 30px; border-radius: 15px; text-align: center;
+        text-decoration: none; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .year-box:hover { transform: translateY(-10px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); background: #ffd700; color: #1a237e; }
+    .year-box h2 { font-size: 2.5rem; margin-bottom: 10px; }
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+    .data-table th, .data-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    .header-bar { background: #eee; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+</style>
+
+<div class="header-bar">
+    <h1>🏛️ Historical Data Vault</h1>
+    <p>Select an academic session to view full records including students, teachers, and attendance.</p>
+</div>
+
+<div class="archive-grid">
+    {% for s in sessions %}
+    <a href="?year={{ s.session_year }}" class="year-box">
+        <h2>{{ s.session_year }}</h2>
+        <p>Total Records: {{ s.total }} Students</p>
+        <span>Click to Open Vault →</span>
+    </a>
+    {% endfor %}
+</div>
+
+{% if selected_year %}
+<hr>
+<div style="background: white; padding: 20px; border-radius: 15px; border: 2px solid #1a237e;">
+    <h2>📊 Detailed Records for Session: {{ selected_year }}</h2>
+    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+        <div style="flex:1; background: #e8f5e9; padding:15px; border-radius:10px;"><b>Total Attendance Logs:</b> {{ detailed_data.attendance }}</div>
+        <div style="flex:1; background: #fff3e0; padding:15px; border-radius:10px;"><b>Total Exam Marks:</b> {{ detailed_data.marks }}</div>
+    </div>
+    
+    <table class="data-table">
+        <thead style="background:#1a237e; color:white;">
+            <tr>
+                <th>Student Name</th>
+                <th>Class</th>
+                <th>Wing</th>
+                <th>Final Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for std in detailed_data.students %}
+            <tr>
+                <td>{{ std.full_name }}</td>
+                <td>{{ std.student_class }}</td>
+                <td>{{ std.wing }}</td>
+                <td>{{ std.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "admin/change_list.html" %}
+{% block content %}
+<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; background: #1e3c72; color: white; padding: 20px; border-radius: 10px 10px 0 0;">
+        <h2 style="margin:0;">🏛️ APS OKARA MASTER CONTROL</h2>
+        <form action="global-search/" method="get" style="display: flex; gap: 10px;">
+            <input type="text" name="q" placeholder="Search Student Name or ID..." style="padding: 8px; border-radius: 5px; border: none; width: 250px;">
+            <button type="submit" style="background: #f39c12; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Search</button>
+        </form>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; background: white; padding: 20px; border: 1px solid #ddd; border-top: none;">
+        <div style="border-right: 1px solid #eee; padding-right: 20px;">
+            <h3 style="color: #2c3e50;">🚀 Quick Actions</h3>
+            <a href="create-exam-wizard/" style="display: block; background: #27ae60; color: white; text-align: center; padding: 15px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-bottom: 10px;">+ START NEW EXAM SESSION</a>
+            <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; text-align: center;">
+                <p style="margin:0; color: #7f8c8d;">Total Students</p>
+                <h2 style="margin:5px 0; color: #2c3e50;">{{ total_students }}</h2>
+            </div>
+        </div>
+
+        <div>
+            <h3 style="color: #e67e22;">🔥 Live Exam Windows</h3>
+            {% if active_exams %}
+                {% for exam in active_exams %}
+                <div style="background: #fff3cd; border-left: 5px solid #f1c40f; padding: 15px; border-radius: 5px; margin-bottom: 10px;">
+                    <strong style="font-size: 18px;">{{ exam.title }}</strong><br>
+                    <span style="color: #856404;">Target Classes: <b>{{ exam.target_classes }}</b> | Ends on: {{ exam.end_date }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #95a5a6;">No active exams. Start one to enable teacher portals.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; background: #f9f9f9; padding: 20px; border-radius: 10px; border: 1px solid #ddd;">
+        <h3 style="color: #1e3c72; border-bottom: 2px solid #1e3c72; padding-bottom: 10px;">📂 School Archive (Wings & Classes)</h3>
+        <div style="display: flex; gap: 30px; margin-top: 15px;">
+            {% for wing, classes in hierarchy.items %}
+            <div style="flex: 1; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h4 style="background: #34495e; color: white; padding: 10px; margin-top: 0; border-radius: 5px;">{{ wing }} Wing</h4>
+                {% for cls, sections in classes.items %}
+                <div style="margin-bottom: 10px;">
+                    <strong style="color: #2980b9;">Class {{ cls }}:</strong>
+                    <div style="display: flex; gap: 5px; margin-top: 5px;">
+                        {% for sec in sections %}
+                        <a href="section-archive/{{ wing }}/{{ cls }}/{{ sec }}/" style="background: #eee; padding: 3px 8px; border-radius: 3px; font-size: 12px; text-decoration: none; color: #333; border: 1px solid #ccc;">Section {{ sec }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{{ block.super }}
+{% endblock %}

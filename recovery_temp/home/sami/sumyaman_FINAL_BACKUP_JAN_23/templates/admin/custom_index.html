@@ -1,0 +1,11 @@
+{% extends "admin/index.html" %}
+{% block content %}
+<header style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 10px; margin-bottom: 20px;">
+    <div style="font-weight: 800; font-size: 1.2rem;">🛡️ APS OKARA ADMIN</div>
+    <form action="/logout/" method="post" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" style="background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 5px 15px; border-radius: 20px; cursor: pointer;">Logout</button>
+    </form>
+</header>
+{{ block.super }}
+{% endblock %}

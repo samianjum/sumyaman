@@ -1,0 +1,35 @@
+{% extends 'apsokara/base_admin.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3>Welcome back, {{ user_name }}!</h3>
+    <p class="text-muted">Here is what's happening in APS Okara today.</p>
+    
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card p-3 border-0 shadow-sm">
+                <small class="text-muted">Total Students</small>
+                <h2 class="text-primary">{{ total_students }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 border-0 shadow-sm">
+                <small class="text-muted">Present Today</small>
+                <h2 class="text-success">{{ present }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 border-0 shadow-sm">
+                <small class="text-muted">Boys</small>
+                <h2 class="text-info">{{ boys }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 border-0 shadow-sm">
+                <small class="text-muted">Girls</small>
+                <h2 class="text-warning">{{ girls }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

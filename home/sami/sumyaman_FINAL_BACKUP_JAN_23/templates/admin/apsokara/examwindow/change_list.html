@@ -1,0 +1,40 @@
+{% extends "admin/change_list.html" %}
+{% block content_title %}
+    {{ block.super }}
+    {% if active_exam %}
+        <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <h2 style="margin:0 0 10px 0; color: #333;">🧠 Intelligence Hub: {{ active_exam.title }}</h2>
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ active_exam.id }}/generate-merit/" class="button" style="background: #28a745;">🏆 Generate Merit List</a>
+                <a href="{{ active_exam.id }}/run-integrity/" class="button" style="background: #ffc107; color: black;">⚖️ Run Integrity Check</a>
+            </div>
+            
+            <table style="width: 100%; margin-top: 15px; border-collapse: collapse; background: white;">
+                <thead>
+                    <tr style="background: #e9ecef; text-align: left;">
+                        <th style="padding: 8px; border: 1px solid #ddd;">Wing</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Class-Section</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Avg Score</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Pass Ratio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in matrix %}
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{{ row.student__wing }}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{{ row.student__student_class }}-{{ row.student__student_section }}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{{ row.avg_score|stringformat:".2f" }}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">
+                            <div style="width: 100px; background: #eee; height: 10px;">
+                                <div style="width: {{ row.total_entries }}%; background: green; height: 10px;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" style="padding: 8px; text-align: center;">No live data for this window.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

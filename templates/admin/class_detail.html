@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1a237e; padding-bottom: 15px; margin-bottom: 20px;">
+        <h1 style="margin:0; color:#1a237e;">Grade {{ info.class }}-{{ info.sec }} ({{ info.wing }})</h1>
+        <form method="GET" style="display: flex; gap: 10px; align-items: center;">
+            <input type="date" name="date" value="{{ info.date }}" onchange="this.form.submit()">
+            <input type="hidden" name="range" value="{{ stats.range }}">
+        </form>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+        <div style="background:#e3f2fd; padding:15px; border-radius:10px; text-align:center;"><b>Total:</b> {{ stats.total }}</div>
+        <div style="background:#e8f5e9; padding:15px; border-radius:10px; text-align:center;"><b>Present:</b> {{ stats.present }}</div>
+        <div style="background:#ffebee; padding:15px; border-radius:10px; text-align:center;"><b>Absent:</b> {{ stats.absent }}</div>
+        <div style="background:#fff3e0; padding:15px; border-radius:10px; text-align:center;"><b>Leave:</b> {{ stats.leave }}</div>
+    </div>
+    <table style="width: 100%; border-collapse: collapse; background: white;">
+        <thead>
+            <tr style="background: #1a237e; color: white;">
+                <th style="padding: 12px; border: 1px solid #ddd;">Roll No</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Student Name</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Status ({{ info.date }})</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in student_list %}
+            <tr style="text-align: center;">
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ s.roll }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">{{ s.name }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: {% if s.status == 'Present' %}#28a745{% elif s.status == 'Absent' %}#dc3545{% elif s.status == 'Leave' %}#ffc107{% else %}#999{% endif %};">
+                    {{ s.status }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br><a href="/admin/" class="button" style="background: #666;">← Back to Dashboard</a>
+</div>
+{% endblock %}

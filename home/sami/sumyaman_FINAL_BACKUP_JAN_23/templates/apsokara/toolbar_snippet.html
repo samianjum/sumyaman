@@ -1,0 +1,21 @@
+<div class="table-toolbar no-print">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="d-flex align-items-center gap-2 me-3">
+            <span class="small fw-bold text-muted text-nowrap">DATE:</span>
+            <form method="GET" class="m-0">
+                <input type="date" name="hist_date" value="{{ hist_date }}" onchange="this.form.submit()" class="form-control form-control-sm rounded-pill border-danger">
+                <input type="hidden" name="range" value="{{ range }}">
+            </form>
+        </div>
+        <input type="text" id="smartFilter" class="search-pill" placeholder="Search Student / ID...">
+        <div class="filter-group">
+            <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+            <button class="filter-btn text-success" onclick="setFilter('PRESENT', this)">Present</button>
+            <button class="filter-btn text-danger" onclick="setFilter('ABSENT', this)">Absent</button>
+            <button class="filter-btn text-warning" onclick="setFilter('LEAVE', this)">Leave</button>
+        </div>
+    </div>
+    <div class="no-print">
+        <button onclick="window.print()" class="btn btn-dark btn-sm rounded-pill px-3"><i class="fas fa-print me-2"></i>Print Sheet</button>
+    </div>
+</div>

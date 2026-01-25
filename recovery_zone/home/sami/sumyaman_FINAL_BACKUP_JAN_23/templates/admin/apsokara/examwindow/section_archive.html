@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div id="content-main">
+    <h1>Archive for Class {{ cls }}-{{ sec }} ({{ wing }})</h1>
+    <p>Viewing all past examination performances for this section.</p>
+    
+    <div class="module">
+        <table style="width:100%">
+            <thead>
+                <tr style="background:#417690; color:white;">
+                    <th style="padding:10px;">Exam Title</th>
+                    <th style="padding:10px;">Total Students</th>
+                    <th style="padding:10px;">Pass/Fail</th>
+                    <th style="padding:10px;">Avg Score</th>
+                    <th style="padding:10px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in history %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td style="padding:10px; font-weight:bold;">{{ item.exam.title }}</td>
+                    <td style="padding:10px; text-align:center;">{{ item.stats.total }}</td>
+                    <td style="padding:10px; text-align:center;">
+                        <span style="color:green;">{{ item.stats.pass }} Pass</span> / 
+                        <span style="color:red;">{{ item.stats.fail }} Fail</span>
+                    </td>
+                    <td style="padding:10px; text-align:center;">{{ item.stats.avg|floatformat:2 }}%</td>
+                    <td style="padding:10px;">
+                        <a href="/admin/apsokara/examwindow/exam-analytics/{{ item.exam.id }}/{{ wing }}/{{ cls }}/{{ sec }}/" class="button" style="background:#28a745;">Detailed Analytics</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <br>
+    <a href="/admin/apsokara/examwindow/" class="button" style="background:#666;">&laquo; Back to Command Center</a>
+</div>
+{% endblock %}

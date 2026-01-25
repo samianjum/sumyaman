@@ -1,0 +1,123 @@
+import sqlite3
+import pandas as pd
+import streamlit as st
+from datetime import datetime
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import io
+
+def generate_pdf(name, std_id, df):
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    p.setFont("Helvetica-Bold", 20)
+    p.setFillColorRGB(0.8, 0, 0)
+    p.drawString(100, 750, "STUDENT ATTENDANCE REPORT")
+    p.setFont("Helvetica-Bold", 12)
+    p.setFillColorRGB(0, 0, 0)
+    p.drawString(100, 725, f"Name: {name}")
+    p.drawString(100, 710, f"Student ID: {std_id}")
+    p.drawString(400, 710, f"Generated: {datetime.now().strftime('%Y-%m-%d')}")
+    p.line(100, 700, 500, 700)
+    y = 670
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(100, y, "DATE")
+    p.drawString(300, y, "STATUS")
+    p.setFont("Helvetica", 11)
+    for index, row in df.iterrows():
+        y -= 20
+        p.drawString(100, y, str(row['date']))
+        p.drawString(300, y, str(row['status']))
+        if y < 100:
+            p.showPage()
+            y = 750
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return buffer
+
+def render_student_attendance(u):
+    conn = sqlite3.connect("db.sqlite3", timeout=30)
+    # Using 'id' because database has 1, 5, 7, 8
+    std_id = u.get('identity_number', u.get('id', u.get('id_num')))
+    std_name = u.get("name", "Student")
+
+    # Correct Query for your DB format
+    query = """
+        SELECT a.date, a.status 
+        FROM apsokara_attendance a 
+        WHERE a.student_id = (SELECT id FROM apsokara_student WHERE id=? OR identity_number=?) 
+        AND a.edit_count = (SELECT MAX(edit_count) FROM apsokara_attendance WHERE student_id=a.student_id AND date=a.date) 
+        ORDER BY a.date DESC
+    """
+    df = pd.read_sql(query, conn, params=(str(std_id), str(std_id)))
+
+    if df.empty:
+        st.error(f"No Records Found for ID: {std_id}"); conn.close(); return
+
+    total = len(df)
+    p_count = len(df[df['status'].str.contains('Present|^P$', case=False, na=False)])
+    a_count = len(df[df['status'].str.contains('Absent|^A$', case=False, na=False)])
+    l_count = len(df[df['status'].str.contains('Leave|^L$', case=False, na=False)])
+    rate = round((p_count/total)*100, 1) if total > 0 else 0
+
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        .main { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcfc; }
+        .aesthetic-card {
+            background: #ffffff; padding: 22px; border-radius: 20px; text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.03); 
+            border-left: 5px solid #FF3B30; border-bottom: 5px solid #FF3B30;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .aesthetic-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(255, 59, 48, 0.15); }
+        .custom-card {
+            background: #ffffff; border: 1px solid #f1f5f9; border-radius: 28px;
+            padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); height: 100%;
+        }
+        div.stDownloadButton > button {
+            background: linear-gradient(135deg, #FF3B30 0%, #B81D13 100%) !important;
+            color: white !important; border: none !important; padding: 20px 24px !important;
+            border-radius: 18px !important; font-weight: 800 !important; width: 100% !important;
+            transition: all 0.3s ease !important; box-shadow: 0 10px 20px rgba(255, 59, 48, 0.3) !important;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #FF3B30 0%, #B81D13 100%); padding: 40px; border-radius: 30px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; box-shadow: 0 20px 40px rgba(255, 59, 48, 0.2);">
+        <div><h1 style="margin:0; font-size:36px; letter-spacing:-1px;">{std_name}</h1><p style="opacity:0.8; font-weight:600;">PORTAL ID: {std_id} • STATUS: ACTIVE</p></div>
+        <div style="text-align:right;"><small style="font-weight:800; opacity:0.7;">ATTENDANCE</small><div style="font-size: 60px; font-weight: 900; line-height:1;">{rate}%</div></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    c1, c2, c3, c4 = st.columns(4)
+    stats = [("TOTAL", total, "#1E293B"), ("PRESENT", p_count, "#28a745"), ("ABSENT", a_count, "#FF3B30"), ("LEAVE", l_count, "#FF9500")]
+    for col, (label, val, color) in zip([c1, c2, c3, c4], stats):
+        col.markdown(f'<div class="aesthetic-card" style="border-left-color:{color}; border-bottom-color:{color};"><small style="color:#94A3B8; font-weight:800;">{label}</small><h2 style="color:{color}; margin:5px 0 0 0; font-size:34px;">{val}</h2></div>', unsafe_allow_html=True)
+
+    col_l, col_r = st.columns([1.6, 1], gap="large")
+    with col_l:
+        st.markdown('<div class="custom-card"><h3 style="margin:0 0 20px 0; font-weight:800; font-size:22px;">Recent History</h3>', unsafe_allow_html=True)
+        for _, row in df.head(5).iterrows():
+            st.markdown(f'<div style="display:flex;justify-content:space-between;padding:15px 0;border-bottom:1px solid #f8fafc;"><span style="font-weight:600; color:#444;">{row["date"]}</span><span style="color:#FF3B30;font-weight:900;">{row["status"]}</span></div>', unsafe_allow_html=True)
+        st.write("")
+        pdf_file = generate_pdf(std_name, std_id, df)
+        st.download_button(label="📥 Download Full Report", data=pdf_file, file_name=f"{std_name}_Attendance.pdf", mime="application/pdf")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_r:
+        st.markdown('<div class="custom-card"><h3 style="margin:0; font-weight:800; font-size:22px;">Date Search</h3><p style="color:#94A3B8; font-size:13px; margin-bottom:20px;">Check past records</p>', unsafe_allow_html=True)
+        s_date = st.date_input("Search", label_visibility="collapsed")
+        match = df[df['date'] == s_date.isoformat()]
+        if not match.empty:
+            st.markdown(f"""
+            <div style="background:rgba(255,59,48,0.05); border:2px dashed #FF3B30; border-radius:20px; padding:25px; text-align:center; margin-top:15px;">
+                <small style="color:#666; font-weight:800;">VERIFIED STATUS</small>
+                <h1 style="color:#FF3B30; margin:10px 0 0 0; font-size:42px; font-weight:900;">{match.iloc[0]['status']}</h1>
+            </div>""", unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="background:#f8fafc; border-radius:20px; padding:25px; text-align:center; margin-top:15px; color:#999;">No Record Found</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    conn.close()
