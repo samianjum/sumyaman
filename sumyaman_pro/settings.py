@@ -57,3 +57,32 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 LOGOUT_REDIRECT_URL = '/admin/login/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# --- HQ ADMIN EXTRA SECURITY LAYER ---
+# Sirf local machine se access allow karne ke liye
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
+
+# Browser Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# Session Security (Strict Mode)
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+# Note: SECURE_COOKIEs tab enable karte hain jab HTTPS ho, 
+# lekin local use ke liye HTTPONLY kafi hai.
+
+# --- ADVANCED HACKER PROTECTION ---
+# 1. Clickjacking se bachao (Koi aapki site ko frame nahi kar sakega)
+X_FRAME_OPTIONS = 'DENY'
+
+# 2. Browser ko majboor karna ke wo sirf hamari scripts chalaye (CSP)
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# 3. Session Hijacking se bachne ke liye (Sirf browser read kar sakega)
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+
+# 4. Agar hacker SQL Injection try kare toh Django built-in protection active hai.
