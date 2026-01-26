@@ -4,10 +4,20 @@
 
 {% block content %}
 <style>
-    .hq-banner {
-        background: var(--hq-primary); color: white; padding: 40px;
-        border-radius: 15px; margin-bottom: 25px; border-left: 8px solid var(--hq-accent);
+    /* Institutional Banner for Main HQ */
+    .hq-institutional-banner {
+        background: linear-gradient(135deg, var(--hq-primary) 0%, #1a252b 100%);
+        color: white; border-radius: 15px; padding: 40px; margin-bottom: 30px;
+        position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border-left: 8px solid var(--hq-accent);
     }
+    .hq-institutional-banner::after {
+        content: '\f19c'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+        position: absolute; right: -20px; bottom: -20px; font-size: 18rem;
+        opacity: 0.05; transform: rotate(-15deg);
+    }
+    .motto { font-style: italic; font-size: 0.95rem; opacity: 0.9; letter-spacing: 1px; }
+
     .hub-section {
         background: white; border: 1px solid var(--hq-border);
         border-radius: 15px; padding: 30px; margin-bottom: 30px;
@@ -35,21 +45,37 @@
     .go-btn { position: absolute; bottom: 0; right: 0; background: var(--hq-primary); color: white; padding: 10px 25px; border-radius: 20px 0 0 0; font-size: 0.8rem; font-weight: bold; }
 </style>
 
-<div class="hq-banner">
-    <h1 class="fw-black mb-1 text-uppercase">Intelligence & Attendance HQ</h1>
-    <p class="mb-0 opacity-75 fw-bold">Army Public School & College System | Okara Cantt</p>
+<div class="hq-institutional-banner d-flex justify-content-between align-items-center">
+    <div>
+        <div class="d-flex align-items-center mb-2">
+            <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px;">
+                <i class="fas fa-shield-halved fa-2x text-white"></i>
+            </div>
+            <h1 class="fw-black text-uppercase mb-0" style="letter-spacing: -1px;">Intelligence & Attendance HQ</h1>
+        </div>
+        <p class="motto mb-0">APS Okara Cantt — Building a disciplined and enlightened future.</p>
+        <div class="mt-3">
+            <span class="badge bg-light text-dark px-3 py-2"><i class="fas fa-calendar-check me-2"></i>SESSION 2026-27</span>
+            <span class="badge bg-light text-dark px-3 py-2 ms-2"><i class="fas fa-map-marker-alt me-2"></i>OKARA CANTT</span>
+        </div>
+    </div>
+    <div class="text-end d-none d-md-block">
+        <h4 class="mb-0 fw-bold">MAIN COMMAND</h4>
+        <small class="opacity-75">Central Monitoring System</small>
+    </div>
 </div>
 
 <div class="hub-section">
     <div class="hub-header">
-        <h5 class="fw-bold mb-0 text-muted"><i class="fas fa-chart-pie me-2"></i>Live Data Analytics</h5>
-        <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-secondary">TODAY</button>
+        <h5 class="fw-bold mb-0 text-muted"><i class="fas fa-chart-pie me-2"></i>School-Wide Attendance Analytics</h5>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="small fw-bold text-muted text-uppercase">Data Context:</span>
+            <button class="btn btn-sm btn-dark px-3">TODAY</button>
             <input type="date" class="form-control form-control-sm w-auto" value="{{ today_date|date:'Y-m-d' }}">
         </div>
     </div>
     <div class="row g-3">
-        <div class="col-md-3"><div class="ana-card-alt"><span class="ana-num">{{ total_students }}</span><span class="ana-label-alt">Strength Sum</span></div></div>
+        <div class="col-md-3"><div class="ana-card-alt"><span class="ana-num">{{ total_students }}</span><span class="ana-label-alt">Global Strength</span></div></div>
         <div class="col-md-3"><div class="ana-card-alt" style="border-bottom: 4px solid #10b981;"><span class="ana-num text-success">{{ present }}</span><span class="ana-label-alt">Present Assets</span></div></div>
         <div class="col-md-3"><div class="ana-card-alt" style="border-bottom: 4px solid #ef4444;"><span class="ana-num text-danger">{{ absent }}</span><span class="ana-label-alt">Absent Personnel</span></div></div>
         <div class="col-md-3"><div class="ana-card-alt" style="border-bottom: 4px solid #f59e0b;"><span class="ana-num text-warning">{{ leave }}</span><span class="ana-label-alt">Authorized Leave</span></div></div>
@@ -61,7 +87,7 @@
         <a href="/hq-portal/attendance/boys-wing/" class="wing-card">
             <i class="fas fa-mars"></i>
             <h3>BOYS WING</h3>
-            <p class="text-muted">Explore boys' section from Junior to Senior levels.</p>
+            <p class="text-muted">Explore boys' section from Junior to Senior levels. Manage records by class and section.</p>
             <div class="go-btn">ENTER WING <i class="fas fa-arrow-right ms-1"></i></div>
         </a>
     </div>
@@ -69,7 +95,7 @@
         <a href="/hq-portal/attendance/girls-wing/" class="wing-card">
             <i class="fas fa-venus"></i>
             <h3>GIRLS WING</h3>
-            <p class="text-muted">Access girls' academic records and daily trends.</p>
+            <p class="text-muted">Access girls' academic records, daily attendance trends, and class-wise reporting.</p>
             <div class="go-btn" style="background: var(--hq-accent);">ENTER WING <i class="fas fa-arrow-right ms-1"></i></div>
         </a>
     </div>

@@ -1,6 +1,13 @@
+
+def get_breadcrumbs(path_list):
+    crumbs = []
+    if 'attendance' in path_list:
+        crumbs.append({'name': 'Attendance HQ', 'url': '/hq-portal/attendance/'})
+    return crumbs
+
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from .models import Student, Attendance
+from .models import Student, Attendance, Teacher
 from django.utils import timezone
 from django.db.models import Count
 
@@ -13,7 +20,7 @@ def hq_dashboard(request):
 @login_required
 def attendance_view(request):
     today = timezone.now().date()
-    context = {
+    context = { 'breadcrumbs': [{'name': 'Attendance HQ', 'url': '/hq-portal/attendance/'}],
         'total_students': Student.objects.count(),
         'present': Attendance.objects.filter(date=today, status__iexact='Present').count(),
         'absent': Attendance.objects.filter(date=today, status__iexact='Absent').count(),
@@ -68,3 +75,58 @@ def girls_wing_view(request):
     context = get_wing_data('Girls')
     context.update({'wing_title': 'Girls Wing', 'theme_color': '#52796F'})
     return render(request, 'hq_admin_custom/wing_detail.html', context)
+
+
+@login_required
+def mark_attendance_view(request, class_name, section_name):
+    today = timezone.now().date()
+    # Get date from URL query or use today
+    date_str = request.GET.get('date')
+    selected_date = date_str if date_str else today.strftime('%Y-%m-%d')
+    
+    
+    
+    
+    
+    
+    students = Student.objects.filter(student_class=class_name, student_section=section_name)
+    first_student = students.first()
+    wing_name = first_student.wing if first_student else "Unknown"
+    
+    # Database Search for the actual Class Teacher
+    teacher_obj = Teacher.objects.filter(
+        assigned_class=class_name, 
+        assigned_section=section_name, 
+        is_class_teacher=True
+    ).first()
+    
+    class_teacher = teacher_obj.full_name if teacher_obj else "Not Assigned"
+    
+    attendance_records = Attendance.objects.filter(
+
+
+
+
+        student__student_class=class_name, 
+        student__student_section=section_name,
+        date=selected_date
+    )
+
+    context = { 'breadcrumbs': [{'name': 'Attendance HQ', 'url': '/hq-portal/attendance/'}],
+        'class_name': class_name,
+        'section_name': section_name,
+        'wing_name': wing_name, 'class_teacher': class_teacher, 'breadcrumbs': [{'name': 'Attendance HQ', 'url': '/hq-portal/attendance/'}, {'name': wing_name + ' Wing', 'url': '/hq-portal/attendance/' + wing_name.lower() + '-wing/'}, {'name': f'{class_name}-{section_name}', 'url': ''} ],
+        'selected_date': selected_date,
+
+        'class_name': class_name,
+        'section_name': section_name,
+        'selected_date': selected_date,
+        'total_count': students.count(),
+        'present_count': attendance_records.filter(status__iexact='Present').count(),
+        'absent_count': attendance_records.filter(status__iexact='Absent').count(),
+        'leave_count': attendance_records.filter(status__iexact='Leave').count(),
+        'attendance_data': attendance_records,
+        'theme_color': '#1e293b'
+    }
+    return render(request, 'hq_admin_custom/classroom_detail.html', context)
+
