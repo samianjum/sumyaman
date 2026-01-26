@@ -1,29 +1,19 @@
-# 🚀 SUMYAMAN - School Management System
+# 🚀 SUMYAMAN - One Click Setup
 
-Sami bhai, teacher ke computer pe bas ye steps follow karein:
+Agar teacher ke computer par Git install nahi hai, to **PowerShell** kholien aur ye poora block copy-paste kar dein:
 
-### 1. Clone the Project
-Open CMD/Terminal and type:
-\`\`\`bash
-git clone https://github.com/samianjum/sumyaman.git
-cd sumyaman
+\`\`\`powershell
+$url = "https://github.com/samianjum/sumyaman/archive/refs/heads/main.zip"; $zip = "sumyaman.zip"; Invoke-WebRequest -Uri $url -OutFile $zip; Expand-Archive -Path $zip -DestinationPath "."; cd "sumyaman-main"; .\setup_windows.bat
 \`\`\`
-
-### 2. Run Setup (Windows Only)
-Double click on \`setup_windows.bat\` OR run:
-\`\`\`bash
-setup_windows.bat
-\`\`\`
-
-### 3. Login Details
-- **Admin Portal:** http://127.0.0.1:8000/hq-portal/
-- **Username:** (Apna admin username yahan likhein)
-- **Password:** (Apna admin password yahan likhein)
 
 ---
-### Manual Steps (In case script fails):
-1. \`python -m venv venv\`
-2. \`venv\Scripts\activate\`
-3. \`pip install -r requirements.txt\`
-4. \`python manage.py migrate\`
-5. \`python manage.py runserver\`
+
+### 📝 Kya hoga is command se?
+1. **Download:** Aapka poora project ZIP ban kar download hoga.
+2. **Extract:** ZIP file khud hi khul kar folder ban jayegi.
+3. **Setup:** Humara banaya hua \`setup_windows.bat\` khud hi Virtual Env banayenge aur server start kar dega.
+
+### 🔑 Login Details:
+- **Admin Portal:** http://127.0.0.1:8000/hq-portal/
+- **Username:** (Yahan likhen)
+- **Password:** (Yahan likhen)
