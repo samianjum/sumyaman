@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
-from apsokara.views import hq_dashboard, attendance_view
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),  # Aapka original admin panel
-    path('hq-portal/', hq_dashboard, name='hq_dashboard'),  # Custom Panel
-    path('hq-portal/attendance/', attendance_view, name='hq_attendance'),
-]
+    path('admin/', admin.site.urls),
+    path('hq-portal/', include('apsokara.urls')), # Ye line saare portal ke raste khol degi
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
