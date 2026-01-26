@@ -86,3 +86,4 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Strict'
 
 # 4. Agar hacker SQL Injection try kare toh Django built-in protection active hai.
+LOGIN_URL = '/admin/login/'

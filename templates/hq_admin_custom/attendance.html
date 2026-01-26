@@ -1,0 +1,124 @@
+{% extends 'hq_admin_custom/base.html' %}
+
+{% block title %}Attendance HQ | APS OKARA{% endblock title %}
+
+{% block content %}
+<style>
+    /* Section 1: Brand Banner */
+    .hq-banner {
+        background: var(--hq-primary);
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        border-left: 8px solid var(--hq-accent);
+    }
+
+    /* Section 2: Analytics & Filter Hub */
+    .hub-section {
+        background: white;
+        border: 1px solid var(--hq-border);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+    .hub-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid var(--hq-bg);
+        padding-bottom: 20px;
+        margin-bottom: 25px;
+    }
+    .filter-group .btn {
+        font-size: 0.8rem; font-weight: 700; padding: 8px 16px;
+        border: 1px solid var(--hq-border); background: #f8fafc;
+    }
+    .filter-group .btn.active { background: var(--hq-accent); color: white; }
+    
+    .ana-card-alt {
+        text-align: center; padding: 20px; border-radius: 10px;
+        background: #f8fafc; border: 1px solid #e2e8f0;
+    }
+    .ana-num { font-size: 2rem; font-weight: 800; display: block; color: var(--hq-primary); }
+    .ana-label-alt { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Section 3: Wing Boxes */
+    .wing-card {
+        background: white; border: 1px solid var(--hq-border);
+        border-radius: 20px; padding: 40px; transition: 0.3s;
+        text-decoration: none; color: inherit; display: block;
+        position: relative; overflow: hidden;
+    }
+    .wing-card:hover { transform: translateY(-10px); border-color: var(--hq-accent); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+    .wing-card i { font-size: 3.5rem; color: var(--hq-accent); margin-bottom: 20px; }
+    .wing-card h3 { font-weight: 800; color: var(--hq-primary); }
+    .go-btn { position: absolute; bottom: 0; right: 0; background: var(--hq-primary); color: white; padding: 10px 25px; border-radius: 20px 0 0 0; font-size: 0.8rem; font-weight: bold; }
+</style>
+
+<div class="hq-banner">
+    <h1 class="fw-black mb-1 text-uppercase" style="letter-spacing: -1px;">Intelligence & Attendance HQ</h1>
+    <p class="mb-0 opacity-75 fw-bold">Army Public School & College System | Okara Cantt</p>
+</div>
+
+<div class="hub-section">
+    <div class="hub-header">
+        <h5 class="fw-bold mb-0 text-muted"><i class="fas fa-chart-pie me-2"></i>Live Data Analytics</h5>
+        <div class="filter-group d-flex gap-2">
+            <button class="btn active">TODAY</button>
+            <button class="btn">WEEKLY</button>
+            <button class="btn">MONTHLY</button>
+            <button class="btn">YEARLY</button>
+            <input type="date" class="form-control form-control-sm d-inline-block w-auto" value="{{ today_date|date:'Y-m-d' }}">
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="ana-card-alt">
+                <span class="ana-num">{{ total_students }}</span>
+                <span class="ana-label-alt">Strength Sum</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ana-card-alt" style="border-bottom: 4px solid #10b981;">
+                <span class="ana-num text-success">{{ present }}</span>
+                <span class="ana-label-alt">Present Assets</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ana-card-alt" style="border-bottom: 4px solid #ef4444;">
+                <span class="ana-num text-danger">{{ absent }}</span>
+                <span class="ana-label-alt">Absent Personnel</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ana-card-alt" style="border-bottom: 4px solid #f59e0b;">
+                <span class="ana-num text-warning">{{ leave }}</span>
+                <span class="ana-label-alt">Authorized Leave</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <a href="#" class="wing-card">
+            <i class="fas fa-mars"></i>
+            <h3>BOYS WING</h3>
+            <p class="text-muted">Explore boys' section from Junior to Senior levels. Manage records by class and section.</p>
+            <div class="go-btn">ENTER WING <i class="fas fa-arrow-right ms-1"></i></div>
+        </a>
+    </div>
+    <div class="col-md-6">
+        <a href="#" class="wing-card">
+            <i class="fas fa-venus"></i>
+            <h3>GIRLS WING</h3>
+            <p class="text-muted">Access girls' academic records, daily attendance trends, and class-wise reporting.</p>
+            <div class="go-btn" style="background: var(--hq-accent);">ENTER WING <i class="fas fa-arrow-right ms-1"></i></div>
+        </a>
+    </div>
+</div>
+
+{% endblock content %}

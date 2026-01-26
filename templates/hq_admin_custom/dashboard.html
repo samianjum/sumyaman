@@ -1,0 +1,30 @@
+{% extends 'hq_admin_custom/base.html' %}
+
+{% block title %}HQ Dashboard | APS OKARA{% endblock title %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold">Welcome Commander,</h2>
+    <p class="text-muted">Here is what's happening in the system today.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-3 rounded-4">
+            <h6 class="text-muted">TOTAL STUDENTS</h6>
+            <h2 class="fw-bold text-primary">{{ total_students }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-3 rounded-4">
+            <h6 class="text-muted">FACULTY MEMBERS</h6>
+            <h2 class="fw-bold text-success">{{ total_teachers }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="mt-5 card border-0 shadow-sm rounded-4 p-5 text-center">
+    <h3>System Status: Fully Operational</h3>
+    <p>All core modules are now linked to the Port 8000 Django Backend.</p>
+</div>
+{% endblock content %}

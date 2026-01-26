@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}APS OKARA | HQ Portal{% endblock title %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --hq-primary: #2F3E46; /* Professional Dark Slate */
+            --hq-accent: #52796F;  /* Army Green/Grey Tone */
+            --hq-border: #e2e8f0;
+            --hq-bg: #f8fafc;
+        }
+        
+        body { background-color: var(--hq-bg); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; }
+        
+        /* Classic Sidebar */
+        .sidebar { 
+            position: fixed; top: 0; left: 0; height: 100vh; width: 260px; 
+            background: var(--hq-primary); color: white; z-index: 1000;
+        }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo-main { 
+            width: 75px; height: 75px; border-radius: 50%; border: 3px solid var(--hq-accent); 
+            margin: 0 auto 15px; background-image: url('/static/sami.png'); 
+            background-size: cover; background-position: center;
+        }
+        .nav-link { color: #CAD2C5; padding: 14px 25px; display: flex; align-items: center; gap: 12px; text-decoration: none; transition: 0.2s; font-size: 0.95rem; }
+        .nav-link:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-link.active { background: var(--hq-accent); color: white; border-left: 4px solid #fff; }
+
+        /* Clean Classic Top Bar */
+        .top-bar { 
+            position: fixed; top: 0; left: 260px; right: 0; height: 70px; 
+            background: #ffffff; display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 35px; z-index: 999; border-bottom: 1px solid var(--hq-border);
+        }
+
+        /* Search Section */
+        .search-wrap { flex: 1; max-width: 400px; position: relative; }
+        .search-field { 
+            width: 100%; border: 1px solid var(--hq-border); padding: 8px 15px 8px 40px; 
+            border-radius: 6px; background: #f1f5f9; font-size: 0.9rem;
+        }
+        .search-field:focus { outline: none; border-color: var(--hq-accent); background: #fff; }
+        .search-ico { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+
+        /* Clock & Date Section */
+        .info-capsule { display: flex; align-items: center; gap: 15px; border-right: 1px solid var(--hq-border); padding-right: 20px; margin-right: 20px; }
+        .date-display { text-align: right; line-height: 1; border-right: 2px solid var(--hq-accent); padding-right: 10px; }
+        .date-display small { font-size: 0.65rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .date-display span { display: block; font-size: 0.85rem; font-weight: 800; color: var(--hq-primary); }
+        .time-display { font-size: 1.1rem; font-weight: 700; color: var(--hq-primary); font-family: 'Consolas', monospace; }
+
+        /* Profile Area */
+        .profile-box { display: flex; align-items: center; gap: 12px; }
+        .top-pfp { width: 40px; height: 40px; border-radius: 4px; background-image: url('/static/sami.png'); background-size: cover; border: 1px solid var(--hq-border); }
+        
+        .main-wrapper { margin-left: 260px; padding-top: 70px; }
+        .content-body { padding: 35px; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo-main"></div>
+        <h6 class="fw-bold mb-0">APS OKARA HQ</h6>
+        <small class="opacity-50">ESTABLISHED 2026</small>
+    </div>
+    <div class="mt-3">
+        <a href="/hq-portal/" class="nav-link active"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a href="/hq-portal/attendance/" class="nav-link"><i class="fas fa-calendar-check"></i> Attendance</a>
+        <div style="margin-top: 200px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <a href="/admin/" class="nav-link small"><i class="fas fa-database"></i> Database</a>
+            <a href="/admin/logout/" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+</div>
+
+<div class="top-bar">
+    <div class="search-wrap">
+        <i class="fas fa-search search-ico"></i>
+        <input type="text" class="search-field" placeholder="Search students, faculty, records...">
+    </div>
+
+    <div class="d-flex align-items-center">
+        <div class="info-capsule">
+            <div class="date-display">
+                <small id="day-name">Loading</small>
+                <span id="date-num">-- --</span>
+            </div>
+            <div class="time-display" id="live-clock">00:00:00</div>
+        </div>
+
+        <div class="profile-box">
+            <div class="text-end d-none d-lg-block">
+                <div class="fw-bold small">{{ user.username|upper }}</div>
+                <div style="font-size: 0.7rem; color: var(--hq-accent); font-weight: 700;">ADMINISTRATOR</div>
+            </div>
+            <div class="top-pfp"></div>
+        </div>
+    </div>
+</div>
+
+<div class="main-wrapper">
+    <div class="content-body">
+        {% block content %}{% endblock content %}
+    </div>
+</div>
+
+<script>
+    function refreshClock() {
+        const now = new Date();
+        document.getElementById('live-clock').textContent = now.toLocaleTimeString('en-GB');
+        document.getElementById('day-name').textContent = now.toLocaleString('en-us', {weekday: 'short'}).toUpperCase();
+        document.getElementById('date-num').textContent = now.getDate() + " " + now.toLocaleString('en-us', {month: 'short'}).toUpperCase();
+    }
+    setInterval(refreshClock, 1000);
+    refreshClock();
+</script>
+
+</body>
+</html>
