@@ -1,70 +1,86 @@
 {% extends 'hq_admin_custom/base.html' %}
 {% block content %}
-<div class="p-4">
+<div class="p-4" style="background: #f8fafc; min-height: 100vh;">
+    
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold" style="color: var(--hq-primary);">Student Master Directory</h2>
-            <p class="text-muted small text-uppercase fw-bold">Manage and View All Registered Students</p>
+            <h2 class="fw-bold m-0" style="color: var(--hq-primary);">Student Master Directory</h2>
+            <span class="badge bg-dark">Total Registered: {{ total_count }}</span>
         </div>
         <div class="d-flex gap-2">
-            <input type="text" id="masterSearch" class="form-control" placeholder="Quick Filter..." style="border-radius: 20px; width: 250px;">
-            <button class="btn btn-dark" style="border-radius: 20px; background: var(--hq-primary);">+ New Admission</button>
+            <form method="GET" class="d-flex gap-2">
+                <select name="wing" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Wings</option>
+                    <option value="Boys" {% if request.GET.wing == 'Boys' %}selected{% endif %}>Boys</option>
+                    <option value="Girls" {% if request.GET.wing == 'Girls' %}selected{% endif %}>Girls</option>
+                </select>
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="Search Name/B-Form..." value="{{ request.GET.search }}">
+                <button type="submit" class="btn btn-sm btn-primary px-3">Filter</button>
+            </form>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="masterTable">
+            <table class="table table-hover align-middle mb-0">
                 <thead style="background: var(--hq-primary); color: white;">
                     <tr>
-                        <th class="ps-4">ID</th>
-                        <th>Student Name</th>
+                        <th class="ps-4">Full Name</th>
                         <th>Father Name</th>
-                        <th>Class & Section</th>
+                        <th>B-Form / Identity</th>
+                        <th>Class-Section</th>
                         <th>Roll No</th>
                         <th>Wing</th>
-                        <th class="text-end pe-4">Quick View</th>
+                        <th class="text-end pe-4">Action</th>
                     </tr>
                 </thead>
-                <tbody style="cursor: pointer;">
-                    {% for s in students %}
+                <tbody id="studentTableBody" style="cursor: pointer;">
+                    {% for s in page_obj %}
                     <tr ondblclick="window.location='/hq-portal/student/profile/{{ s.id }}/';">
-                        <td class="ps-4 text-muted small">#{{ s.id }}</td>
-                        <td class="fw-bold text-dark">{{ s.full_name }}</td>
+                        <td class="ps-4">
+                            <div class="fw-bold">{{ s.full_name }}</div>
+                            <small class="text-muted">ID: #{{ s.id }}</small>
+                        </td>
                         <td>{{ s.father_name }}</td>
-                        <td><span class="badge bg-light text-dark border">{{ s.student_class }} - {{ s.student_section }}</span></td>
+                        <td class="font-monospace">{{ s.b_form }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ s.student_class }}-{{ s.student_section }}</span></td>
                         <td>{{ s.roll_number }}</td>
                         <td><span class="badge" style="background: var(--hq-accent);">{{ s.wing }}</span></td>
                         <td class="text-end pe-4">
-                            <a href="/hq-portal/student/profile/{{ s.id }}/" class="btn btn-sm btn-outline-secondary">Profile</a>
+                            <a href="/hq-portal/student/profile/{{ s.id }}/" class="btn btn-sm btn-outline-dark">View Profile</a>
                         </td>
                     </tr>
-                    {% empty %}
-                    <tr><td colspan="7" class="text-center py-5 text-muted">No students found in the database.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-    
-    <div class="mt-3 text-muted small">
-        <i class="fas fa-info-circle me-1"></i> <strong>Tip:</strong> Double-click on any row to open the full student profile.
+
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="text-muted small">
+            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ total_count }} Students
+        </div>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link text-dark" href="?page=1{% if request.GET.wing %}&wing={{ request.GET.wing }}{% endif %}">&laquo; First</a></li>
+                    <li class="page-item"><a class="page-link text-dark" href="?page={{ page_obj.previous_page_number }}{% if request.GET.wing %}&wing={{ request.GET.wing }}{% endif %}">Prev</a></li>
+                {% endif %}
+
+                <li class="page-item active"><a class="page-link border-0" style="background: var(--hq-primary);">{{ page_obj.number }}</a></li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link text-dark" href="?page={{ page_obj.next_page_number }}{% if request.GET.wing %}&wing={{ request.GET.wing }}{% endif %}">Next</a></li>
+                    <li class="page-item"><a class="page-link text-dark" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.wing %}&wing={{ request.GET.wing }}{% endif %}">Last &raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
 </div>
 
-<script>
-// Real-time Filtering
-document.getElementById('masterSearch').addEventListener('keyup', function() {
-    let val = this.value.toLowerCase();
-    document.querySelectorAll("#masterTable tbody tr").forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none";
-    });
-});
-</script>
-
 <style>
-    .table-hover tbody tr:hover { background-color: #f1f5f9 !important; transition: 0.2s; }
-    .table thead th { padding: 15px; font-size: 0.85rem; border: none; }
-    .table tbody td { padding: 15px; border-color: #f1f5f9; }
+    .table-hover tbody tr:hover { background-color: #f1f5f9 !important; }
+    .page-link:focus { box-shadow: none; }
+    .form-select, .form-control { border-radius: 8px; }
 </style>
 {% endblock %}

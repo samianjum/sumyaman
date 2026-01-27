@@ -1,83 +1,125 @@
 {% extends 'hq_admin_custom/base.html' %}
 {% block content %}
+<style>
+    :root { --soft-navy: #1e293b; --slate-blue: #334155; --border-color: #e2e8f0; }
+    body { background-color: #f1f5f9; color: #334155; }
+
+    .exec-banner {
+        background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+        color: white; padding: 25px 35px; border-radius: 12px;
+        margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .exec-banner h1 { font-size: 2rem; font-weight: 700; margin-bottom: 5px; }
+    .student-meta { font-size: 1rem; opacity: 0.9; display: flex; gap: 15px; flex-wrap: wrap; }
+    .meta-tag { background: rgba(255,255,255,0.15); padding: 2px 12px; border-radius: 6px; font-weight: 500; }
+
+    .stat-box {
+        background: white; border-radius: 12px; padding: 18px;
+        border: 1px solid var(--border-color); text-align: center;
+    }
+    .stat-num { font-size: 1.6rem; font-weight: 800; display: block; line-height: 1.2; }
+    .stat-head { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+
+    .details-card {
+        background: white; border-radius: 12px; padding: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 25px;
+    }
+    .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .detail-item { border-bottom: 1px solid #f8fafc; padding-bottom: 8px; }
+    .detail-label { display: block; font-size: 0.65rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+    .detail-value { font-size: 0.95rem; font-weight: 600; color: #1e293b; }
+
+    .table-card {
+        background: white; border-radius: 12px; padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .table thead th { background: #f8fafc; color: #64748b; font-size: 0.75rem; border-bottom: 2px solid #e2e8f0; }
+    .table td { padding: 12px 15px; font-size: 0.85rem; vertical-align: middle; }
+    
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+    @media print { .no-print { display: none !important; } .exec-banner { margin: 0; border-radius: 0; } }
+</style>
+
 <div class="container-fluid p-4">
-    <div class="card mb-4 border-0 shadow-sm" style="background: #1e293b; color: white; border-radius: 10px;">
-        <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <div>
-                    <h1 class="fw-bold mb-1">{{ student.full_name|upper }}</h1>
-                    <p class="mb-3 opacity-75">Father's Name: {{ student.father_name|upper }}</p>
-                    <div class="d-flex gap-3 flex-wrap">
-                        <span class="badge bg-warning text-dark px-3 py-2">CLASS: {{ c_name }}</span>
-                        <span class="badge bg-primary px-3 py-2">SECTION: {{ s_name }}</span>
-                        <span class="badge bg-info px-3 py-2">WING: {{ w_name|upper }}</span>
-                        <span class="badge bg-secondary px-3 py-2">ROLL NO: {{ student.roll_number }}</span>
-                    </div>
-                </div>
-                <div class="no-print mt-3 mt-lg-0">
-                    <button onclick="window.print()" class="btn btn-light fw-bold px-4">
-                        <i class="fas fa-print me-2"></i>PRINT PROFILE
-                    </button>
-                </div>
+    <div class="exec-banner d-flex justify-content-between align-items-center">
+        <div>
+            <h1>{{ s.full_name|upper }}</h1>
+            <div class="student-meta">
+                <span>S/O: <strong>{{ s.father_name }}</strong></span>
+                <span class="meta-tag"><i class="fas fa-school me-1"></i> {{ s.student_class }} - {{ s.student_section }}</span>
+                <span class="meta-tag"><i class="fas fa-users me-1"></i> {{ s.wing|upper }} WING</span>
+                <span class="meta-tag"><i class="fas fa-hashtag me-1"></i> {{ s.roll_number }}</span>
             </div>
+        </div>
+        <div class="no-print d-flex gap-2">
+            <a href="/admin/apsokara/student/{{ s.id }}/change/" class="btn btn-warning btn-sm fw-bold px-3">EDIT</a>
+            <button onclick="window.print()" class="btn btn-light btn-sm fw-bold px-3">PRINT</button>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-4 col-md-5">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-bold">
-                    <i class="fas fa-user-circle me-2 text-primary"></i>STUDENT BIO-DATA
-                </div>
-                <div class="card-body">
-                    <table class="table table-sm table-borderless">
-                        <tr><td class="text-muted small fw-bold">B-FORM NO:</td><td class="fw-bold">{{ student.b_form }}</td></tr>
-                        <tr><td class="text-muted small fw-bold">D.O.B:</td><td class="fw-bold text-danger">{{ dob|default:"---" }}</td></tr>
-                        <tr><td class="text-muted small fw-bold">RELIGION:</td><td class="fw-bold">{{ student.religion }}</td></tr>
-                        <tr><td class="text-muted small fw-bold">NATIONALITY:</td><td class="fw-bold">{{ student.nationality }}</td></tr>
-                        <tr><td class="text-muted small fw-bold">PROVINCE:</td><td class="fw-bold">{{ student.province }}</td></tr>
-                        <tr><td class="text-muted small fw-bold">PARENTS PHONE:</td><td class="fw-bold text-primary">{{ p_phone }}</td></tr>
-                        <tr><td class="text-muted small fw-bold">ADDRESS:</td><td class="small">{{ student.address }}</td></tr>
-                    </table>
-                </div>
-            </div>
-        </div>
+    <div class="row g-3 mb-4">
+        <div class="col"><div class="stat-box"><span class="stat-head">Total Days</span><span class="stat-num">{{ total_days }}</span></div></div>
+        <div class="col"><div class="stat-box text-success"><span class="stat-head">Present</span><span class="stat-num">{{ presents }}</span></div></div>
+        <div class="col"><div class="stat-box text-danger"><span class="stat-head">Absent</span><span class="stat-num">{{ absents }}</span></div></div>
+        <div class="col"><div class="stat-box text-warning"><span class="stat-head">Leaves</span><span class="stat-num">{{ leaves }}</span></div></div>
+        <div class="col"><div class="stat-box bg-primary text-white"><span class="stat-head text-white-50">Ratio</span><span class="stat-num">{{ percentage }}%</span></div></div>
+    </div>
 
-        <div class="col-lg-8 col-md-7">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <span class="fw-bold"><i class="fas fa-history me-2 text-primary"></i>ATTENDANCE LOGS</span>
-                    <span class="badge bg-dark">Records: {{ attendance_history.count }}</span>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>Day</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for record in attendance_history %}
-                            <tr>
-                                <td class="fw-bold">{{ record.date|date:"d M, Y" }}</td>
-                                <td class="text-muted">{{ record.date|date:"l" }}</td>
-                                <td>
-                                    {% if record.status|upper == 'PRESENT' %}
-                                        <span class="badge bg-success">PRESENT</span>
-                                    {% else %}
-                                        <span class="badge bg-danger">ABSENT</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="3" class="text-center py-5 text-muted">No attendance data found.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="details-card">
+        <h6 class="fw-bold mb-4 text-uppercase" style="letter-spacing:1px; color:var(--slate-blue);"><i class="fas fa-database me-2"></i> Master Record</h6>
+        <div class="detail-grid">
+            <div class="detail-item"><span class="detail-label">B-Form / CNIC</span><span class="detail-value">{{ s.b_form }}</span></div>
+            <div class="detail-item"><span class="detail-label">Date of Birth</span><span class="detail-value">{{ s.dob }}</span></div>
+            <div class="detail-item"><span class="detail-label">Religion</span><span class="detail-value">{{ s.religion }}</span></div>
+            <div class="detail-item"><span class="detail-label">Nationality</span><span class="detail-value">{{ s.nationality }}</span></div>
+            <div class="detail-item"><span class="detail-label">Province</span><span class="detail-value">{{ s.province }}</span></div>
+            <div class="detail-item"><span class="detail-label">Guardian Phone</span><span class="detail-value">{{ s.parents_phone }}</span></div>
+            <div class="detail-item"><span class="detail-label">Wing Type</span><span class="detail-value">{{ s.wing }}</span></div>
+            <div class="detail-item" style="grid-column: span 4;"><span class="detail-label">Home Address</span><span class="detail-value">{{ s.address }}</span></div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h6 class="fw-bold m-0 text-uppercase" style="letter-spacing:1px;">Attendance Log History</h6>
+            <form class="d-flex gap-2 no-print">
+                <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
+                <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
+                <button class="btn btn-dark btn-sm px-3">Filter</button>
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>DATE</th>
+                        <th>DAY</th>
+                        <th>STATUS</th>
+                        <th>REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_history %}
+                    <tr>
+                        <td class="fw-bold text-dark">{{ record.date }}</td>
+                        <td class="text-muted">{{ record.date|date:"l" }}</td>
+                        <td>
+                            {% if record.status == 'Present' %}
+                                <span class="text-success fw-bold"><span class="status-dot bg-success"></span>Present</span>
+                            {% elif record.status == 'Absent' %}
+                                <span class="text-danger fw-bold"><span class="status-dot bg-danger"></span>Absent</span>
+                            {% else %}
+                                <span class="text-warning fw-bold"><span class="status-dot bg-warning"></span>Leave</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted italic small">{{ record.remarks|default:"---" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center py-4">No data found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
