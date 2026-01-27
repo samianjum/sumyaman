@@ -1,86 +1,109 @@
 {% extends 'hq_admin_custom/base.html' %}
 {% block content %}
-<div class="p-4" style="background: #f8fafc; min-height: 100vh;">
-    
+<style>
+    .filter-section { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+    .student-table-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .table thead { background: #1e293b; color: white; }
+    .table th { font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 15px; }
+    .table td { vertical-align: middle; padding: 12px 15px; font-size: 0.9rem; }
+    .badge-wing { padding: 5px 10px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; }
+</style>
+
+<div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold m-0" style="color: var(--hq-primary);">Student Master Directory</h2>
-            <span class="badge bg-dark">Total Registered: {{ total_count }}</span>
-        </div>
-        <div class="d-flex gap-2">
-            <form method="GET" class="d-flex gap-2">
-                <select name="wing" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">All Wings</option>
-                    <option value="Boys" {% if request.GET.wing == 'Boys' %}selected{% endif %}>Boys</option>
-                    <option value="Girls" {% if request.GET.wing == 'Girls' %}selected{% endif %}>Girls</option>
-                </select>
-                <input type="text" name="search" class="form-control form-control-sm" placeholder="Search Name/B-Form..." value="{{ request.GET.search }}">
-                <button type="submit" class="btn btn-sm btn-primary px-3">Filter</button>
-            </form>
-        </div>
+        <h2 class="fw-bold"><i class="fas fa-user-graduate me-2 text-primary"></i> Student Directory</h2>
+        <span class="badge bg-dark px-3 py-2">Total Records: {{ total_count }}</span>
     </div>
 
-    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+    <div class="filter-section no-print">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="small fw-bold text-muted">Search Name, Roll, or B-Form</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control bg-light border-start-0" placeholder="Type to search..." value="{{ query }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="small fw-bold text-muted">Filter Wing</label>
+                <select name="wing" class="form-select bg-light">
+                    <option value="">All Wings</option>
+                    {% for w in wings_list %}
+                    <option value="{{ w }}" {% if w == selected_wing %}selected{% endif %}>{{ w }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="small fw-bold text-muted">Filter Class</label>
+                <select name="class" class="form-select bg-light">
+                    <option value="">All Classes</option>
+                    {% for c in classes_list %}
+                    <option value="{{ c }}" {% if c == selected_class %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary px-4 fw-bold">Apply Filters</button>
+                <a href="?" class="btn btn-outline-secondary px-4 fw-bold">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="student-table-card">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead style="background: var(--hq-primary); color: white;">
+            <table class="table table-hover mb-0">
+                <thead>
                     <tr>
-                        <th class="ps-4">Full Name</th>
-                        <th>Father Name</th>
-                        <th>B-Form / Identity</th>
-                        <th>Class-Section</th>
                         <th>Roll No</th>
+                        <th>Student Name</th>
+                        <th>Father's Name</th>
                         <th>Wing</th>
-                        <th class="text-end pe-4">Action</th>
+                        <th>Class & Sec</th>
+                        <th>B-Form</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
-                <tbody id="studentTableBody" style="cursor: pointer;">
+                <tbody>
                     {% for s in page_obj %}
-                    <tr ondblclick="window.location='/hq-portal/student/profile/{{ s.id }}/';">
-                        <td class="ps-4">
-                            <div class="fw-bold">{{ s.full_name }}</div>
-                            <small class="text-muted">ID: #{{ s.id }}</small>
+                    <tr>
+                        <td class="fw-bold text-primary">#{{ s.roll_number }}</td>
+                        <td class="fw-bold">{{ s.full_name|upper }}</td>
+                        <td class="text-muted">{{ s.father_name }}</td>
+                        <td>
+                            <span class="badge-wing {% if s.wing == 'Boys' %}bg-primary-subtle text-primary border border-primary{% else %}bg-danger-subtle text-danger border border-danger{% endif %}">
+                                {{ s.wing|upper }}
+                            </span>
                         </td>
-                        <td>{{ s.father_name }}</td>
-                        <td class="font-monospace">{{ s.b_form }}</td>
-                        <td><span class="badge bg-light text-dark border">{{ s.student_class }}-{{ s.student_section }}</span></td>
-                        <td>{{ s.roll_number }}</td>
-                        <td><span class="badge" style="background: var(--hq-accent);">{{ s.wing }}</span></td>
-                        <td class="text-end pe-4">
-                            <a href="/hq-portal/student/profile/{{ s.id }}/" class="btn btn-sm btn-outline-dark">View Profile</a>
+                        <td><span class="fw-semibold">{{ s.student_class }}</span> <small class="text-muted">({{ s.student_section }})</small></td>
+                        <td class="small">{{ s.b_form }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'student_profile' s.id %}" class="btn btn-sm btn-dark px-3 rounded-pill shadow-sm">View Profile</a>
                         </td>
                     </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-5 text-muted">No students found matching your criteria.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-4">
-        <div class="text-muted small">
-            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ total_count }} Students
+        {% if page_obj.has_other_pages %}
+        <div class="p-4 border-top d-flex justify-content-center">
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&wing={{ selected_wing }}&class={{ selected_class }}">Previous</a></li>
+                    {% endif %}
+                    
+                    <li class="page-item active"><span class="page-link px-4">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&wing={{ selected_wing }}&class={{ selected_class }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
         </div>
-        <nav>
-            <ul class="pagination pagination-sm mb-0">
-                {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link text-dark" href="?page=1{% if request.GET.wing %}&wing={{ request.GET.wing }}{% endif %}">&laquo; First</a></li>
-                    <li class="page-item"><a class="page-link text-dark" href="?page={{ page_obj.previous_page_number }}{% if request.GET.wing %}&wing={{ request.GET.wing }}{% endif %}">Prev</a></li>
-                {% endif %}
-
-                <li class="page-item active"><a class="page-link border-0" style="background: var(--hq-primary);">{{ page_obj.number }}</a></li>
-
-                {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link text-dark" href="?page={{ page_obj.next_page_number }}{% if request.GET.wing %}&wing={{ request.GET.wing }}{% endif %}">Next</a></li>
-                    <li class="page-item"><a class="page-link text-dark" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.wing %}&wing={{ request.GET.wing }}{% endif %}">Last &raquo;</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+        {% endif %}
     </div>
 </div>
-
-<style>
-    .table-hover tbody tr:hover { background-color: #f1f5f9 !important; }
-    .page-link:focus { box-shadow: none; }
-    .form-select, .form-control { border-radius: 8px; }
-</style>
 {% endblock %}
