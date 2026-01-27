@@ -89,7 +89,13 @@ def mark_attendance_view(request, class_name, section_name):
     
     
     
-    students = Student.objects.filter(student_class=class_name, student_section=section_name)
+    # Auto-detect wing from URL path to prevent mixing
+    wing_type = 'BOYS' if 'boys-wing' in request.path or 'boys' in request.META.get('HTTP_REFERER', '').lower() else 'GIRLS'
+    students = Student.objects.filter(
+        student_class=class_name, 
+        student_section=section_name,
+        wing__iexact=wing_type
+    )
     first_student = students.first()
     wing_name = first_student.wing if first_student else "Unknown"
     
@@ -108,7 +114,7 @@ def mark_attendance_view(request, class_name, section_name):
 
 
         student__student_class=class_name, 
-        student__student_section=section_name,
+        student__student_section=section_name, student__wing__iexact=wing_type,
         date=selected_date
     )
 
