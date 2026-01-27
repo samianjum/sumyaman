@@ -179,3 +179,8 @@ def student_master_list(request):
     from .models import Student
     students = Student.objects.all().order_by('student_class', 'roll_number')
     return render(request, 'hq_admin_custom/students_list.html', {'students': students})
+
+def teacher_master_list(request):
+    from .models import Teacher
+    teachers = Teacher.objects.all()
+    return render(request, 'hq_admin_custom/teachers_list.html', {'teachers': teachers})

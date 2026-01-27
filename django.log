@@ -980,3 +980,121 @@ Not Found: /favicon.ico
 [27/Jan/2026 08:44:17] "GET /static/admin/js/filters.js HTTP/1.1" 200 978
 Not Found: /favicon.ico
 [27/Jan/2026 08:44:17] "GET /favicon.ico HTTP/1.1" 404 2753
+/home/sami/sumyaman/apsokara/urls.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 27, 2026 - 08:43:44
+Django version 6.0.1, using settings 'sumyaman_pro.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/threading.py", line 1043, in _bootstrap_inner
+    self.run()
+    ~~~~~~~~^^
+  File "/usr/lib/python3.13/threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+    ~~^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/management/commands/runserver.py", line 134, in inner_run
+    self.check(**check_kwargs)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/management/base.py", line 496, in check
+    all_issues = checks.run_checks(
+        app_configs=app_configs,
+    ...<2 lines>...
+        databases=databases,
+    )
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/checks/registry.py", line 89, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/checks/urls.py", line 16, in check_url_config
+    return check_resolver(resolver)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/checks/urls.py", line 26, in check_resolver
+    return check_method()
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/urls/resolvers.py", line 541, in check
+    for pattern in self.url_patterns:
+                   ^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/utils/functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/urls/resolvers.py", line 729, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/utils/functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/urls/resolvers.py", line 722, in urlconf_module
+    return import_module(self.urlconf_name)
+  File "/usr/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/sami/sumyaman/sumyaman_pro/urls.py", line 9, in <module>
+    path('hq-portal/', include('apsokara.urls')), # Ye line saare portal ke raste khol degi
+                       ~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/urls/conf.py", line 39, in include
+    urlconf_module = import_module(urlconf_module)
+  File "/usr/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/sami/sumyaman/apsokara/urls.py", line 6, in <module>
+    path('hq-portal/teachers/', views.teacher_master_list, name='teacher_master_list'),
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'apsokara.views' has no attribute 'teacher_master_list'
+/home/sami/sumyaman/apsokara/views.py changed, reloading.
+Performing system checks...
+
+Watching for file changes with StatReloader
+[27/Jan/2026 08:45:13] "GET /hq-portal/attendance/ HTTP/1.1" 200 12809
+[27/Jan/2026 08:45:14] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:45:15] "GET /favicon.ico HTTP/1.1" 404 2753
+Not Found: /hq-portal/teachers/
+[27/Jan/2026 08:45:19] "GET /hq-portal/teachers/ HTTP/1.1" 404 4913
+[27/Jan/2026 08:45:22] "GET /hq-portal/ HTTP/1.1" 200 12224
+[27/Jan/2026 08:45:24] "GET /hq-portal/attendance/ HTTP/1.1" 200 12809
+[27/Jan/2026 08:45:27] "GET /hq-portal/attendance/boys-wing/ HTTP/1.1" 200 13072
+[27/Jan/2026 08:45:29] "GET /hq-portal/attendance/mark/10/D/ HTTP/1.1" 200 12491
+[27/Jan/2026 08:45:31] "GET /hq-portal/student/profile/4/ HTTP/1.1" 200 11265
+Not Found: /hq-portal/students/
+[27/Jan/2026 08:45:33] "GET /hq-portal/students/ HTTP/1.1" 404 4913
+[27/Jan/2026 08:45:35] "GET /admin/ HTTP/1.1" 200 10395
+[27/Jan/2026 08:45:45] "GET /hq-portal/attendance/ HTTP/1.1" 200 12809
+[27/Jan/2026 08:45:46] "GET /hq-portal/ HTTP/1.1" 200 12224
+[27/Jan/2026 08:46:26] "GET /hq-portal/ HTTP/1.1" 200 13703
+[27/Jan/2026 08:46:26] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:46:27] "GET /favicon.ico HTTP/1.1" 404 2753
+[27/Jan/2026 08:46:35] "GET /hq-portal/attendance/ HTTP/1.1" 200 14288
+Not Found: /hq-portal/students/
+[27/Jan/2026 08:46:37] "GET /hq-portal/students/ HTTP/1.1" 404 4913
+[27/Jan/2026 08:46:39] "GET /hq-portal/ HTTP/1.1" 200 13703
+[27/Jan/2026 08:46:42] "GET /hq-portal/attendance/ HTTP/1.1" 200 14288
+[27/Jan/2026 08:46:43] "GET /hq-portal/ HTTP/1.1" 200 13703
+[27/Jan/2026 08:47:40] "GET /hq-portal/ HTTP/1.1" 200 13712
+[27/Jan/2026 08:47:55] "GET /hq-portal/ HTTP/1.1" 200 13713
+[27/Jan/2026 08:48:05] "GET /hq-portal/ HTTP/1.1" 200 13730
+[27/Jan/2026 08:48:16] "GET /hq-portal/ HTTP/1.1" 200 13703
+[27/Jan/2026 08:48:25] "GET /hq-portal/ HTTP/1.1" 200 13708
+[27/Jan/2026 08:48:33] "GET /hq-portal/ HTTP/1.1" 200 13709
+[27/Jan/2026 08:48:39] "GET /hq-portal/ HTTP/1.1" 200 13715
+[27/Jan/2026 08:48:46] "GET /hq-portal/ HTTP/1.1" 200 13722
+[27/Jan/2026 08:48:57] "GET /hq-portal/ HTTP/1.1" 200 13709
