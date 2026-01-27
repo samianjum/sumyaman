@@ -175,3 +175,679 @@ Watching for file changes with StatReloader
 [27/Jan/2026 08:23:21] "GET /static/sami.png HTTP/1.1" 200 18395
 Not Found: /favicon.ico
 [27/Jan/2026 08:23:21] "GET /favicon.ico HTTP/1.1" 404 2753
+/home/sami/sumyaman/apsokara/urls.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 27, 2026 - 08:22:48
+Django version 6.0.1, using settings 'sumyaman_pro.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+[27/Jan/2026 08:24:10] "GET /hq-portal/attendance/mark/10/D/ HTTP/1.1" 200 12965
+[27/Jan/2026 08:24:10] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:24:11] "GET /favicon.ico HTTP/1.1" 404 2753
+Not Found: /hq-portal/search/
+[27/Jan/2026 08:24:13] "GET /hq-portal/search/?q=sami HTTP/1.1" 404 4062
+[27/Jan/2026 08:26:24] "GET /hq-portal/attendance/mark/10/D/ HTTP/1.1" 200 12965
+[27/Jan/2026 08:26:24] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:26:25] "GET /favicon.ico HTTP/1.1" 404 2753
+Not Found: /hq-portal/search/
+[27/Jan/2026 08:26:26] "GET /hq-portal/search/?q=sami HTTP/1.1" 404 4062
+[27/Jan/2026 08:26:34] "GET /hq-portal/attendance/ HTTP/1.1" 200 12368
+[27/Jan/2026 08:26:35] "GET /hq-portal/attendance/ HTTP/1.1" 200 12368
+[27/Jan/2026 08:26:35] "GET /hq-portal/ HTTP/1.1" 200 11606
+Not Found: /hq-portal/search/
+[27/Jan/2026 08:26:38] "GET /hq-portal/search/?q=teacher HTTP/1.1" 404 4065
+Not Found: /hq-portal/search/
+[27/Jan/2026 08:26:41] "GET /hq-portal/search/?q=wing HTTP/1.1" 404 4062
+Not Found: /hq-portal/search/
+[27/Jan/2026 08:26:44] "GET /hq-portal/search/?q=boys HTTP/1.1" 404 4062
+/home/sami/sumyaman/apsokara/urls.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 27, 2026 - 08:24:02
+Django version 6.0.1, using settings 'sumyaman_pro.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/home/sami/sumyaman/apsokara/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 27, 2026 - 08:26:51
+Django version 6.0.1, using settings 'sumyaman_pro.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+[27/Jan/2026 08:26:57] "GET /hq-portal/ HTTP/1.1" 200 11606
+[27/Jan/2026 08:26:58] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:26:58] "GET /favicon.ico HTTP/1.1" 404 2753
+Internal Server Error: /hq-portal/search/
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sami/sumyaman/apsokara/views.py", line 166, in global_search
+    student_results = Student.objects.filter(
+                      ~~~~~~~~~~~~~~~~~~~~~~^
+        Q(full_name__icontains=query) | Q(cnic__icontains=query)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )[:10]
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1671, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1528, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1551, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1358, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1832, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'cnic' into field. Choices are: address, attendance, b_form, dob, father_name, full_name, id, nationality, parents_phone, province, religion, roll_number, student_class, student_section, studentleave, wing
+[27/Jan/2026 08:27:00] "GET /hq-portal/search/?q=boy HTTP/1.1" 500 126059
+/home/sami/sumyaman/apsokara/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 27, 2026 - 08:26:54
+Django version 6.0.1, using settings 'sumyaman_pro.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+Internal Server Error: /hq-portal/search/
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sami/sumyaman/apsokara/views.py", line 171, in global_search
+    teacher_results = Teacher.objects.filter(
+                      ~~~~~~~~~~~~~~~~~~~~~~^
+        Q(full_name__icontains=query) | Q(roll_number__icontains=query) | Q(b_form__icontains=query)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )[:10]
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1671, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1528, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1551, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1358, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1832, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'roll_number' into field. Choices are: address, assigned_class, assigned_section, assigned_wing, assignments, cnic, contact, dob, father_name, full_name, id, is_class_teacher, religion
+[27/Jan/2026 08:27:20] "GET /hq-portal/search/?q=boy HTTP/1.1" 500 126719
+Not Found: /favicon.ico
+[27/Jan/2026 08:27:20] "GET /favicon.ico HTTP/1.1" 404 2753
+Internal Server Error: /hq-portal/search/
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sami/sumyaman/apsokara/views.py", line 171, in global_search
+    teacher_results = Teacher.objects.filter(
+                      ~~~~~~~~~~~~~~~~~~~~~~^
+        Q(full_name__icontains=query) | Q(roll_number__icontains=query) | Q(b_form__icontains=query)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )[:10]
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1671, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1528, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1703, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1551, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1358, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/db/models/sql/query.py", line 1832, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'roll_number' into field. Choices are: address, assigned_class, assigned_section, assigned_wing, assignments, cnic, contact, dob, father_name, full_name, id, is_class_teacher, religion
+[27/Jan/2026 08:27:24] "GET /hq-portal/search/?q=sami HTTP/1.1" 500 126534
+/home/sami/sumyaman/apsokara/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 27, 2026 - 08:27:17
+Django version 6.0.1, using settings 'sumyaman_pro.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+[27/Jan/2026 08:27:59] "GET /hq-portal/search/?q=sami HTTP/1.1" 200 8940
+[27/Jan/2026 08:27:59] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:28:00] "GET /favicon.ico HTTP/1.1" 404 2753
+[27/Jan/2026 08:28:26] "GET /hq-portal/search/?q=boy HTTP/1.1" 200 8020
+[27/Jan/2026 08:28:28] "GET /hq-portal/attendance/boys-wing/ HTTP/1.1" 200 12454
+[27/Jan/2026 08:28:34] "GET /hq-portal/attendance/boys-wing/ HTTP/1.1" 200 12454
+[27/Jan/2026 08:28:35] "GET /hq-portal/attendance/mark/10/D/ HTTP/1.1" 200 12443
+[27/Jan/2026 08:28:39] "GET /hq-portal/student/profile/4/ HTTP/1.1" 200 10647
+[27/Jan/2026 08:31:33] "GET /hq-portal/student/profile/4/ HTTP/1.1" 200 10647
+[27/Jan/2026 08:31:34] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:31:34] "GET /favicon.ico HTTP/1.1" 404 2753
+[27/Jan/2026 08:31:36] "GET /hq-portal/search/?q=sami HTTP/1.1" 200 10189
+[27/Jan/2026 08:31:56] "GET /admin/apsokara/teacher/2/change/ HTTP/1.1" 200 24794
+[27/Jan/2026 08:31:56] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:32:00] "GET /admin/apsokara/student/2/change/ HTTP/1.1" 200 19678
+[27/Jan/2026 08:32:00] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:33:16] "GET /hq-portal/search/?q=sami HTTP/1.1" 200 11307
+[27/Jan/2026 08:33:17] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:33:17] "GET /favicon.ico HTTP/1.1" 404 2753
+[27/Jan/2026 08:33:21] "GET /admin/apsokara/student/2/change/ HTTP/1.1" 200 19678
+[27/Jan/2026 08:33:21] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:33:24] "GET /admin/apsokara/teacher/2/change/ HTTP/1.1" 200 24794
+[27/Jan/2026 08:33:24] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:33:42] "GET /hq-portal/search/?q=10 HTTP/1.1" 200 9168
+[27/Jan/2026 08:33:45] "GET /hq-portal/search/?q=A HTTP/1.1" 200 12773
+/home/sami/sumyaman/apsokara/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 27, 2026 - 08:27:58
+Django version 6.0.1, using settings 'sumyaman_pro.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+Internal Server Error: /hq-portal/search/
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 964, in _resolve_lookup
+    raise TypeError
+TypeError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 976, in _resolve_lookup
+    current = getattr(current, bit)
+AttributeError: 'Student' object has no attribute 'cnic'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 982, in _resolve_lookup
+    current = current[int(bit)]
+                      ~~~^^^^^
+ValueError: invalid literal for int() with base 10: 'cnic'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sami/sumyaman/apsokara/views.py", line 176, in global_search
+    return render(request, 'hq_admin_custom/search_results.html', context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/defaulttags.py", line 333, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/defaulttags.py", line 249, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1150, in render
+    output = self.filter_expression.resolve(context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 809, in resolve
+    arg_vals.append(arg.resolve(context))
+                    ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 928, in resolve
+    value = self._resolve_lookup(context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 989, in _resolve_lookup
+    raise VariableDoesNotExist(
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )  # missing attribute
+    ^
+django.template.base.VariableDoesNotExist: Failed lookup for key [cnic] in <Student: muhammad sami anjum (2)>
+[27/Jan/2026 08:35:01] "GET /hq-portal/search/?q=A HTTP/1.1" 500 210042
+Not Found: /favicon.ico
+[27/Jan/2026 08:35:01] "GET /favicon.ico HTTP/1.1" 404 2753
+Internal Server Error: /hq-portal/search/
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 964, in _resolve_lookup
+    raise TypeError
+TypeError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 976, in _resolve_lookup
+    current = getattr(current, bit)
+AttributeError: 'Student' object has no attribute 'cnic'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 982, in _resolve_lookup
+    current = current[int(bit)]
+                      ~~~^^^^^
+ValueError: invalid literal for int() with base 10: 'cnic'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sami/sumyaman/apsokara/views.py", line 176, in global_search
+    return render(request, 'hq_admin_custom/search_results.html', context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/defaulttags.py", line 333, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/defaulttags.py", line 249, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1150, in render
+    output = self.filter_expression.resolve(context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 809, in resolve
+    arg_vals.append(arg.resolve(context))
+                    ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 928, in resolve
+    value = self._resolve_lookup(context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 989, in _resolve_lookup
+    raise VariableDoesNotExist(
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )  # missing attribute
+    ^
+django.template.base.VariableDoesNotExist: Failed lookup for key [cnic] in <Student: muhammad sami anjum (2)>
+[27/Jan/2026 08:35:02] "GET /hq-portal/search/?q=A HTTP/1.1" 500 210042
+Not Found: /favicon.ico
+[27/Jan/2026 08:35:02] "GET /favicon.ico HTTP/1.1" 404 2753
+Internal Server Error: /hq-portal/search/
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 964, in _resolve_lookup
+    raise TypeError
+TypeError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 976, in _resolve_lookup
+    current = getattr(current, bit)
+AttributeError: 'Student' object has no attribute 'cnic'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 982, in _resolve_lookup
+    current = current[int(bit)]
+                      ~~~^^^^^
+ValueError: invalid literal for int() with base 10: 'cnic'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sami/sumyaman/apsokara/views.py", line 176, in global_search
+    return render(request, 'hq_admin_custom/search_results.html', context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/backends/django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/defaulttags.py", line 333, in render
+    return nodelist.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/defaulttags.py", line 249, in render
+    nodelist.append(node.render_annotated(context))
+                    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 1150, in render
+    output = self.filter_expression.resolve(context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 809, in resolve
+    arg_vals.append(arg.resolve(context))
+                    ~~~~~~~~~~~^^^^^^^^^
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 928, in resolve
+    value = self._resolve_lookup(context)
+  File "/home/sami/sumyaman/venv/lib/python3.13/site-packages/django/template/base.py", line 989, in _resolve_lookup
+    raise VariableDoesNotExist(
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )  # missing attribute
+    ^
+django.template.base.VariableDoesNotExist: Failed lookup for key [cnic] in <Student: muhammad sami anjum (2)>
+[27/Jan/2026 08:35:06] "GET /hq-portal/search/?q=A HTTP/1.1" 500 209777
+[27/Jan/2026 08:35:31] "GET /hq-portal/search/?q=A HTTP/1.1" 200 12252
+[27/Jan/2026 08:35:32] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:35:33] "GET /favicon.ico HTTP/1.1" 404 2753
+[27/Jan/2026 08:35:48] "GET /hq-portal/search/?q=sami HTTP/1.1" 200 10774
+[27/Jan/2026 08:35:51] "GET /hq-portal/search/?q=boy HTTP/1.1" 200 8216
+[27/Jan/2026 08:35:56] "GET /admin/apsokara/student/ HTTP/1.1" 200 13886
+[27/Jan/2026 08:35:56] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:35:56] "GET /static/admin/img/search.svg HTTP/1.1" 304 0
+[27/Jan/2026 08:35:59] "GET /hq-portal/search/?q=heheh HTTP/1.1" 200 9385
+[27/Jan/2026 08:36:05] "GET /hq-portal/search/?q=ggg HTTP/1.1" 200 9380
+[27/Jan/2026 08:36:07] "GET /hq-portal/student/profile/3/ HTTP/1.1" 200 10639
+[27/Jan/2026 08:36:15] "GET /hq-portal/search/?q=a HTTP/1.1" 200 12252
+[27/Jan/2026 08:36:31] "GET /admin/apsokara/teacher/ HTTP/1.1" 200 11504
+[27/Jan/2026 08:36:31] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:36:32] "GET /admin/apsokara/teacher/1/change/ HTTP/1.1" 200 24825
+[27/Jan/2026 08:36:32] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:36:38] "POST /admin/apsokara/teacher/1/change/ HTTP/1.1" 302 0
+[27/Jan/2026 08:36:38] "GET /admin/apsokara/teacher/ HTTP/1.1" 200 11709
+[27/Jan/2026 08:36:38] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:36:38] "GET /hq-portal/search/?q=a HTTP/1.1" 200 12252
+[27/Jan/2026 08:36:40] "GET /hq-portal/search/?q=a HTTP/1.1" 200 12252
+[27/Jan/2026 08:36:43] "GET /admin/apsokara/teacher/1/change/ HTTP/1.1" 200 24825
+[27/Jan/2026 08:36:43] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:36:46] "POST /admin/apsokara/teacher/1/change/ HTTP/1.1" 302 0
+[27/Jan/2026 08:36:46] "GET /admin/apsokara/teacher/ HTTP/1.1" 200 11709
+[27/Jan/2026 08:36:47] "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+[27/Jan/2026 08:36:48] "GET /hq-portal/search/?q=a HTTP/1.1" 200 12242
+Not Found: /hq-portal/teacher/profile/1/
+[27/Jan/2026 08:36:51] "GET /hq-portal/teacher/profile/1/ HTTP/1.1" 404 4360
+[27/Jan/2026 08:36:55] "GET /hq-portal/attendance/ HTTP/1.1" 200 12368
+[27/Jan/2026 08:36:58] "GET /hq-portal/ HTTP/1.1" 200 11606
+[27/Jan/2026 08:37:04] "GET /hq-portal/ HTTP/1.1" 200 11606
+[27/Jan/2026 08:37:05] "GET /hq-portal/attendance/ HTTP/1.1" 200 12368
+[27/Jan/2026 08:37:06] "GET /admin/ HTTP/1.1" 200 10395

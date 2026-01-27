@@ -81,10 +81,10 @@
 </div>
 
 <div class="top-bar">
-    <div class="search-wrap">
+    <form action="/hq-portal/search/" method="GET" class="search-wrap">
         <i class="fas fa-search search-ico"></i>
-        <input type="text" class="search-field" placeholder="Search students, faculty, records...">
-    </div>
+        <input type="text" name="q" class="search-field" placeholder="Search by Name or CNIC..." required>
+    </form>
 
     <div class="d-flex align-items-center">
         <div class="info-capsule">

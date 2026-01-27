@@ -139,17 +139,38 @@ def mark_attendance_view(request, class_name, section_name):
 
 
 def global_search(request):
+    from django.db.models import Q
     query = request.GET.get('q', '').strip()
-    results = []
+    student_results = []
+    teacher_results = []
+    module_results = []
+
     if query:
-        from django.db.models import Q
-        results = Student.objects.filter(
-            Q(full_name__icontains=query) | 
-            Q(cnic__icontains=query)
-        )[:10]  # Limit 10 for performance
-    
-    return render(request, 'hq_admin_custom/search_results.html', {
-        'results': results,
+        # 1. Student Search (Uses Student fields)
+        student_results = Student.objects.filter(
+            Q(full_name__icontains=query) | Q(roll_number__icontains=query) | Q(b_form__icontains=query)
+        )[:10]
+
+        # 2. Teacher Search (Uses Teacher fields - NO roll_number here)
+        teacher_results = Teacher.objects.filter(
+            Q(full_name__icontains=query) | Q(cnic__icontains=query)
+        )[:10]
+
+        # 3. Quick Links
+        modules = [
+            {'name': 'Attendance HQ', 'url': '/hq-portal/attendance/', 'tags': 'mark attendance'},
+            {'name': 'Boys Wing', 'url': '/hq-portal/attendance/boys-wing/', 'tags': 'boys'},
+            {'name': 'Girls Wing', 'url': '/hq-portal/attendance/girls-wing/', 'tags': 'girls'},
+            {'name': 'Dashboard', 'url': '/hq-portal/', 'tags': 'home dashboard'},
+        ]
+        module_results = [m for m in modules if query.lower() in m['name'].lower() or query.lower() in m['tags']]
+
+    context = {
         'query': query,
-        'breadcrumbs': [{'name': 'Search Results', 'url': ''}]
-    })
+        'students': student_results,
+        'teachers': teacher_results,
+        'modules': module_results,
+        'total_found': len(student_results) + len(teacher_results) + len(module_results),
+        'breadcrumbs': [{'name': 'Search', 'url': ''}]
+    }
+    return render(request, 'hq_admin_custom/search_results.html', context)
