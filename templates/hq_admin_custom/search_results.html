@@ -1,46 +1,52 @@
 {% extends 'hq_admin_custom/base.html' %}
 {% block content %}
-<div class="p-4">
-    <div class="mb-4 d-flex justify-content-between align-items-end">
+<div class="p-4" style="background: var(--hq-bg); min-height: 100vh;">
+    
+    <div class="mb-4 d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4" style="border-color: var(--hq-primary) !important;">
         <div>
-            <h2 class="fw-bold" style="color: var(--hq-primary);">Master Search Control</h2>
-            <p class="text-muted">Showing all records matching: <strong class="text-dark">{{ query }}</strong></p>
+            <h2 class="fw-bold mb-0" style="color: var(--hq-primary); letter-spacing: -1px;">HQ Command Center</h2>
+            <p class="text-muted mb-0 small text-uppercase fw-bold">Query: <span class="text-dark">{{ query }}</span> | Results: {{ total_found }}</p>
         </div>
-        <div class="badge p-2 px-3" style="background: var(--hq-accent); border-radius: 50px;">
-            Total Found: {{ total_found }}
+        <div class="d-flex gap-2">
+            <input type="text" id="tableFilter" class="form-control form-control-sm border-0 bg-light px-3" placeholder="Live filter results..." style="width: 250px; border-radius: 20px;">
+            <a href="/hq-portal/" class="btn btn-sm btn-dark px-3" style="border-radius: 20px;">Exit</a>
         </div>
     </div>
 
     {% if students %}
-    <div class="card border-0 shadow-sm mb-5" style="border-radius: 15px; overflow: hidden;">
-        <div class="card-header border-0 p-3" style="background: var(--hq-primary); color: white;">
-            <i class="fas fa-user-graduate me-2"></i> Student Database Matches
+    <div class="card border-0 shadow-sm mb-5" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header border-0 p-3 d-flex justify-content-between align-items-center" style="background: var(--hq-primary); color: white;">
+            <span><i class="fas fa-user-graduate me-2"></i> STUDENT DIRECTORY</span>
+            <span class="badge bg-white text-dark small">{{ students|length }} Matches</span>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-hover align-middle mb-0" id="studentTable">
+                <thead style="background: #f8fafc;">
                     <tr>
-                        <th>Student Name</th>
+                        <th class="ps-4">Full Name & Father</th>
                         <th>Roll No</th>
-                        <th>Class & Section</th>
-                        <th>B-Form / CNIC</th>
+                        <th>Class Info</th>
+                        <th>B-Form Number</th>
                         <th>Wing</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-end pe-4">Control</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for s in students %}
                     <tr>
-                        <td>
+                        <td class="ps-4">
                             <div class="fw-bold text-dark">{{ s.full_name }}</div>
-                            <small class="text-muted">Father: {{ s.father_name }}</small>
+                            <div class="text-muted" style="font-size: 0.75rem;">S/O: {{ s.father_name }}</div>
                         </td>
-                        <td><span class="badge bg-secondary-subtle text-secondary">{{ s.roll_number }}</span></td>
-                        <td>{{ s.student_class }} - {{ s.student_section }}</td>
-                        <td class="small">{{ s.b_form|default:"-" }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ s.roll_number }}</span></td>
+                        <td>
+                            <div class="fw-bold">{{ s.student_class }}</div>
+                            <div class="small text-muted">{{ s.student_section }}</div>
+                        </td>
+                        <td class="font-monospace small">{{ s.b_form|default:"---" }}</td>
                         <td><span class="badge" style="background: var(--hq-accent);">{{ s.wing }}</span></td>
-                        <td class="text-end">
-                            <a href="/hq-portal/student/profile/{{ s.id }}/" class="btn btn-sm btn-dark px-3" style="border-radius: 6px;">View Profile</a>
+                        <td class="text-end pe-4">
+                            <a href="/hq-portal/student/profile/{{ s.id }}/" class="btn btn-sm btn-outline-dark fw-bold">PROFILE</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -51,30 +57,30 @@
     {% endif %}
 
     {% if teachers %}
-    <div class="card border-0 shadow-sm mb-5" style="border-radius: 15px; overflow: hidden;">
+    <div class="card border-0 shadow-sm mb-5" style="border-radius: 12px; overflow: hidden;">
         <div class="card-header border-0 p-3" style="background: var(--hq-accent); color: white;">
-            <i class="fas fa-chalkboard-teacher me-2"></i> Faculty & Staff Records
+            <i class="fas fa-chalkboard-teacher me-2"></i> FACULTY & STAFF RECORDS
         </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-hover align-middle mb-0" id="teacherTable">
+                <thead style="background: #f8fafc;">
                     <tr>
-                        <th>Teacher Name</th>
+                        <th class="ps-4">Teacher Name</th>
                         <th>CNIC</th>
-                        <th>Incharge Of</th>
+                        <th>Assigned Class</th>
                         <th>Contact</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-end pe-4">Control</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for t in teachers %}
                     <tr>
-                        <td class="fw-bold">{{ t.full_name }}</td>
-                        <td class="small">{{ t.cnic }}</td>
+                        <td class="ps-4 fw-bold text-dark">{{ t.full_name }}</td>
+                        <td class="font-monospace small">{{ t.cnic }}</td>
                         <td>{{ t.assigned_class }}-{{ t.assigned_section }} ({{ t.assigned_wing }})</td>
                         <td>{{ t.contact }}</td>
-                        <td class="text-end">
-                            <a href="/hq-portal/teacher/profile/{{ t.id }}/" class="btn btn-sm btn-outline-success px-3" style="border-radius: 6px;">Manage</a>
+                        <td class="text-end pe-4">
+                            <a href="/hq-portal/teacher/profile/{{ t.id }}/" class="btn btn-sm btn-dark fw-bold">MANAGE</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -84,34 +90,37 @@
     </div>
     {% endif %}
 
-    {% if modules %}
-    <div class="row g-3 mb-4">
-        {% for mod in modules %}
-        <div class="col-md-3">
-            <a href="{{ mod.url }}" class="text-decoration-none">
-                <div class="p-3 bg-white shadow-sm rounded-3 d-flex align-items-center gap-3 border-start border-4" style="border-color: var(--hq-accent) !important;">
-                    <i class="fas fa-bolt text-warning"></i>
-                    <span class="fw-bold text-dark">{{ mod.name }}</span>
-                </div>
-            </a>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if not students and not teachers and not modules %}
-    <div class="text-center py-5 bg-white rounded shadow-sm">
-        <i class="fas fa-ghost fa-3x text-muted mb-3"></i>
-        <h4 class="text-muted">Record not found!</h4>
-        <p>Try searching for a name, roll number, or a specific system module.</p>
+    {% if not students and not teachers %}
+    <div class="text-center py-5 bg-white rounded shadow-sm border">
+        <div class="display-1 text-muted opacity-25 mb-3"><i class="fas fa-search"></i></div>
+        <h4 class="text-muted fw-bold">Database mein koi record nahi mila!</h4>
+        <p class="text-muted small">Search query: "{{ query }}"</p>
     </div>
     {% endif %}
 </div>
 
+<script>
+document.getElementById('tableFilter').addEventListener('keyup', function() {
+    let value = this.value.toLowerCase();
+    
+    // Filter Student Table
+    let studentRows = document.querySelectorAll("#studentTable tbody tr");
+    studentRows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+    });
+
+    // Filter Teacher Table
+    let teacherRows = document.querySelectorAll("#teacherTable tbody tr");
+    teacherRows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+    });
+});
+</script>
+
 <style>
-    .table thead th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; padding: 15px; }
-    .table tbody td { padding: 15px; font-size: 0.95rem; }
-    .table-hover tbody tr:hover { background-color: #f8fafc; cursor: default; }
-    .card { transition: 0.3s; }
+    .table thead th { font-size: 0.75rem; color: #64748b; padding: 12px; border-bottom: 2px solid #edf2f7; }
+    .table tbody td { padding: 12px; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; }
+    .btn-outline-dark:hover { background: var(--hq-primary); color: white; border-color: var(--hq-primary); }
+    #tableFilter:focus { box-shadow: 0 0 0 2px var(--hq-accent); outline: none; }
 </style>
 {% endblock %}
