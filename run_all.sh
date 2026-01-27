@@ -1,14 +1,16 @@
 #!/bin/bash
 
 echo "🛑 Cleaning up old processes..."
-fuser -k 8000/tcp 8501/tcp 8505/tcp 2>/dev/null
+pkill -f "manage.py runserver"
+pkill -f "streamlit run"
 
-echo "🚀 Starting Django Backend (HQ Portal) on Port 8000..."
-nohup python3 manage.py runserver 0.0.0.0:8000 > django.log 2>&1 &
+source venv/bin/activate
 
-echo "🎨 Starting Main Streamlit App on Port 8501..."
-nohup streamlit run main_app.py --server.port 8501 > streamlit.log 2>&1 &
+echo "🚀 Starting All Systems (Press CTRL+C to stop everything)..."
+echo "--------------------------------------------------------"
 
-echo "✅ All systems are firing! Check logs if something fails."
-echo "HQ Portal: http://127.0.0.1:8000/hq-portal/"
-echo "Main App: http://127.0.0.1:8501"
+# Django aur Streamlit ko parallel chalao aur dono ka output terminal pe dikhao
+# '&' hata kar 'wait' use karenge taake terminal busy rahe aur output dikhaye
+(python3 manage.py runserver 0.0.0.0:8000) & (streamlit run main_app.py --server.port 8501) &
+
+wait
