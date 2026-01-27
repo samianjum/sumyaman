@@ -131,3 +131,47 @@ Not Found: /favicon.ico
 [27/Jan/2026 08:15:23] "GET /hq-portal/attendance/boys-wing/ HTTP/1.1" 200 12404
 [27/Jan/2026 08:15:27] "GET /hq-portal/attendance/mark/10/D/ HTTP/1.1" 200 12396
 [27/Jan/2026 08:15:30] "GET /hq-portal/student/profile/4/ HTTP/1.1" 200 10597
+/home/sami/sumyaman/apsokara/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 27, 2026 - 08:14:53
+Django version 6.0.1, using settings 'sumyaman_pro.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+[27/Jan/2026 08:18:10] "GET /hq-portal/attendance/mark/10/D/ HTTP/1.1" 200 12393
+[27/Jan/2026 08:18:11] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:18:12] "GET /favicon.ico HTTP/1.1" 404 2753
+[27/Jan/2026 08:18:15] "GET /hq-portal/student/profile/4/ HTTP/1.1" 200 10597
+[27/Jan/2026 08:18:35] "GET /hq-portal/student/profile/4/ HTTP/1.1" 200 10597
+[27/Jan/2026 08:18:35] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:18:35] "GET /favicon.ico HTTP/1.1" 404 2753
+[27/Jan/2026 08:18:40] "GET /hq-portal/attendance/mark/10/D/ HTTP/1.1" 200 12393
+[27/Jan/2026 08:18:40] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:18:41] "GET /favicon.ico HTTP/1.1" 404 2753
+[27/Jan/2026 08:18:42] "GET /hq-portal/attendance/ HTTP/1.1" 200 12318
+[27/Jan/2026 08:18:44] "GET /hq-portal/attendance/girls-wing/ HTTP/1.1" 200 12454
+[27/Jan/2026 08:18:46] "GET /hq-portal/attendance/mark/10/D/ HTTP/1.1" 200 12915
+/home/sami/sumyaman/apsokara/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+January 27, 2026 - 08:18:07
+Django version 6.0.1, using settings 'sumyaman_pro.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+[27/Jan/2026 08:23:20] "GET /hq-portal/attendance/mark/10/D/ HTTP/1.1" 200 12915
+[27/Jan/2026 08:23:21] "GET /static/sami.png HTTP/1.1" 200 18395
+Not Found: /favicon.ico
+[27/Jan/2026 08:23:21] "GET /favicon.ico HTTP/1.1" 404 2753

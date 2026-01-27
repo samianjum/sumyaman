@@ -101,6 +101,7 @@ def mark_attendance_view(request, class_name, section_name):
     
     # Database Search for the actual Class Teacher
     teacher_obj = Teacher.objects.filter(
+        assigned_wing__iexact=wing_type,
         assigned_class=class_name, 
         assigned_section=section_name, 
         is_class_teacher=True
@@ -136,3 +137,19 @@ def mark_attendance_view(request, class_name, section_name):
     }
     return render(request, 'hq_admin_custom/classroom_detail.html', context)
 
+
+def global_search(request):
+    query = request.GET.get('q', '').strip()
+    results = []
+    if query:
+        from django.db.models import Q
+        results = Student.objects.filter(
+            Q(full_name__icontains=query) | 
+            Q(cnic__icontains=query)
+        )[:10]  # Limit 10 for performance
+    
+    return render(request, 'hq_admin_custom/search_results.html', {
+        'results': results,
+        'query': query,
+        'breadcrumbs': [{'name': 'Search Results', 'url': ''}]
+    })
