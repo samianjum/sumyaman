@@ -95,22 +95,44 @@ def girls_wing_view(request):
     })
 
 @login_required
-@login_required
-
-@login_required
 def student_master_list(request):
+    # Sab parameters pakro
+    query = request.GET.get('q', '')
+    wing_filter = request.GET.get('wing', '')
+    class_filter = request.GET.get('class', '')
+    
     students_list = Student.objects.all().order_by('student_class', 'full_name')
+
+    # 1. Search Bar Logic (Naam ya Roll Number dhoondne ke liye)
+    if query:
+        from django.db.models import Q
+        students_list = students_list.filter(
+            Q(full_name__icontains=query) | Q(roll_number__icontains=query)
+        )
+
+    # 2. Dropdown Filters
+    if wing_filter:
+        students_list = students_list.filter(wing=wing_filter)
+    if class_filter:
+        students_list = students_list.filter(student_class=class_filter)
+
+    # Pagination
     paginator = Paginator(students_list, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
     context = {
         'page_obj': page_obj,
-        'wings_list': Student.objects.values_list('wing', flat=True).distinct(),
-        'classes_list': Student.objects.values_list('student_class', flat=True).distinct(),
+        'wings_list': Student.objects.values_list('wing', flat=True).distinct().order_by('wing'),
+        'classes_list': Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class'),
+        'selected_wing': wing_filter,
+        'selected_class': class_filter,
+        'query': query,
     }
     return render(request, 'hq_admin_custom/students_list.html', context)
+@login_required
 
+@login_required
 def student_profile_view(request, student_id):
     s = get_object_or_404(Student, id=student_id)
     history = Attendance.objects.filter(student=s).order_by('-date')
