@@ -2,45 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import Student, Teacher, Attendance
-from django.db.models import Q
+from django.db.models import Count, Q
 
-@login_required
-def student_profile_view(request, student_id):
-    student = get_object_or_404(Student, id=student_id)
-    
-    # 1. Pehle Duplicate saaf karo (Sirf is student ke liye)
-    # Hum har date ka sirf sab se latest record rakhenge
-    all_dates = Attendance.objects.filter(student=student).values_list('date', flat=True).distinct()
-    for d in all_dates:
-        records = Attendance.objects.filter(student=student, date=d)
-        if records.count() > 1:
-            latest_id = records.latest('id').id
-            records.exclude(id=latest_id).delete()
-
-    # 2. Ab data uthao (History)
-    history = Attendance.objects.filter(student=student).order_by('-date')
-    
-    # 3. Analytics (Match variables with your HTML template)
-    presents = history.filter(status__iexact='Present').count()
-    absents = history.filter(status__iexact='Absent').count()
-    leaves = history.filter(status__iexact='Leave').count()
-    total_days = presents + absents + leaves
-    
-    percentage = (presents / total_days * 100) if total_days > 0 else 0
-
-    context = {
-        's': student,
-        'attendance_history': history,
-        'total_days': total_days,
-        'presents': presents,
-        'absents': absents,
-        'leaves': leaves,
-        'percentage': round(percentage, 1),
-    }
-    return render(request, 'hq_admin_custom/student_profile.html', context)
-
-# Baaki saare views ko niche paste karna mat bhooliyega (Dashboard, Master Lists, etc.)
-# ... (Niche main baki views ka code bhi de raha hoon taake file complete rahe)
 @login_required
 def hq_dashboard(request):
     return render(request, 'hq_admin_custom/dashboard.html', {
@@ -51,23 +14,44 @@ def hq_dashboard(request):
     })
 
 @login_required
+def attendance_view(request):
+    today = timezone.now().date()
+    presents = Attendance.objects.filter(date=today, status__iexact='Present').count()
+    absents = Attendance.objects.filter(date=today, status__iexact='Absent').count()
+    leaves = Attendance.objects.filter(date=today, status__iexact='Leave').count()
+    
+    classes_data = Student.objects.values('student_class', 'student_section', 'wing').annotate(
+        student_count=Count('id')
+    ).order_by('student_class', 'student_section')
+    
+    return render(request, 'hq_admin_custom/attendance.html', {
+        'classes': classes_data,
+        'today_date': today,
+        'present': presents,
+        'absent': absents,
+        'leave': leaves,
+        'total_marked': presents + absents + leaves,
+        'total_students': Student.objects.count()
+    })
+
+@login_required
 def student_master_list(request):
-    students = Student.objects.all().order_by('student_class', 'student_section')
-    return render(request, 'hq_admin_custom/students_list.html', {'students': students})
+    return render(request, 'hq_admin_custom/students_list.html', {'students': Student.objects.all()})
+
+@login_required
+def student_profile_view(request, student_id):
+    s = get_object_or_404(Student, id=student_id)
+    history = Attendance.objects.filter(student=s).order_by('-date')
+    return render(request, 'hq_admin_custom/student_profile.html', {'s': s, 'attendance_history': history})
 
 @login_required
 def teacher_master_list(request):
-    teachers = Teacher.objects.all().order_by('full_name')
-    return render(request, 'hq_admin_custom/teachers_list.html', {'teachers': teachers})
+    return render(request, 'hq_admin_custom/teachers_list.html', {'teachers': Teacher.objects.all()})
 
 @login_required
 def teacher_profile_view(request, teacher_id):
-    teacher = get_object_or_404(Teacher, id=teacher_id)
-    return render(request, 'hq_admin_custom/teacher_profile.html', {'t': teacher})
-
-@login_required
-def attendance_view(request):
-    return render(request, 'hq_admin_custom/attendance.html')
+    t = get_object_or_404(Teacher, id=teacher_id)
+    return render(request, 'hq_admin_custom/teacher_profile.html', {'t': t})
 
 @login_required
 def boys_wing_view(request):
@@ -80,24 +64,10 @@ def girls_wing_view(request):
 @login_required
 def mark_attendance_view(request, class_name, section_name):
     today = timezone.now().date()
-    wing_type = "Boys" if "boys" in request.path.lower() else "Girls"
-    students = Student.objects.filter(student_class=class_name, student_section=section_name, wing__iexact=wing_type)
-    attendance_data = []
-    for s in students:
-        record = Attendance.objects.filter(student=s, date=today).exclude(status='').first()
-        if not record:
-            record, created = Attendance.objects.get_or_create(student=s, date=today, defaults={'status': ''})
-        attendance_data.append(record)
-    context = {
-        "attendance_data": attendance_data, "total_count": students.count(),
-        "present_count": Attendance.objects.filter(student__in=students, date=today, status__iexact='PRESENT').count(),
-        "absent_count": Attendance.objects.filter(student__in=students, date=today, status__iexact='ABSENT').count(),
-        "leave_count": Attendance.objects.filter(student__in=students, date=today, status__iexact='LEAVE').count(),
-        "selected_date": today.strftime('%Y-%m-%d'), "class_name": class_name, "section_name": section_name, "wing_name": wing_type
-    }
-    return render(request, "hq_admin_custom/classroom_detail.html", context)
+    students = Student.objects.filter(student_class=class_name, student_section=section_name)
+    attendance_data = [Attendance.objects.get_or_create(student=s, date=today)[0] for s in students]
+    return render(request, 'hq_admin_custom/classroom_detail.html', {'attendance_data': attendance_data, 'class_name': class_name, 'section_name': section_name})
 
 @login_required
 def global_search(request):
-    query = request.GET.get('q', '')
-    return render(request, 'hq_admin_custom/search_results.html', {'query': query})
+    return render(request, 'hq_admin_custom/search_results.html')
