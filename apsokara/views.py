@@ -15,18 +15,29 @@ def hq_dashboard(request):
 
 @login_required
 def attendance_view(request):
-    today = timezone.now().date()
-    presents = Attendance.objects.filter(date=today, status__iexact='Present').count()
-    absents = Attendance.objects.filter(date=today, status__iexact='Absent').count()
-    leaves = Attendance.objects.filter(date=today, status__iexact='Leave').count()
+    # Get date from URL or default to today
+    date_str = request.GET.get('date')
+    if date_str:
+        try:
+            target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            target_date = timezone.now().date()
+    else:
+        target_date = timezone.now().date()
+
+    # Calculate analytics for the specific date
+    presents = Attendance.objects.filter(date=target_date, status__iexact='Present').count()
+    absents = Attendance.objects.filter(date=target_date, status__iexact='Absent').count()
+    leaves = Attendance.objects.filter(date=target_date, status__iexact='Leave').count()
     
+    # Classes list
     classes_data = Student.objects.values('student_class', 'student_section', 'wing').annotate(
         student_count=Count('id')
     ).order_by('student_class', 'student_section')
     
     return render(request, 'hq_admin_custom/attendance.html', {
         'classes': classes_data,
-        'today_date': today,
+        'today_date': target_date,
         'present': presents,
         'absent': absents,
         'leave': leaves,
@@ -36,7 +47,7 @@ def attendance_view(request):
 
 @login_required
 def student_master_list(request):
-    return render(request, 'hq_admin_custom/students_list.html', {'students': Student.objects.all()})
+    return render(request, 'hq_admin_custom/students_list.html', {'students': Student.objects.all().order_by('student_class')})
 
 @login_required
 def student_profile_view(request, student_id):
@@ -65,7 +76,10 @@ def girls_wing_view(request):
 def mark_attendance_view(request, class_name, section_name):
     today = timezone.now().date()
     students = Student.objects.filter(student_class=class_name, student_section=section_name)
-    attendance_data = [Attendance.objects.get_or_create(student=s, date=today)[0] for s in students]
+    attendance_data = []
+    for s in students:
+        record, _ = Attendance.objects.get_or_create(student=s, date=today)
+        attendance_data.append(record)
     return render(request, 'hq_admin_custom/classroom_detail.html', {'attendance_data': attendance_data, 'class_name': class_name, 'section_name': section_name})
 
 @login_required

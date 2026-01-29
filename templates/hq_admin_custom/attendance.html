@@ -70,8 +70,8 @@
         <h5 class="fw-bold mb-0 text-muted"><i class="fas fa-chart-pie me-2"></i>School-Wide Attendance Analytics</h5>
         <div class="d-flex gap-2 align-items-center">
             <span class="small fw-bold text-muted text-uppercase">Data Context:</span>
-            <button class="btn btn-sm btn-dark px-3">TODAY</button>
-            <input type="date" class="form-control form-control-sm w-auto" value="{{ today_date|date:'Y-m-d' }}">
+            <a href="/hq-portal/attendance/" class="btn btn-sm btn-dark px-3">TODAY</a>
+            <form method="GET" class="d-flex gap-2"><input type="date" name="date" class="form-control form-control-sm w-auto" value="{{ today_date|date:"Y-m-d" }}" onchange="this.form.submit()"></form>
         </div>
     </div>
     <div class="row g-3">
