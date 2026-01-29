@@ -101,33 +101,97 @@ def student_master_list(request):
 def student_profile_view(request, student_id):
     s = get_object_or_404(Student, id=student_id)
     history = Attendance.objects.filter(student=s).order_by('-date')
+    
+    # Profile specific analytics
     p_count = history.filter(status__iexact='Present').count()
     a_count = history.filter(status__iexact='Absent').count()
     l_count = history.filter(status__iexact='Leave').count()
     t_count = history.count()
-    perc = (p_count / t_count * 100) if t_count > 0 else 0
-    context = {
-        's': s,
-        'attendance_history': history,
+
+    return render(request, 'hq_admin_custom/student_profile.html', {
+        's': s, 
+        'history': history,
         'present_count': p_count,
         'absent_count': a_count,
         'leave_count': l_count,
-        'total_days': t_count,
-        'percentage': round(perc, 1),
-    }
-    return render(request, 'hq_admin_custom/student_profile.html', context)
-@login_required
-def teacher_profile_view(request, teacher_id):
-    t = get_object_or_404(Teacher, id=teacher_id)
-    return render(request, 'hq_admin_custom/teacher_profile.html', {'t': t})
+        'total_count': t_count
 
 @login_required
 def teacher_master_list(request):
     return render(request, 'hq_admin_custom/teachers_list.html', {'teachers': Teacher.objects.all()})
 
 @login_required
+def teacher_profile_view(request, teacher_id):
+    t = get_object_or_404(Teacher, id=teacher_id)
+    return render(request, 'hq_admin_custom/teacher_profile.html', {'t': t})
+
+@login_required
 def global_search(request):
-    query = request.GET.get('q', '')
-    students = Student.objects.filter(full_name__icontains=query) if query else []
-    teachers = Teacher.objects.filter(full_name__icontains=query) if query else []
-    return render(request, 'hq_admin_custom/search_results.html', {'students': students, 'teachers': teachers, 'query': query})
+    return render(request, 'hq_admin_custom/search_results.html')
+
+@login_required
+def student_profile_view(request, student_id):
+    s = get_object_or_404(Student, id=student_id)
+    history = Attendance.objects.filter(student=s).order_by('-date')
+    
+    # Profile specific analytics
+    p_count = history.filter(status__iexact='Present').count()
+    a_count = history.filter(status__iexact='Absent').count()
+    l_count = history.filter(status__iexact='Leave').count()
+
+@login_required
+def student_profile_view(request, student_id):
+    s = get_object_or_404(Student, id=student_id)
+    history = Attendance.objects.filter(student=s).order_by('-date')
+    
+    # Analytics for Profile
+    p_count = history.filter(status__iexact='Present').count()
+    a_count = history.filter(status__iexact='Absent').count()
+    l_count = history.filter(status__iexact='Leave').count()
+    t_count = history.count()
+
+    return render(request, 'hq_admin_custom/student_profile.html', {
+        's': s, 
+        'history': history,
+        'present_count': p_count,
+        'absent_count': a_count,
+        'leave_count': l_count,
+        'total_count': t_count
+    })
+
+@login_required
+def student_profile_view(request, student_id):
+    s = get_object_or_404(Student, id=student_id)
+    history = Attendance.objects.filter(student=s).order_by('-date')
+
+@login_required
+def student_profile_view(request, student_id):
+    s = get_object_or_404(Student, id=student_id)
+    history = Attendance.objects.filter(student=s).order_by('-date')
+    
+    # Analytics
+    p_count = history.filter(status__iexact='Present').count()
+    a_count = history.filter(status__iexact='Absent').count()
+    l_count = history.filter(status__iexact='Leave').count()
+    t_count = history.count()
+
+@login_required
+def student_profile_view(request, student_id):
+    s = get_object_or_404(Student, id=student_id)
+    history = Attendance.objects.filter(student=s).order_by('-date')
+    
+    # Accurate Analytics
+    p_count = history.filter(status__iexact='Present').count()
+    a_count = history.filter(status__iexact='Absent').count()
+    l_count = history.filter(status__iexact='Leave').count()
+    t_count = history.count()
+
+    context = {
+        's': s,
+        'history': history,
+        'present_count': p_count,
+        'absent_count': a_count,
+        'leave_count': l_count,
+        'total_count': t_count,
+    }
+    return render(request, 'hq_admin_custom/student_profile.html', context)
