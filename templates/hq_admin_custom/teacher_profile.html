@@ -1,0 +1,78 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+<style>
+    :root { --hq-primary: #2F3E46; --hq-accent: #52796F; }
+    .profile-header { background: var(--hq-primary); color: white; padding: 40px; border-radius: 15px; margin-bottom: 25px; }
+    .info-card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 25px; height: 100%; }
+    .label-pro { font-size: 0.7rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: block; }
+    .value-pro { font-weight: 700; color: var(--hq-primary); font-size: 1.1rem; }
+    .avatar-placeholder { width: 100px; height: 100px; background: var(--hq-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border: 4px solid rgba(255,255,255,0.2); }
+</style>
+
+<div class="container-fluid p-4">
+    <div class="profile-header shadow">
+        <div class="d-flex align-items-center gap-4">
+            <div class="avatar-placeholder">{{ teacher.full_name|slice:":1" }}</div>
+            <div>
+                <h1 class="fw-bold mb-1">{{ teacher.full_name|upper }}</h1>
+                <p class="mb-0 opacity-75"><i class="fas fa-id-badge me-2"></i> {{ teacher.cnic }} | {{ teacher.assigned_wing }} Wing</p>
+                <div class="mt-3">
+                    <span class="badge {% if teacher.is_class_teacher %}bg-success{% else %}bg-secondary{% endif %} px-3 py-2">
+                        {% if teacher.is_class_teacher %}Class Teacher ({{ teacher.assigned_class }}-{{ teacher.assigned_section }}){% else %}Subject Teacher{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="info-card shadow-sm">
+                <h5 class="fw-bold mb-4" style="color: var(--hq-accent); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
+                    <i class="fas fa-user-circle me-2"></i>Personal Biodata
+                </h5>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <span class="label-pro">Father's Name</span>
+                        <div class="value-pro">{{ teacher.father_name|default:"---" }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="label-pro">Contact Number</span>
+                        <div class="value-pro text-success">{{ teacher.contact }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="label-pro">Assigned Section</span>
+                        <div class="value-pro">
+                            {% if teacher.assigned_class %}
+                                {{ teacher.assigned_class }}-{{ teacher.assigned_section }} ({{ teacher.assigned_wing }})
+                            {% else %}
+                                Not Assigned
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="label-pro">CNIC Number</span>
+                        <div class="value-pro">{{ teacher.cnic }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="info-card shadow-sm text-center">
+                <h5 class="fw-bold mb-4 text-start"><i class="fas fa-tasks me-2"></i>Management</h5>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-dark py-2"><i class="fas fa-edit me-2"></i> Edit Data</button>
+                    {% if teacher.assigned_class %}
+                    <a href="/hq-portal/class-view/{{ teacher.assigned_class }}/{{ teacher.assigned_section }}/" class="btn btn-outline-primary py-2">
+                        <i class="fas fa-external-link-alt me-2"></i> Go to Class Dashboard
+                    </a>
+                    {% endif %}
+                    <hr>
+                    <a href="{% url 'teacher_master_list' %}" class="btn btn-light btn-sm text-muted">← Back to Ledger</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
