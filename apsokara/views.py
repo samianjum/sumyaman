@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
@@ -94,25 +95,22 @@ def girls_wing_view(request):
     })
 
 @login_required
-from django.core.paginator import Paginator
+@login_required
 
 @login_required
 def student_master_list(request):
     students_list = Student.objects.all().order_by('student_class', 'full_name')
-    
-    # Pagination: Ek page par 50 students dikhayenge
     paginator = Paginator(students_list, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
     context = {
         'page_obj': page_obj,
-        'students': page_obj, # Safety backup
         'wings_list': Student.objects.values_list('wing', flat=True).distinct(),
         'classes_list': Student.objects.values_list('student_class', flat=True).distinct(),
     }
     return render(request, 'hq_admin_custom/students_list.html', context)
-@login_required
+
 def student_profile_view(request, student_id):
     s = get_object_or_404(Student, id=student_id)
     history = Attendance.objects.filter(student=s).order_by('-date')
