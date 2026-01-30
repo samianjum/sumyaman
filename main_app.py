@@ -7,6 +7,7 @@ from apsokara.logic.teacher_modules import render_marks_entry
 from apsokara.logic.student_modules import render_my_result
 from news_utility import render_news_ticker
 import streamlit as st
+from news_utility import render_news_ticker
 import base64
 import datetime
 import base64
@@ -16,6 +17,7 @@ import plotly.graph_objects as go # Donut chart ke liye
 
 # 1. Page Config
 st.set_page_config(page_title="ARMY PUBLIC SCHOOL & COLLAGE SYSTEM Portal", layout="wide", initial_sidebar_state="collapsed")
+render_news_ticker()
 
 # --- LEAVE SYSTEM HELPER FUNCTIONS ---
 def check_on_leave(student_id):
@@ -269,7 +271,6 @@ st.markdown(f'''
 ''', unsafe_allow_html=True)
 
 def show_dashboard():
-    render_news_ticker()
     role = st.session_state.role
     u = st.session_state.user_info
     if role == "Student":
