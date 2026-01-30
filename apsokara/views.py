@@ -38,10 +38,10 @@ def attendance_view(request):
     })
 
 @login_required
-def mark_attendance_view(request, class_name, section_name):
+def mark_attendance_view(request, class_name, section_name, wing_name):
     today = timezone.now().date()
     # Filter specific students
-    students = Student.objects.filter(student_class=class_name, student_section=section_name)
+    students = Student.objects.filter(student_class=class_name, student_section=section_name, wing__iexact=wing_name)
     
     attendance_list = []
     for s in students:
@@ -57,7 +57,7 @@ def mark_attendance_view(request, class_name, section_name):
         'attendance_data': attendance_list,
         'class_name': class_name, 'section_name': section_name,
         'present': p_count, 'absent': a_count, 'leave': l_count,
-        'total_count': students.count()
+        'total_count': students.count(), 'today_date': today
     })
 
 @login_required
@@ -72,7 +72,7 @@ def boys_wing_view(request):
     l = Attendance.objects.filter(date=today, student__wing__iexact='Boys', status__iexact='Leave').count()
 
     return render(request, 'hq_admin_custom/wing_detail.html', {
-        'wing_title': 'BOYS WING HQ', 'theme_color': '#1e3a8a', 
+        'wing_title': 'BOYS WING HQ', 'wing_slug': 'Boys', 'theme_color': '#1e3a8a', 
         'class_sections': classes, 'present': p, 'absent': a, 'leave': l,
         'total_students': students.count()
     })
@@ -89,7 +89,7 @@ def girls_wing_view(request):
     l = Attendance.objects.filter(date=today, student__wing__iexact='Girls', status__iexact='Leave').count()
 
     return render(request, 'hq_admin_custom/wing_detail.html', {
-        'wing_title': 'GIRLS WING HQ', 'theme_color': '#701a75', 
+        'wing_title': 'GIRLS WING HQ', 'wing_slug': 'Girls', 'theme_color': '#701a75', 
         'class_sections': classes, 'present': p, 'absent': a, 'leave': l,
         'total_students': students.count()
     })

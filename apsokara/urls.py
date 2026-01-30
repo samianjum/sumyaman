@@ -18,7 +18,7 @@ urlpatterns = [
     path('attendance/girls-wing/', views.girls_wing_view, name='girls_wing'),
     
     # Ye raha naya rasta jo miss tha:
-    path('attendance/mark/<str:class_name>/<str:section_name>/', views.mark_attendance_view, name='mark_attendance'),
+    path('attendance/mark/<str:class_name>/<str:section_name>/<str:wing_name>/', views.mark_attendance_view, name='mark_attendance'),
     
     # Search
     path('search/', views.global_search, name='global_search'),

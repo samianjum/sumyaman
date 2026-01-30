@@ -65,7 +65,7 @@
         <div class="row g-3" id="classGrid">
             {% for item in class_sections %}
             <div class="col-md-3 class-item" data-name="{{ item.student_class }} {{ item.student_section }}">
-                <a href="/hq-portal/attendance/mark/{{ item.student_class }}/{{ item.student_section }}/" class="text-decoration-none">
+                <a href="/hq-portal/attendance/mark/{{ item.student_class }}/{{ item.student_section }}/{{ wing_slug }}/" class="text-decoration-none">
                     <div class="class-card text-center">
                         <div class="text-muted small fw-bold mb-1">GRADE</div>
                         <div class="h3 fw-black mb-2" style="color: var(--hq-primary);">{{ item.student_class }}</div>
