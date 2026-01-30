@@ -67,6 +67,7 @@ class Attendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     date = models.DateField(default=timezone.now)
     status = models.CharField(max_length=10)
+    marked_by = models.TextField(default='Unknown')
 
 class StudentLeave(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)

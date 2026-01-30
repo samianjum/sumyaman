@@ -44,8 +44,7 @@ def mark_attendance_view(request, class_name, section_name):
     
     attendance_list = []
     for s in students:
-        record, created = Attendance.objects.get_or_create(student=s, date=today, defaults={'status': 'Absent'})
-        attendance_list.append(record)
+        if "record" in locals(): attendance_list.append(record)
 
     # Class Specific Analytics
     p_count = Attendance.objects.filter(student__in=students, date=today, status__iexact='Present').count()

@@ -232,7 +232,7 @@ def get_daily_analytics(t_class, t_sec, t_wing):
                  GROUP BY status"""
     df_stats = pd.read_sql_query(q_stats, conn, params=(t_class, t_sec, today, t_wing))
     conn.close()
-    stats = {"Present": 0, "Absent": 0, "Leave": 0, "Total": total}
+    stats = {"Present": 0, "Absent": 0, "Leave": 0, "Total": 0}
     for _, row in df_stats.iterrows():
         key = "Present" if row['status'] == 'P' else ("Absent" if row['status'] == 'A' else "Leave")
         stats[key] = row['count']

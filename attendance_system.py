@@ -20,7 +20,8 @@ def get_db():
     finally:
         conn.close()
 
-def render_attendance_system(u):
+def render_attendance_system(user_info):
+    if 'user_info' not in locals(): user_info = st.session_state.get('user_info', {})
     import uuid
     u_id = str(uuid.uuid4())[:4]
     import uuid
@@ -29,14 +30,13 @@ def render_attendance_system(u):
     pk_tz = pytz.timezone("Asia/Karachi")
     today_obj = datetime.datetime.now(pk_tz).date()
     today = today_obj.isoformat()
-    teacher_name = u.get('name', 'Teacher')
-    c_name = u.get('class', None)
-    u_wing = u.get('wing', None)
-    u_sec = u.get('section', u.get('sec', ''))
+    teacher_name = user_info.get('full_name', 'Teacher')
+    c_name = user_info.get('assigned_class', user_info.get('class', None))
+    u_wing = user_info.get('assigned_wing', user_info.get('wing', None))
+    u_sec = user_info.get('section', user_info.get('sec', ''))
 
     if not c_name or not u_wing:
         st.error("❌ No Class/Wing assigned to this teacher profile.")
-        return
 
     st.markdown("""<style>@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap'); * { font-family: 'Plus Jakarta Sans', sans-serif; }</style>""", unsafe_allow_html=True)
     st.markdown(f'''<div style="background: linear-gradient(-45deg, #f0f9ff, #e0f2fe, #dbeafe, #f8fafc); padding: 30px; border-radius: 28px; border: 1px solid rgba(59, 130, 246, 0.3); display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;"><div><h1 style="margin:0; background: linear-gradient(90deg, #1e3a8a, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{u_wing} Administration</h1><p style="color: #475569; font-weight: 600;">✨ {teacher_name} | Section {c_name}-{u_sec}</p></div><div style="background: white; padding: 10px 20px; border-radius: 15px; border: 1px solid #bfdbfe; text-align: center;"><span style="color: #3b82f6; font-size: 10px; letter-spacing: 2px; display: block;">TIMELINE</span><b style="color: #1e40af; font-size: 18px;">{today_obj.strftime('%d %B, %Y')}</b></div></div>''', unsafe_allow_html=True)
@@ -78,8 +78,8 @@ def render_attendance_system(u):
                                     cur = conn.cursor()
                                     cur.execute("BEGIN IMMEDIATE TRANSACTION;")
                                     cur.execute("DELETE FROM apsokara_attendance WHERE date=? AND student_id IN (SELECT id FROM apsokara_student WHERE student_class=? AND wing=? AND student_section=?)", (today, c_name, u_wing, u_sec))
-                                    final_data = [(sid, d['status'], today, edit_cnt+1) for sid, d in attendance_results.items()]
-                                    cur.executemany("INSERT INTO apsokara_attendance (student_id, status, date, edit_count) VALUES (?,?,?,?)", final_data)
+                                    final_data = [(sid, d['status'], today, edit_cnt+1, user_info.get('full_name', 'System')) for sid, d in attendance_results.items()]
+                                    cur.executemany("INSERT INTO apsokara_attendance (student_id, status, date, edit_count, marked_by) VALUES (?,?,?,?,?)", final_data)
                                     conn.commit()
                                     status.update(label="Sync Complete!", state="complete")
                                     st.success("✅ Attendance Successfully Synced.")
@@ -90,7 +90,7 @@ def render_attendance_system(u):
 
         with tab2:
             v_date = st.date_input("Select Date", today_obj)
-            hist = pd.read_sql("SELECT s.roll_number, s.full_name, IFNULL(a.status, 'Not Marked') as status FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=? WHERE s.student_class=? AND s.wing=? AND s.student_section=? ORDER BY CAST(s.roll_number AS INTEGER)", conn, params=(v_date.isoformat(), c_name, u_wing, u_sec))
+            hist = pd.read_sql("SELECT s.roll_number, s.full_name, CASE WHEN a.status IS NULL THEN 'Not Marked' ELSE a.status END as status FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND DATE(a.date)=DATE(?) WHERE s.student_class=? AND s.wing=? AND s.student_section=? ORDER BY CAST(s.roll_number AS INTEGER)", conn, params=(v_date.isoformat(), c_name, u_wing, u_sec))
             st.dataframe(hist, use_container_width=True, hide_index=True)
 
         with tab3:
@@ -106,7 +106,7 @@ def render_attendance_system(u):
             s_query = st.text_input("🔍 Search Student Name", placeholder="Type name and press Enter...", label_visibility="collapsed")
 
             if s_query:
-                s_data = pd.read_sql("SELECT id, roll_number, full_name, father_name FROM apsokara_student WHERE (full_name LIKE ? OR father_name LIKE ?)   ", conn, params=(f"%{s_query}%", f"%{s_query}%", c_name, u_wing, u_sec))
+                s_data = pd.read_sql("SELECT id, roll_number, full_name, father_name FROM apsokara_student WHERE (full_name LIKE ? OR father_name LIKE ?)   ", conn, params=(f"%{s_query}%", f"%{s_query}%"))
                 if not s_data.empty:
                     sel = s_data.iloc[0]; sid = int(sel["id"])
                     stats_df = pd.read_sql("SELECT date, status FROM apsokara_attendance WHERE student_id=? ORDER BY date DESC", conn, params=(sid,))
@@ -170,6 +170,5 @@ def render_attendance_system(u):
                         b = io.BytesIO(); c = canvas.Canvas(b, pagesize=letter)
                         c.drawString(100, 750, f"INTEL REPORT: {sel['full_name']}"); y=700
                         for _, r in stats_df.iterrows(): c.drawString(100, y, f"{r['date']}: {r['status']}"); y-=20
-                        c.save(); return b.getvalue()
                     st.download_button("📥 Download Official PDF History", make_pdf(), f"{sel['full_name']}_Intel.pdf", "application/pdf", use_container_width=True)
                 else: st.error("No student found in your assigned section.")
