@@ -37,6 +37,14 @@ def attendance_view(request):
 
 @login_required
 def mark_attendance_view(request, class_name, section_name, wing_name):
+    # Boundary: Check if teacher is assigned to this class
+    if not request.user.is_superuser:
+        try:
+            teacher = request.user.teacher
+            if teacher.assigned_class != class_name or teacher.assigned_section != section_name:
+                from django.core.exceptions import PermissionDenied; raise PermissionDenied()
+        except:
+            from django.core.exceptions import PermissionDenied; raise PermissionDenied()
     today = timezone.now().date()
     students = Student.objects.filter(student_class=class_name, student_section=section_name, wing__iexact=wing_name)
     
