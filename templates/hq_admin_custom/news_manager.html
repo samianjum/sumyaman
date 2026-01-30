@@ -1,0 +1,75 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="fw-bold" style="color: #701a75;">📢 CREATE NEW ANNOUNCEMENT</h5>
+        </div>
+        <div class="card-body px-4">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">News Content</label>
+                        <textarea name="content" class="form-control" rows="2" placeholder="Enter news text here..." required></textarea>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Start Date</label>
+                        <input type="date" name="start_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">End Date</label>
+                        <input type="date" name="end_date" class="form-control" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-dark w-100 fw-bold">Post News</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="fw-bold" style="color: #701a75;">📜 NEWS HISTORY</h5>
+        </div>
+        <div class="card-body px-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Content</th>
+                            <th>Range</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for n in news %}
+                        <tr>
+                            <td>{{ n.content }}</td>
+                            <td><small>{{ n.start_date }} to {{ n.end_date }}</small></td>
+                            <td>
+                                {% if n.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Expired</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{% url 'delete_news' n.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center py-4">No news found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

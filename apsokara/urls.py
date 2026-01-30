@@ -1,7 +1,10 @@
+from .views import news_manager_view, delete_news
 from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('news-manager/', news_manager_view, name='news_manager'),
+    path('news-delete/<int:news_id>/', delete_news, name='delete_news'),
     path('', views.hq_dashboard, name='hq_dashboard'),
     
     # Students

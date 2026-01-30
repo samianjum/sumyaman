@@ -149,3 +149,24 @@ def global_search(request):
     students = Student.objects.filter(full_name__icontains=query) if query else []
     teachers = Teacher.objects.filter(full_name__icontains=query) if query else []
     return render(request, 'hq_admin_custom/search_results.html', {'students': students, 'teachers': teachers, 'query': query})
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import SchoolNews
+
+@login_required
+def news_manager_view(request):
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        s_date = request.POST.get('start_date')
+        e_date = request.POST.get('end_date')
+        SchoolNews.objects.create(content=content, start_date=s_date, end_date=e_date)
+        return redirect('news_manager')
+    
+    all_news = SchoolNews.objects.all().order_by('-created_at')
+    return render(request, 'hq_admin_custom/news_manager.html', {'news': all_news})
+
+@login_required
+def delete_news(request, news_id):
+    news_item = get_object_or_404(SchoolNews, id=news_id)
+    news_item.delete()
+    return redirect('news_manager')

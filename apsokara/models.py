@@ -73,3 +73,13 @@ class StudentLeave(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     from_date = models.DateField()
     to_date = models.DateField()
+
+class SchoolNews(models.Model):
+    content = models.TextField()
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.content[:50]
