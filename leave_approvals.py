@@ -8,7 +8,7 @@ def render_leave_approvals(u):
     t_wing = u.get('wing', '')
     
     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
-        p_count = pd.read_sql("SELECT COUNT(*) as count FROM apsokara_studentleave WHERE student_class=? AND wing=? AND status='Pending'", 
+        p_count = pd.read_sql("SELECT COUNT(*) as count FROM apsokara_studentleave WHERE student_id IN (SELECT id FROM apsokara_student WHERE student_class=? AND wing=?) ", 
                              conn, params=(t_class, t_wing)).iloc[0]['count']
 
     st.markdown(f"""
@@ -73,7 +73,7 @@ def render_leave_approvals(u):
                 SELECT l.*, s.full_name as name 
                 FROM apsokara_studentleave l 
                 LEFT JOIN apsokara_student s ON l.student_id = s.id 
-                WHERE l.student_class=? AND l.wing=? AND l.status='Pending'
+                WHERE s.student_class=? AND s.wing=?
             """, conn, params=(t_class, t_wing))
         
         if pending.empty:
@@ -114,10 +114,10 @@ def render_leave_approvals(u):
         
         # Humne query loose rakhi hai taake filter sahi chalein
         query = """
-            SELECT s.full_name as Name, l.from_date as Start, l.to_date as End, l.status as Status, l.reason as Reason 
+            SELECT s.full_name as Name, l.from_date as Start, l.to_date as End, l.from_date as Date 
             FROM apsokara_studentleave l 
             LEFT JOIN apsokara_student s ON l.student_id = s.id 
-            WHERE l.student_class=? AND l.wing=?
+            WHERE s.student_class=? AND s.wing=?
         """
         params = [t_class, t_wing]
         

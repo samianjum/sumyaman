@@ -45,7 +45,7 @@ def render_attendance_system(u):
 
     with get_db() as conn:
         with tab1:
-            lock_res = conn.execute("SELECT MAX(edit_count) FROM apsokara_attendance WHERE date=? AND student_class=? AND wing=? AND student_section=?", (today, c_name, u_wing, u_sec)).fetchone()
+            lock_res = conn.execute("SELECT MAX(edit_count) FROM apsokara_attendance WHERE date=? AND student_id IN (SELECT id FROM apsokara_student WHERE student_class=? AND wing=? AND student_section=?)", (today, c_name, u_wing, u_sec)).fetchone()
             edit_cnt = lock_res[0] if lock_res[0] is not None else 0
 
             if edit_cnt >= 2:
@@ -57,7 +57,7 @@ def render_attendance_system(u):
                 else:
                     st.markdown('''<div style="background: #fff1f2; border: 1px solid #fecdd3; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; animation: pulse 2s infinite;"><span style="font-size: 20px;">⚠️</span><span style="color: #9f1239; font-weight: 600;"><b>CRITICAL:</b> This is your <b>LAST CHANCE</b>. Database will LOCK after this sync.</span></div><style>@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }</style>''', unsafe_allow_html=True)
 
-                students = pd.read_sql("SELECT id, roll_number, full_name, session_year FROM apsokara_student WHERE student_class=? AND wing=? AND student_section=? AND is_active=1 ORDER BY CAST(roll_number AS INTEGER)", conn, params=(c_name, u_wing, u_sec))
+                students = pd.read_sql("SELECT id, roll_number, full_name FROM apsokara_student WHERE student_class=? AND wing=? AND student_section=? ORDER BY CAST(roll_number AS INTEGER)", conn, params=(c_name, u_wing, u_sec))
                 
                 if students.empty:
                     st.warning(f"No students in {c_name}-{u_sec}")
@@ -67,7 +67,6 @@ def render_attendance_system(u):
                         st.markdown(f"**{s['full_name']}** (Roll: {s['roll_number']})")
                         attendance_results[s['id']] = {
                             'status': st.segmented_control("Status", ["Present", "Absent", "Leave"], default="Present", key=f"s_{s['id']}_{today}_{cid}", label_visibility="collapsed"),
-                            'year': s['session_year']
                         }
                     
                     st.markdown("---")
@@ -78,9 +77,9 @@ def render_attendance_system(u):
                                 try:
                                     cur = conn.cursor()
                                     cur.execute("BEGIN IMMEDIATE TRANSACTION;")
-                                    cur.execute("DELETE FROM apsokara_attendance WHERE date=? AND student_class=? AND wing=? AND student_section=?", (today, c_name, u_wing, u_sec))
-                                    final_data = [(today, sid, edit_cnt+1, c_name, u_sec, u_wing, d['year'], d['status'], teacher_name) for sid, d in attendance_results.items()]
-                                    cur.executemany("INSERT INTO apsokara_attendance (date, student_id, edit_count, student_class, student_section, wing, session_year, status, marked_by) VALUES (?,?,?,?,?,?,?,?,?)", final_data)
+                                    cur.execute("DELETE FROM apsokara_attendance WHERE date=? AND student_id IN (SELECT id FROM apsokara_student WHERE student_class=? AND wing=? AND student_section=?)", (today, c_name, u_wing, u_sec))
+                                    final_data = [(sid, d['status'], today, edit_cnt+1) for sid, d in attendance_results.items()]
+                                    cur.executemany("INSERT INTO apsokara_attendance (student_id, status, date, edit_count) VALUES (?,?,?,?)", final_data)
                                     conn.commit()
                                     status.update(label="Sync Complete!", state="complete")
                                     st.success("✅ Attendance Successfully Synced.")
@@ -107,7 +106,7 @@ def render_attendance_system(u):
             s_query = st.text_input("🔍 Search Student Name", placeholder="Type name and press Enter...", label_visibility="collapsed")
 
             if s_query:
-                s_data = pd.read_sql("SELECT id, roll_number, full_name, father_name FROM apsokara_student WHERE (full_name LIKE ? OR father_name LIKE ?) AND student_class=? AND wing=? AND student_section=?", conn, params=(f"%{s_query}%", f"%{s_query}%", c_name, u_wing, u_sec))
+                s_data = pd.read_sql("SELECT id, roll_number, full_name, father_name FROM apsokara_student WHERE (full_name LIKE ? OR father_name LIKE ?)   ", conn, params=(f"%{s_query}%", f"%{s_query}%", c_name, u_wing, u_sec))
                 if not s_data.empty:
                     sel = s_data.iloc[0]; sid = int(sel["id"])
                     stats_df = pd.read_sql("SELECT date, status FROM apsokara_attendance WHERE student_id=? ORDER BY date DESC", conn, params=(sid,))
