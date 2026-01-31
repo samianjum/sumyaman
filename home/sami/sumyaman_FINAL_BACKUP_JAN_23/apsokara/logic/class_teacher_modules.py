@@ -39,10 +39,10 @@ def render_leave_approvals(u):
                 <p style="background:#F8FAFC; padding:10px; border-radius:10px; margin-top:10px;">Reason: {r['reason']}</p>
             </div>""", unsafe_allow_html=True)
             c1, c2, _ = st.columns([1,1,2])
-            if c1.button("Approve ✅", key=f"ap_{r['id']}", use_container_width=True):
+            if c1.button("Approve ✅", key=f"ap_{r['id']}", width='stretch'):
                 with sqlite3.connect("db.sqlite3", timeout=30) as conn: conn.execute("UPDATE apsokara_studentleave SET status='Approved' WHERE id=?", (r['id'],))
                 st.rerun()
-            if c2.button("Reject ❌", key=f"rj_{r['id']}", use_container_width=True):
+            if c2.button("Reject ❌", key=f"rj_{r['id']}", width='stretch'):
                 with sqlite3.connect("db.sqlite3", timeout=30) as conn: conn.execute("UPDATE apsokara_studentleave SET status='Rejected' WHERE id=?", (r['id'],))
                 st.rerun()
 
@@ -66,7 +66,7 @@ def render_leave_approvals(u):
     
     if not hist.empty:
         st.markdown("<br>", unsafe_allow_html=True)
-        st.dataframe(hist, use_container_width=True, hide_index=True)
+        st.dataframe(hist, width='stretch', hide_index=True)
     else:
         st.info("No records found in history.")
 

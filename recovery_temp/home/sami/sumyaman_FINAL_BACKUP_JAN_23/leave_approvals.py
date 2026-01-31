@@ -97,11 +97,11 @@ def render_leave_approvals(u):
                 """, unsafe_allow_html=True)
                 
                 c1, c2, _ = st.columns([1,1,2])
-                if c1.button("✅ Approve", key=f"a{r['id']}", use_container_width=True):
+                if c1.button("✅ Approve", key=f"a{r['id']}", width='stretch'):
                     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
                         conn.execute("UPDATE apsokara_studentleave SET status='Approved', is_read=1 WHERE id=?", (r['id'],))
                     st.rerun()
-                if c2.button("❌ Reject", key=f"r{r['id']}", use_container_width=True):
+                if c2.button("❌ Reject", key=f"r{r['id']}", width='stretch'):
                     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
                         conn.execute("UPDATE apsokara_studentleave SET status='Rejected', is_read=1 WHERE id=?", (r['id'],))
                     st.rerun()
@@ -136,7 +136,7 @@ def render_leave_approvals(u):
         else:
             st.dataframe(
                 hist, 
-                use_container_width=True, 
+                width='stretch', 
                 hide_index=True,
                 column_config={
                     "Status": st.column_config.TextColumn("Status", help="Approval Status")

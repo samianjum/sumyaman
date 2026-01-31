@@ -1,115 +1,106 @@
-import streamlit as st
 import sqlite3
-from contextlib import contextmanager
+import pandas as pd
+from datetime import date
+import streamlit as st
 
-@contextmanager
-def get_news_db():
-    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', check_same_thread=False)
+def get_filtered_news():
+    user_role = st.session_state.get('role', 'All')
+    role_to_filter = 'All'
+    if 'student' in (user_role or '').lower():
+        role_to_filter = 'Student'
+    elif 'teacher' in (user_role or '').lower():
+        role_to_filter = user_role
+    today = date.today().strftime('%Y-%m-%d')
     try:
-        yield conn
-    finally:
-        conn.close()
+        with sqlite3.connect("db.sqlite3", timeout=30) as conn:
+            query = f"""
+                SELECT content FROM apsokara_schoolnews 
+                WHERE (target_role = '{role_to_filter}' OR target_role = 'All')
+                AND start_date <= '{today}' AND end_date >= '{today}'
+                ORDER BY id DESC
+            """
+            return pd.read_sql(query, conn)
+    except:
+        return pd.DataFrame()
 
 def render_news_ticker():
-    if 'user_info' not in st.session_state or st.session_state.user_info is None:
-        return
-
-    try:
-        with get_news_db() as conn:
-            res = conn.execute("SELECT content FROM apsokara_schoolnews ORDER BY id DESC LIMIT 5").fetchall()
+    df = get_filtered_news()
+    if not df.empty:
+        news_list = df['content'].tolist()
+        # High-end separator
+        full_text = " &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style='color:#800000; opacity:0.5;'>◆</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ".join(news_list)
         
-        if res:
-            ticker_text = " &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style='color:#800000;'>★</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ".join([item[0] for item in res])
-            
-            st.markdown(f"""
+        st.markdown(f"""
             <style>
-            @import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;800&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap');
 
-            .aps-vibrant-ticker {{
-                background: #f8fafc;
-                border-top: 1px solid #e2e8f0;
-                border-bottom: 3px solid #800000;
-                padding: 14px 0;
-                margin-bottom: 30px;
+            .ticker-container {{
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(128, 0, 0, 0.1);
+                border-radius: 12px;
                 display: flex;
                 align-items: center;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+                padding: 8px 0;
+                margin: 15px 0;
                 overflow: hidden;
-                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }}
 
-            .vibrant-alert {{
+            .ticker-badge {{
                 background: #800000;
-                color: #ffffff;
-                padding: 6px 18px;
-                margin-left: 12px;
-                font-family: 'League Spartan', sans-serif;
-                font-size: 13px;
-                font-weight: 800;
-                letter-spacing: 1.5px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                border-radius: 6px;
-                z-index: 10;
-                white-space: nowrap;
-            }}
-
-            .alert-blink {{
-                height: 10px;
-                width: 10px;
-                background-color: #ffd700;
-                border-radius: 50%;
-                animation: pulse-gold 1.2s infinite;
-            }}
-
-            @keyframes pulse-gold {{
-                0% {{ transform: scale(0.8); opacity: 0.5; }}
-                50% {{ transform: scale(1.1); opacity: 1; }}
-                100% {{ transform: scale(0.8); opacity: 0.5; }}
-            }}
-
-            .scroller-window {{
-                flex: 1;
-                overflow: hidden;
-                white-space: nowrap;
-                padding: 0 25px;
-            }}
-
-            .scroller-text {{
-                display: inline-block;
-                padding-left: 100%;
-                /* Speed slowed down to 50s for better readability */
-                animation: marquee-vibrant 50s linear infinite;
-                color: #1e293b;
-                font-family: 'League Spartan', sans-serif;
-                font-size: 20px;
-                font-weight: 700;
+                color: white;
+                padding: 5px 15px;
+                font-size: 12px;
+                font-weight: 600;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
+                letter-spacing: 1.5px;
+                margin-left: 10px;
+                border-radius: 8px;
+                z-index: 2;
+                box-shadow: 2px 0 10px rgba(128, 0, 0, 0.2);
+                animation: pulse-red 2s infinite;
             }}
 
-            @keyframes marquee-vibrant {{
+            @keyframes pulse-red {{
+                0% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(128, 0, 0, 0.4); }}
+                70% {{ transform: scale(1.02); box-shadow: 0 0 0 10px rgba(128, 0, 0, 0); }}
+                100% {{ transform: scale(1); box-shadow: 0 0 0 0 rgba(128, 0, 0, 0); }}
+            }}
+
+            .ticker-viewport {{
+                flex-grow: 1;
+                overflow: hidden;
+                display: flex;
+            }}
+
+            .ticker-move {{
+                display: inline-block;
+                white-space: nowrap;
+                padding-left: 100%;
+                animation: ticker-swipe 40s linear infinite;
+                font-size: 15px;
+                color: #2D3748;
+                font-weight: 500;
+            }}
+
+            @keyframes ticker-swipe {{
                 0% {{ transform: translateX(0); }}
                 100% {{ transform: translateX(-100%); }}
             }}
 
-            .scroller-text:hover {{
+            .ticker-container:hover .ticker-move {{
                 animation-play-state: paused;
-                color: #800000;
             }}
             </style>
-
-            <div class="aps-vibrant-ticker">
-                <div class="vibrant-alert">
-                    <div class="alert-blink"></div> LATEST UPDATES
-                </div>
-                <div class="scroller-window">
-                    <div class="scroller-text">
-                        {ticker_text} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ★ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {ticker_text}
+            
+            <div class="ticker-container">
+                <div class="ticker-badge">Live Update</div>
+                <div class="ticker-viewport">
+                    <div class="ticker-move">
+                        {full_text} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ◆ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {full_text}
                     </div>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
-    except Exception:
-        pass
+        """, unsafe_allow_html=True)

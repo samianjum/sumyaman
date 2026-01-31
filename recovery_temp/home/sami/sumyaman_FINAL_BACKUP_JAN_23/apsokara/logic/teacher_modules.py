@@ -59,7 +59,7 @@ def render_marks_entry(u):
         students, 
         column_config={"id": None}, 
         disabled=disabled_cols, # Ab list ja rahi hai, error nahi aayega
-        use_container_width=True, 
+        width='stretch', 
         hide_index=True
     )
 

@@ -34,7 +34,7 @@ def show_student_manager():
             })
         
         df = pd.DataFrame(data)
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.dataframe(df, width='stretch', hide_index=True)
         
         if privacy_on:
             st.warning("⚠️ Sensitive data is hidden. Turn off 'Privacy Mode' to see full details.")

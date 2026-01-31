@@ -76,6 +76,8 @@ class StudentLeave(models.Model):
 
 class SchoolNews(models.Model):
     content = models.TextField()
+    target_role = models.CharField(max_length=50, default='All')
+    target_role = models.CharField(max_length=50, default='All')
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField()
     is_active = models.BooleanField(default=True)

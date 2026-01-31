@@ -37,6 +37,6 @@ def show_attendance_viewer():
         c1.metric("Present ✅", p_count)
         c2.metric("Absent ❌", a_count)
         
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width='stretch')
     else:
         st.warning(f"No attendance records found for {target_date}")

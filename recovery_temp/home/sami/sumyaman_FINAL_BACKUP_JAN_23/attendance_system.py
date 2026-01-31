@@ -68,7 +68,7 @@ def render_attendance_system(u):
                     st.markdown("---")
                     if st.toggle("Verify All Entries", key="verify_toggle"):
                         btn_label = "🚀 FINAL LOCK & SYNC" if edit_cnt == 1 else "🚀 SYNC TO DATABASE"
-                        if st.button(btn_label, use_container_width=True, type="primary"):
+                        if st.button(btn_label, width='stretch', type="primary"):
                             with st.status("Writing to Secure Storage...", expanded=False) as status:
                                 try:
                                     cur = conn.cursor()
@@ -87,7 +87,7 @@ def render_attendance_system(u):
         with tab2:
             v_date = st.date_input("Select Date", today_obj)
             hist = pd.read_sql("SELECT s.roll_no, s.full_name, IFNULL(a.status, 'Not Marked') as status FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=? WHERE s.student_class=? AND s.wing=? AND s.student_section=? ORDER BY CAST(s.roll_no AS INTEGER)", conn, params=(v_date.isoformat(), c_name, u_wing, u_sec))
-            st.dataframe(hist, use_container_width=True, hide_index=True)
+            st.dataframe(hist, width='stretch', hide_index=True)
 
         with tab3:
             st.markdown("""<style>
@@ -143,7 +143,7 @@ def render_attendance_system(u):
                                     'thickness': 0.75,
                                     'value': 75}}))
                         fig.update_layout(height=300, margin=dict(t=30, b=0, l=10, r=10), paper_bgcolor="rgba(0,0,0,0)")
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width='stretch')
 
                     with g2:
                         st.markdown("#### 🎯 Quick Status Search")
@@ -160,12 +160,12 @@ def render_attendance_system(u):
                     # --- Row 3: History & Export ---
                     st.markdown("---")
                     st.markdown("#### 📜 Full Detailed Log")
-                    st.dataframe(stats_df, use_container_width=True, height=250)
+                    st.dataframe(stats_df, width='stretch', height=250)
                     
                     def make_pdf():
                         b = io.BytesIO(); c = canvas.Canvas(b, pagesize=letter)
                         c.drawString(100, 750, f"INTEL REPORT: {sel['full_name']}"); y=700
                         for _, r in stats_df.iterrows(): c.drawString(100, y, f"{r['date']}: {r['status']}"); y-=20
                         c.save(); return b.getvalue()
-                    st.download_button("📥 Download Official PDF History", make_pdf(), f"{sel['full_name']}_Intel.pdf", "application/pdf", use_container_width=True)
+                    st.download_button("📥 Download Official PDF History", make_pdf(), f"{sel['full_name']}_Intel.pdf", "application/pdf", width='stretch')
                 else: st.error("No student found in your assigned section.")

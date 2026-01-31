@@ -315,7 +315,7 @@ def show_dashboard():
                 with c2: st.success("✅ System Status: Active")
                 with c3: st.warning("🔔 New Notices: Check Notifications")
                 st.divider()
-                st.image("https://img.freepik.com/free-vector/education-background-with-books-lamp_23-2147501981.jpg", use_container_width=True)
+                st.image("https://img.freepik.com/free-vector/education-background-with-books-lamp_23-2147501981.jpg", width='stretch')
                 st.write(f'## Welcome, {st.session_state.user_info.get("full_name", "User")}!')
 def show_login():
     st.markdown(f'''<div style="text-align:center; padding-top:0px;"><img src="data:image/png;base64,{img_base64}" width="100"><h1 style="color:#000000; font-weight:800;">ARMY PUBLIC SCHOOL & COLLAGE SYSTEM PORTAL</h1></div>''', unsafe_allow_html=True)

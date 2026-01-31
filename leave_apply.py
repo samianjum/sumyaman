@@ -53,7 +53,7 @@ def render_leave_apply(u):
             start = c1.date_input("From Date", date.today())
             end = c2.date_input("To Date", date.today())
             reason = st.text_area("Reason for Leave", placeholder="Detailed reason...")
-            if st.form_submit_button("🚀 Submit Request", use_container_width=True):
+            if st.form_submit_button("🚀 Submit Request", width='stretch'):
                 if reason.strip():
                     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
                         conn.execute("INSERT INTO apsokara_studentleave (student_id, class, section, wing, reason, from_date, to_date, status, applied_on) VALUES (?,?,?,?,?,?,?,?,?)", 
