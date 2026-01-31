@@ -1,3 +1,4 @@
+import face_security
 from leave_utils import check_on_leave
 import sys, os; sys.path.append(os.getcwd()); sys.path.append(os.path.join(os.getcwd(), "apsokara/logic"))
 from apsokara.logic.teacher_modules import render_marks_entry
@@ -223,6 +224,9 @@ def fetch_user_data(user_id, dob_val, user_type):
         row = cursor.fetchone()
         if row:
             data = dict(row)
+            # Module compatibility fix
+            if 'id' in data:
+                data['id_num'] = data['id']
             # Yahan asali jaadu hai:
             if user_type == "Teacher" and row['is_class_teacher'] == 1:
                 data['role_db'] = "Class Teacher"
@@ -315,36 +319,35 @@ def show_dashboard():
     </div>
     ''', unsafe_allow_html=True)
 
-    if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT"]
-    elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🎯 MARKS ENTRY", "📤 FINAL UPLOAD"]
-    else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY", "📝 ATTENDANCE"]
+    if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT", "🔒 FACE LOCK"]
+    elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🔒 FACE LOCK"]
+    else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY", "📝 ATTENDANCE", "🔒 FACE LOCK"]
     
     active_tabs = st.tabs(tabs_list)
     for i, tab in enumerate(active_tabs):
         with tab:
             t_full_name = tabs_list[i].upper()
-            if 'MY RESULT' in t_full_name or 'RESULT' in t_full_name:
+            if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
                 from apsokara.logic.student_modules import render_my_result
-                render_my_result(st.session_state.user_info)
+                render_my_result(u)
             elif "ATTENDANCE HISTORY" in t_full_name:
                 from attendance_logic import render_student_attendance
                 render_student_attendance(u)
-            elif 'MARKS ENTRY' in t_full_name:
+            elif "MARKS ENTRY" in t_full_name:
                 from apsokara.logic.teacher_modules import render_marks_entry
-                render_marks_entry(st.session_state.user_info)
-            elif 'FINAL UPLOAD' in t_full_name:
+                render_marks_entry(u)
+            elif "FINAL UPLOAD" in t_full_name:
                 from apsokara.logic.class_teacher_modules import render_final_upload
-                render_final_upload(st.session_state.user_info)
-            elif t_full_name == "📝 ATTENDANCE SYSTEM" or t_full_name == "📝 ATTENDANCE":
+                render_final_upload(u)
+            elif "ATTENDANCE SYSTEM" in t_full_name or "ATTENDANCE" in t_full_name:
                 from attendance_system import render_attendance_system
-                render_attendance_system(st.session_state.user_info)
+                render_attendance_system(u)
             elif "LEAVE" in t_full_name:
-                from leave_engine import render_leave_system
-                render_leave_system(st.session_state.user_info)
-            elif "DIARY" in t_full_name:
-                from diary_engine import render_diary
-                render_diary(st.session_state.user_info)
-            elif 'HOME' in t_full_name or 'DASHBOARD' in t_full_name:
+                from apsokara.logic.student_modules import render_apply_leave
+                render_apply_leave(u)
+            elif "FACE LOCK" in t_full_name:
+                import face_security
+                face_security.render_face_lock_setup(u)
                 st.markdown(f"## 🏛️ Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!")
                 c1, c2, c3 = st.columns(3)
                 with c1: st.info("📅 Today: " + str(datetime.date.today()))
