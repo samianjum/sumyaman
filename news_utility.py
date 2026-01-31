@@ -56,7 +56,7 @@ def render_news_ticker():
 
             .aps-label {{
                 background: #d4af37;
-                color: #1b4332;
+                color: #1b4332 !important; font-weight: 900 !important;
                 padding: 0 25px;
                 height: 100%;
                 display: flex;
@@ -79,9 +79,9 @@ def render_news_ticker():
 
             .moving-text {{
                 display: inline-flex;
-                font-size: 1.35rem;
+                font-size: 1.6rem !important; font-weight: 800 !important;
                 font-weight: 700;
-                color: #ffffff;
+                color: #FFFFFF !important; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             }}
 
             .aps-ticker-container:hover .ticker-content-wrapper {{
