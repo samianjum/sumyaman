@@ -147,7 +147,7 @@ def render_attendance_system(user_info):
                                     'thickness': 0.75,
                                     'value': 75}}))
                         fig.update_layout(height=300, margin=dict(t=30, b=0, l=10, r=10), paper_bgcolor="rgba(0,0,0,0)")
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, use_container_width=True, key="intel_pdf_download")
 
                     with g2:
                         st.markdown("#### 🎯 Quick Status Search")
@@ -170,5 +170,8 @@ def render_attendance_system(user_info):
                         b = io.BytesIO(); c = canvas.Canvas(b, pagesize=letter)
                         c.drawString(100, 750, f"INTEL REPORT: {sel['full_name']}"); y=700
                         for _, r in stats_df.iterrows(): c.drawString(100, y, f"{r['date']}: {r['status']}"); y-=20
-                    st.download_button("📥 Download Official PDF History", make_pdf(), f"{sel['full_name']}_Intel.pdf", "application/pdf", use_container_width=True)
+                        c.save()
+                        b.seek(0)
+                        return b.getvalue()
+                    st.download_button("📥 Download Official PDF History", make_pdf() or b"", f"{sel['full_name']}_Intel.pdf", "application/pdf", use_container_width=True, key=f"dl_{sel.get("id", 1)}")
                 else: st.error("No student found in your assigned section.")
