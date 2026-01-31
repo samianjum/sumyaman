@@ -39,7 +39,7 @@ def render_attendance_system(user_info):
         st.error("❌ No Class/Wing assigned to this teacher profile.")
 
     st.markdown("""<style>@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap'); * { font-family: 'Plus Jakarta Sans', sans-serif; }</style>""", unsafe_allow_html=True)
-    st.markdown(f'''<div style="background: linear-gradient(-45deg, #f0f9ff, #e0f2fe, #dbeafe, #f8fafc); padding: 30px; border-radius: 28px; border: 1px solid rgba(59, 130, 246, 0.3); display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;"><div><h1 style="margin:0; background: linear-gradient(90deg, #1e3a8a, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{u_wing} Administration</h1><p style="color: #475569; font-weight: 600;">✨ {teacher_name} | Section {c_name}-{u_sec}</p></div><div style="background: white; padding: 10px 20px; border-radius: 15px; border: 1px solid #bfdbfe; text-align: center;"><span style="color: #3b82f6; font-size: 10px; letter-spacing: 2px; display: block;">TIMELINE</span><b style="color: #1e40af; font-size: 18px;">{today_obj.strftime('%d %B, %Y')}</b></div></div>''', unsafe_allow_html=True)
+    st.markdown(f'''<div style="background: #1b4332; color: #ffffff; padding: 30px; border-radius: 28px; border: 1px solid rgba(59, 130, 246, 0.3); display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;"><div><h1 style="margin:0; background: linear-gradient(90deg, #1b4332, #1b4332); -webkit-background-clip: text; -webkit-text-fill-color: #d4af37;">{u_wing} Administration</h1><p style="color: #ffffff; font-weight: 600;">✨ {teacher_name} | Section {c_name}-{u_sec}</p></div><div style="background: white; padding: 10px 20px; border-radius: 15px; border: 1px solid #d4af37; text-align: center;"><span style="color: #1b4332; font-size: 10px; letter-spacing: 2px; display: block;">TIMELINE</span><b style="color: #d4af37; font-size: 18px;">{today_obj.strftime('%d %B, %Y')}</b></div></div>''', unsafe_allow_html=True)
 
     tab1, tab2, tab3 = st.tabs(["🖋️ MARKING", "📅 ARCHIVE", "💎 INTEL"])
 
@@ -49,13 +49,13 @@ def render_attendance_system(user_info):
             edit_cnt = lock_res[0] if lock_res[0] is not None else 0
 
             if edit_cnt >= 2:
-                st.markdown(f'''<div style="background: rgba(34, 197, 94, 0.1); border-left: 5px solid #22c55e; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid rgba(34, 197, 94, 0.2);"><div style="font-size: 50px;">🛡️</div><h2 style="color: #15803d; margin: 10px 0;">ATTENDANCE SECURED</h2><p style="color: #166534; font-weight: 500;">Today's record for <b style="color: #059669;">{c_name}-{u_sec}</b> is locked.</p><div style="display: inline-block; background: #22c55e; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">FINALIZED</div></div>''', unsafe_allow_html=True)
+                st.markdown(f'''<div style="background: #f0fdf4; border: 2px solid #1b4332; border-left: 5px solid #1b4332; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid rgba(34, 197, 94, 0.2);"><div style="font-size: 50px;">🛡️</div><h2 style="color: #15803d; margin: 10px 0;">ATTENDANCE SECURED</h2><p style="color: #166534; font-weight: 500;">Today's record for <b style="color: #059669;">{c_name}-{u_sec}</b> is locked.</p><div style="display: inline-block; background: #1b4332; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">FINALIZED</div></div>''', unsafe_allow_html=True)
                 st.balloons()
             else:
                 if edit_cnt == 0:
-                    st.markdown('''<div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px;"><span style="font-size: 20px;">💡</span><span style="color: #1e40af; font-weight: 500;"><b>Instruction:</b> Check all students carefully. You can edit this <b>once</b> after syncing.</span></div>''', unsafe_allow_html=True)
+                    st.markdown('''<div style="background: #fdfae6; border: 2px solid #d4af37; border: 1px solid #d4af37; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px;"><span style="font-size: 20px;">💡</span><span style="color: #d4af37; font-weight: 500;"><b>Instruction:</b> Check all students carefully. You can edit this <b>once</b> after syncing.</span></div>''', unsafe_allow_html=True)
                 else:
-                    st.markdown('''<div style="background: #fff1f2; border: 1px solid #fecdd3; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; animation: pulse 2s infinite;"><span style="font-size: 20px;">⚠️</span><span style="color: #9f1239; font-weight: 600;"><b>CRITICAL:</b> This is your <b>LAST CHANCE</b>. Database will LOCK after this sync.</span></div><style>@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }</style>''', unsafe_allow_html=True)
+                    st.markdown('''<div style="background: #fff1f2; border: 1px solid #fecdd3; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; animation: pulse 2s infinite;"><span style="font-size: 20px;">⚠️</span><span style="color: #8b0000; font-weight: 600;"><b>CRITICAL:</b> This is your <b>LAST CHANCE</b>. Database will LOCK after this sync.</span></div><style>@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }</style>''', unsafe_allow_html=True)
 
                 students = pd.read_sql("SELECT id, roll_number, full_name FROM apsokara_student WHERE student_class=? AND wing=? AND student_section=? ORDER BY CAST(roll_number AS INTEGER)", conn, params=(c_name, u_wing, u_sec))
                 
@@ -95,14 +95,14 @@ def render_attendance_system(user_info):
 
         with tab3:
             st.markdown("""<style>
-                .main-card { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 25px; padding: 25px; border: 1px solid #e2e8f0; }
-                .stat-hero { background: white; border-radius: 20px; padding: 20px; text-align: center; border-bottom: 5px solid #3b82f6; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-                .stat-hero h1 { font-size: 45px; margin: 0; color: #1e3a8a; }
-                .stat-hero p { font-size: 14px; color: #64748b; font-weight: 600; text-transform: uppercase; margin: 0; }
+                .main-card { background: #ffffff; border: 2px solid #1b4332; border-radius: 25px; padding: 25px; border: 1px solid #e2e8f0; }
+                .stat-hero { background: white; border-radius: 20px; padding: 20px; text-align: center; border-bottom: 5px solid #1b4332; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+                .stat-hero h1 { font-size: 45px; margin: 0; color: #1b4332; }
+                .stat-hero p { font-size: 14px; color: #000000; font-weight: 600; text-transform: uppercase; margin: 0; }
                 .glass-list { background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255,255,255,0.2); padding: 15px; }
             </style>""", unsafe_allow_html=True)
 
-            st.markdown("<h2 style='color: #1e3a8a; font-weight: 800;'>💎 Student Intelligence Center</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='color: #1b4332; font-weight: 800;'>💎 Student Intelligence Center</h2>", unsafe_allow_html=True)
             s_query = st.text_input("🔍 Search Student Name", placeholder="Type name and press Enter...", label_visibility="collapsed")
 
             if s_query:
@@ -117,10 +117,10 @@ def render_attendance_system(user_info):
                     # --- Row 1: Hero Analytics ---
                     st.markdown(f"### 📊 Academic Overview: {sel['full_name']}")
                     c1, c2, c3, c4 = st.columns(4)
-                    with c1: st.markdown(f'<div class="stat-hero" style="border-color: #3b82f6;"><p>Sessions</p><h1>{t_days}</h1></div>', unsafe_allow_html=True)
-                    with c2: st.markdown(f'<div class="stat-hero" style="border-color: #22c55e;"><p>Present</p><h1>{t_pres}</h1></div>', unsafe_allow_html=True)
-                    with c3: st.markdown(f'<div class="stat-hero" style="border-color: #ef4444;"><p>Absent</p><h1>{t_abs}</h1></div>', unsafe_allow_html=True)
-                    with c4: st.markdown(f'<div class="stat-hero" style="border-color: #f59e0b;"><p>Leave</p><h1>{t_leave}</h1></div>', unsafe_allow_html=True)
+                    with c1: st.markdown(f'<div class="stat-hero" style="border-color: #1b4332;"><p>Sessions</p><h1>{t_days}</h1></div>', unsafe_allow_html=True)
+                    with c2: st.markdown(f'<div class="stat-hero" style="border-color: #1b4332;"><p>Present</p><h1>{t_pres}</h1></div>', unsafe_allow_html=True)
+                    with c3: st.markdown(f'<div class="stat-hero" style="border-color: #8b0000;"><p>Absent</p><h1>{t_abs}</h1></div>', unsafe_allow_html=True)
+                    with c4: st.markdown(f'<div class="stat-hero" style="border-color: #d4af37;"><p>Leave</p><h1>{t_leave}</h1></div>', unsafe_allow_html=True)
 
                     # --- Row 2: The "Intesting" Gauge Chart ---
                     st.markdown("---")
@@ -134,14 +134,14 @@ def render_attendance_system(user_info):
                             title = {'text': "Current Integrity", 'font': {'size': 16}},
                             gauge = {
                                 'axis': {'range': [None, 100], 'tickwidth': 1},
-                                'bar': {'color': "#1e3a8a"},
+                                'bar': {'color': "#1b4332"},
                                 'bgcolor': "white",
                                 'borderwidth': 2,
                                 'bordercolor': "#e2e8f0",
                                 'steps': [
-                                    {'range': [0, 50], 'color': "#fee2e2"},
+                                    {'range': [0, 50], 'color': "#f0fdf4"},
                                     {'range': [50, 80], 'color': "#fef9c3"},
-                                    {'range': [80, 100], 'color': "#dcfce7"}],
+                                    {'range': [80, 100], 'color': "#1b4332"}],
                                 'threshold': {
                                     'line': {'color': "red", 'width': 4},
                                     'thickness': 0.75,
@@ -155,7 +155,7 @@ def render_attendance_system(user_info):
                         match = stats_df[stats_df["date"] == target_date.isoformat()]
                         if not match.empty:
                             s_val = match.iloc[0]["status"]
-                            color = "#22c55e" if s_val=="Present" else "#ef4444" if s_val=="Absent" else "#f59e0b"
+                            color = "#1b4332" if s_val=="Present" else "#8b0000" if s_val=="Absent" else "#d4af37"
                             st.markdown(f'''<div style="background: {color}; color: white; padding: 45px 20px; border-radius: 25px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-top:10px;">
                                 <h2 style="margin:0;">{s_val}</h2><p style="opacity: 0.8; margin:0;">Record for {target_date}</p></div>''', unsafe_allow_html=True)
                         else:
