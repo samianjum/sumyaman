@@ -17,7 +17,7 @@ import pandas as pd
 import plotly.graph_objects as go # Donut chart ke liye
 
 # 1. Page Config
-st.set_page_config(page_title="ARMY PUBLIC SCHOOL & COLLAGE SYSTEM Portal", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="ARMY PUBLIC SCHOOL & COLLAGE SYSTEM Portal", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown('''
 <style>
