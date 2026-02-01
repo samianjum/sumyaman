@@ -73,7 +73,7 @@ def render_mobile_view():
             <div class="header-text">
                 <div style="font-size: 13px; font-weight: 800;">ARMY PUBLIC SCHOOL</div>
                 <div style="font-size: 9px; color: #d4af37; font-weight: 400; text-transform: uppercase;">
-                    Okara Cantt | {role} Portal
+                    Okara Cantt | Official Digital Portal
                 </div>
             </div>
         </div>
