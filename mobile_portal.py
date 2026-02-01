@@ -1,118 +1,130 @@
 import streamlit as st
+import base64
 from news_utility import render_news_ticker
+
+def get_base64_image(image_path):
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except:
+        return ""
 
 def render_mobile_view():
     u = st.session_state.user_info
+    role = u.get("role", "Student").title() # Teacher ya Student auto-pick karega
+    logo_base64 = get_base64_image("/home/sami/Downloads/sami.png")
     
-    st.markdown(
-        """
+    st.markdown(f"""
         <style>
-        /* 1. Reset */
-        [data-testid="stSidebar"], .stAppHeader, footer { display: none !important; }
-        
-        /* 2. Header */
-        .mobile-header {
+        /* Force Remove All Default Spacings */
+        [data-testid="stSidebar"], .stAppHeader, footer {{ display: none !important; }}
+        .stApp {{ background-color: #f8f9fa; }}
+        .block-container {{ padding: 0 !important; margin: 0 !important; }}
+        [data-testid="stVerticalBlock"] {{ gap: 0 !important; }}
+
+        /* 1. Header (Fixed) */
+        .mobile-header {{
             position: fixed; top: 0; left: 0; right: 0;
-            height: 45px; background: #1b4332;
+            height: 55px; background: #1b4332;
             color: white; display: flex; align-items: center;
             padding: 0 15px; z-index: 10001;
             border: none;
-        }
+        }}
 
-        /* 3. Pure Gold Ticker - No Labels, No Covers */
-        .aps-ticker-container {
-            position: fixed !important;
-            top: 45px !important;
+        .header-logo {{ height: 26px; width: auto; margin-right: 12px; }}
+
+        /* 2. News Ticker (ZERO GAP ATTACHMENT) */
+        .aps-ticker-container {{
+            position: fixed !important; 
+            top: 55px !important; /* Header ke end point se start */
             left: 0 !important; width: 100% !important;
-            height: 32px !important;
-            background: #d4af37 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            z-index: 10000 !important;
-            display: flex !important;
-            align-items: center !important;
-            overflow: hidden !important;
-            border-bottom: 1px solid #1b4332;
-        }
+            height: 30px !important; background: #d4af37 !important;
+            z-index: 10000 !important; display: flex !important; align-items: center !important;
+            margin: 0 !important; border: none !important;
+        }}
 
-        /* Cover/Label ko khatam kar diya */
-        .aps-label { display: none !important; visibility: hidden !important; }
+        .ticker-content-wrapper {{ animation: marquee-move 50s linear infinite; }}
+        @keyframes marquee-move {{ 0% {{ transform: translateX(0); }} 100% {{ transform: translateX(-50%); }} }}
+        .moving-text {{ font-size: 0.75rem !important; color: #1b4332 !important; font-weight: 800; }}
+        .aps-label {{ display: none !important; }}
 
-        .ticker-content-wrapper {
-            display: inline-block;
-            padding-left: 10px;
-            animation: marquee-move 55s linear infinite;
-        }
+        /* 3. Hero Section (Seamless with Ticker) */
+        .hero-section {{
+            background: #1b4332; color: white;
+            padding: 25px 15px 15px 15px; 
+            margin-top: 85px; /* Header(55) + Ticker(30) */
+            border-bottom: 3px solid #d4af37;
+        }}
 
-        @keyframes marquee-move {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        .aps-ticker-container:active .ticker-content-wrapper {
-            animation-play-state: paused !important;
-        }
-
-        .moving-text {
-            font-size: 0.85rem !important;
-            line-height: 32px !important; 
-            color: #1b4332 !important;
-            font-weight: 700 !important;
-        }
-
-        /* 4. Body Content */
-        .app-body { padding-top: 77px !important; padding-left: 0px; padding-right: 0px; }
-        
-        /* Dashboard Strip */
-        .summary-strip {
-            display: flex; background: #1b4332;
-            padding: 12px 5px; margin: 0;
-            border-bottom: 2px solid #d4af37;
-        }
-
-        .stat-box {
-            flex: 1; text-align: center;
-            border-right: 1px solid rgba(212, 175, 55, 0.3);
-            color: white;
-        }
-        .stat-box:last-child { border-right: none; }
-        .stat-val { font-size: 13px; font-weight: bold; display: block; }
-        .stat-lbl { font-size: 8px; color: #d4af37; text-transform: uppercase; letter-spacing: 0.5px; }
-
-        .stTabs { margin-top: 5px !important; padding: 0 10px; }
+        /* 4. Bottom Nav */
+        .bottom-nav {{
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 60px; background: #1b4332;
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 10002; border-top: 2px solid #d4af37;
+        }}
+        .nav-item {{ text-align: center; color: #ced4da; font-size: 20px; }}
+        .nav-item.active {{ color: #d4af37; }}
+        .nav-text {{ font-size: 9px; display: block; margin-top: 2px; }}
         </style>
         
-        <div class="mobile-header"><b>APS OKARA</b></div>
+        <div class="mobile-header">
+            <img src="data:image/png;base64,{logo_base64}" class="header-logo">
+            <div class="header-text">
+                <div style="font-size: 13px; font-weight: 800;">ARMY PUBLIC SCHOOL</div>
+                <div style="font-size: 9px; color: #d4af37; font-weight: 400; text-transform: uppercase;">
+                    Okara Cantt | {role} Portal
+                </div>
+            </div>
+        </div>
     """, unsafe_allow_html=True)
 
     render_news_ticker()
 
-    st.markdown('<div class="app-body">', unsafe_allow_html=True)
-    
-    # Dashboard Summary Strip
+    # Body Starts
+    st.markdown(f'''
+        <div class="hero-section">
+            <div style="font-size: 11px; color: #d4af37; font-weight: 600;">PORTAL DASHBOARD</div>
+            <div style="font-size: 22px; font-weight: bold; margin-top:2px;">{u.get("full_name","User")}</div>
+            <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">
+                {role} ID: {u.get("roll_number") if role == "Student" else u.get("teacher_id", "N/A")}
+            </div>
+        </div>
+        <div style="padding: 15px; padding-bottom: 80px;">
+    ''', unsafe_allow_html=True)
+
+    # Dynamic Action Grid based on Role
+    if role == "Student":
+        st.markdown("""
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="background: white; padding: 20px; text-align: center; border-radius: 8px; border-bottom: 2px solid #d4af37;">
+                    <div style="font-size: 24px;">📅</div><div style="font-size: 12px; font-weight: 700;">ATTENDANCE</div>
+                </div>
+                <div style="background: white; padding: 20px; text-align: center; border-radius: 8px; border-bottom: 2px solid #d4af37;">
+                    <div style="font-size: 24px;">📖</div><div style="font-size: 12px; font-weight: 700;">DIARY</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="background: white; padding: 20px; text-align: center; border-radius: 8px; border-bottom: 2px solid #d4af37;">
+                    <div style="font-size: 24px;">✅</div><div style="font-size: 12px; font-weight: 700;">MARK ATTEN</div>
+                </div>
+                <div style="background: white; padding: 20px; text-align: center; border-radius: 8px; border-bottom: 2px solid #d4af37;">
+                    <div style="font-size: 24px;">📊</div><div style="font-size: 12px; font-weight: 700;">RESULTS</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    # Bottom Nav
     st.markdown("""
-        <div class="summary-strip">
-            <div class="stat-box"><span class="stat-lbl">Today</span><span class="stat-val">PRESENT</span></div>
-            <div class="stat-box"><span class="stat-lbl">Monthly %</span><span class="stat-val">94%</span></div>
-            <div class="stat-box"><span class="stat-lbl">Fees</span><span class="stat-val" style="color:#4dff88;">PAID</span></div>
+        <div class="bottom-nav">
+            <div class="nav-item active">🏠<span class="nav-text">Home</span></div>
+            <div class="nav-item">📊<span class="nav-text">Stats</span></div>
+            <div class="nav-item">🔔<span class="nav-text">Alerts</span></div>
+            <div class="nav-item">👤<span class="nav-text">Profile</span></div>
         </div>
     """, unsafe_allow_html=True)
-
-    tabs = st.tabs(["🏠 Home", "📊 Atten", "🏆 Result", "👤 Profile"])
-    
-    with tabs[0]:
-        st.markdown(f'''
-            <div style="margin: 15px; padding: 15px; background: white; border-radius: 12px; border-left: 5px solid #1b4332; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                <div style="font-size: 12px; color: #666;">Student Profile</div>
-                <div style="font-size: 20px; font-weight: bold; color: #1b4332;">{u.get("full_name","Student")}</div>
-                <div style="font-size: 13px; color: #d4af37; font-weight: 600;">{u.get("student_class","N/A")} - {u.get("student_section","A")}</div>
-            </div>
-        ''', unsafe_allow_html=True)
-
-    with tabs[1]: st.info("Attendance details loading...")
-    with tabs[3]: 
-        if st.button("Logout", use_container_width=True):
-            st.session_state.clear()
-            st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
