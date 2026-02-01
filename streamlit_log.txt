@@ -1,0 +1,11 @@
+🛑 Cleaning up old processes...
+🚀 Starting All Systems (Press CTRL+C to stop everything)...
+--------------------------------------------------------
+Watching for file changes with StatReloader
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.1.6:8501
+
+./run_all.sh: line 16: 248853 Killed                  ( streamlit run main_app.py --server.port 8501 )

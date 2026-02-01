@@ -376,6 +376,15 @@ def show_login():
                 st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d['role_db'], True
                 st.rerun()
 
+# --- MOBILE DETECTION ---
+import streamlit_javascript as st_js
+from mobile_portal import render_mobile_view
+width = st_js.st_javascript("window.innerWidth")
+if width is not None and width < 700:
+    if st.session_state.logged_in:
+        render_mobile_view()
+        st.stop()
+# ------------------------
 if not st.session_state.logged_in: show_login()
 else: show_dashboard()
 
