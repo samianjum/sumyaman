@@ -7,13 +7,11 @@ def get_filtered_news():
     user_role = st.session_state.get('role')
     if not user_role or user_role == 'None':
         return pd.DataFrame()
-
     user_info = st.session_state.get('user_info', {})
     if user_role == 'Teacher':
         role_to_check = 'Class Teacher' if user_info.get('is_class_teacher') == 1 else 'Subject Teacher'
     else:
         role_to_check = user_role
-    
     roles_list = [role_to_check, 'All']
     today = date.today().strftime('%Y-%m-%d')
     try:
@@ -27,74 +25,46 @@ def get_filtered_news():
 def render_news_ticker():
     if not st.session_state.get('logged_in'):
         return
-
     df = get_filtered_news()
     if not df.empty:
         news_list = df['content'].tolist()
-        # Text ko repeat kiya taake continuous loop nazar aaye
         display_text = " &nbsp;&nbsp;&nbsp;&nbsp; ★ &nbsp;&nbsp;&nbsp;&nbsp; ".join(news_list)
         
         st.markdown(f'''
             <style>
-            @keyframes smooth-loop {{
-                from {{ transform: translateX(0); }}
-                to {{ transform: translateX(-50%); }}
-            }}
+            @keyframes smooth-loop {{ from {{ transform: translateX(0); }} to {{ transform: translateX(-50%); }} }}
 
+            /* --- DESKTOP DEFAULT STYLE --- */
             .aps-ticker-container {{
-                background: #1b4332;
-                border-top: 3px solid #d4af37;
-                border-bottom: 3px solid #d4af37;
-                display: flex;
-                align-items: center;
-                margin: 20px 0;
-                height: 55px;
-                overflow: hidden;
-                position: relative;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                background: #1b4332; border-top: 3px solid #d4af37; border-bottom: 3px solid #d4af37;
+                display: flex; align-items: center; margin: 20px 0; height: 55px; overflow: hidden; position: relative;
             }}
-
             .aps-label {{
-                background: #d4af37;
-                color: #1b4332 !important; font-weight: 900 !important;
-                padding: 0 25px;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                font-weight: 900;
-                font-size: 1.1rem;
-                z-index: 100;
-                white-space: nowrap;
-                clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
-                position: absolute;
-                left: 0;
+                background: #d4af37; color: #1b4332 !important; padding: 0 25px; height: 100%;
+                display: flex; align-items: center; font-weight: 900; font-size: 1.1rem; z-index: 100;
+                position: absolute; left: 0; clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
             }}
+            .ticker-content-wrapper {{ display: inline-block; white-space: nowrap; animation: smooth-loop 60s linear infinite; padding-left: 100%; }}
+            .moving-text {{ display: inline-flex; font-size: 1.6rem !important; font-weight: 800 !important; color: #FFFFFF !important; }}
 
-            .ticker-content-wrapper {{
-                display: inline-block;
-                white-space: nowrap;
-                animation: smooth-loop 90s linear infinite; /* EXACT 90 SECONDS SPEED */
-                padding-left: 100%;
-            }}
-
-            .moving-text {{
-                display: inline-flex;
-                font-size: 1.6rem !important; font-weight: 800 !important;
-                font-weight: 700;
-                color: #FFFFFF !important; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            }}
-
-            .aps-ticker-container:hover .ticker-content-wrapper {{
-                animation-play-state: paused;
+            /* --- MOBILE OVERRIDE (Screen width less than 768px) --- */
+            @media (max-width: 768px) {{
+                .aps-ticker-container {{
+                    background: #1a1a1a !important; border-top: none !important; border-bottom: 1px solid #d4af37 !important;
+                    margin: 0 !important; height: 25px !important; position: fixed !important; top: 50px !important;
+                    left: 0; right: 0; z-index: 10000; overflow-x: auto;
+                }}
+                .aps-label {{ display: none !important; }}
+                .ticker-content-wrapper {{ animation: smooth-loop 25s linear infinite !important; padding-left: 10px !important; }}
+                .moving-text {{ font-size: 0.75rem !important; font-weight: 500 !important; color: #eeeeee !important; text-transform: uppercase; }}
+                .aps-ticker-container:active .ticker-content-wrapper {{ animation-play-state: paused !important; }}
             }}
             </style>
             
             <div class="aps-ticker-container">
                 <div class="aps-label">APS UPDATES</div>
                 <div class="ticker-content-wrapper">
-                    <div class="moving-text">
-                        {display_text} &nbsp;&nbsp;&nbsp;&nbsp; ★ &nbsp;&nbsp;&nbsp;&nbsp; {display_text}
-                    </div>
+                    <div class="moving-text">{display_text} &nbsp;&nbsp;&nbsp;&nbsp; ★ &nbsp;&nbsp;&nbsp;&nbsp; {display_text}</div>
                 </div>
             </div>
         ''', unsafe_allow_html=True)
