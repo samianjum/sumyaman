@@ -35,11 +35,80 @@ def render_attendance_system(user_info):
     u_wing = user_info.get('assigned_wing', user_info.get('wing', None))
     u_sec = user_info.get('section', user_info.get('sec', ''))
 
+    # --- MOBILE UI OPTIMIZATION ---
+    st.markdown('''
+        <style>
+        @media (max-width: 768px) {
+            .desktop-banner { display: none !important; }
+            .m-header-box {
+                background-color: #1b4332;
+                padding: 10px;
+                border-radius: 8px;
+                border-left: 4px solid #d4af37;
+                margin-bottom: 10px;
+            }
+            .m-header-title { color: #d4af37; font-size: 14px; font-weight: 800; margin: 0; }
+            .m-header-sub { color: white; font-size: 11px; margin: 0; opacity: 0.9; }
+        }
+        @media (min-width: 769px) { .m-header-box { display: none !important; } }
+        </style>
+    ''', unsafe_allow_html=True)
+
+    # Simple f-string for HTML only (CSS is handled above)
+    st.markdown(f'''
+        <div class="m-header-box">
+            <p class="m-header-title">📝 {u_wing} Administration</p>
+            <p class="m-header-sub">{teacher_name} | {today_obj.strftime('%d %b, %Y')}</p>
+        </div>
+    ''', unsafe_allow_html=True)
+
+
     if not c_name or not u_wing:
         st.error("❌ No Class/Wing assigned to this teacher profile.")
 
     st.markdown("""<style>@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap'); * { font-family: 'Plus Jakarta Sans', sans-serif; }</style>""", unsafe_allow_html=True)
-    st.markdown(f'''<div style="background: #1b4332; color: #ffffff; padding: 30px; border-radius: 28px; border: 1px solid rgba(59, 130, 246, 0.3); display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;"><div><h1 style="margin:0; background: linear-gradient(90deg, #1b4332, #1b4332); -webkit-background-clip: text; -webkit-text-fill-color: #d4af37;">{u_wing} Administration</h1><p style="color: #ffffff; font-weight: 600;">✨ {teacher_name} | Section {c_name}-{u_sec}</p></div><div style="background: white; padding: 10px 20px; border-radius: 15px; border: 1px solid #d4af37; text-align: center;"><span style="color: #1b4332; font-size: 10px; letter-spacing: 2px; display: block;">TIMELINE</span><b style="color: #d4af37; font-size: 18px;">{today_obj.strftime('%d %B, %Y')}</b></div></div>''', unsafe_allow_html=True)
+
+    
+
+
+    # --- MOBILE INTERFERENCE FIX FOR EXISTING BANNER ---
+    st.markdown('''
+        <style>
+        @media (max-width: 768px) {
+            /* Desktop banner ko mobile par compact banana */
+            div[style*="background: #1b4332"][style*="padding: 30px"] {
+                padding: 15px !important;
+                border-radius: 15px !important;
+                flex-direction: column !important;
+                text-align: center !important;
+                margin-bottom: 15px !important;
+            }
+            /* Heading choti karna */
+            div[style*="background: #1b4332"] h1 {
+                font-size: 18px !important;
+                margin-bottom: 5px !important;
+            }
+            /* Sub-text (Teacher Name/Section) compact karna */
+            div[style*="background: #1b4332"] p {
+                font-size: 12px !important;
+                margin-bottom: 10px !important;
+            }
+            /* Timeline (Date) box ko chota aur fit karna */
+            div[style*="background: white"][style*="padding: 10px 20px"] {
+                padding: 5px 15px !important;
+                border-radius: 10px !important;
+                width: 100% !important;
+            }
+            div[style*="background: white"] b {
+                font-size: 14px !important;
+            }
+            /* Tabs ko mobile par fit karna */
+            .stTabs [data-baseweb="tab-list"] { gap: 2px !important; }
+            .stTabs [data-baseweb="tab"] { padding: 8px 10px !important; font-size: 11px !important; }
+        }
+        </style>
+    ''', unsafe_allow_html=True)
+    st.markdown(f'''<div class="desktop-banner" style="background: #1b4332; color: #ffffff; padding: 30px; border-radius: 28px; border: 1px solid rgba(59, 130, 246, 0.3); display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;"><div><h1 style="margin:0; background: linear-gradient(90deg, #1b4332, #1b4332); -webkit-background-clip: text; -webkit-text-fill-color: #d4af37;">{u_wing} Administration</h1><p style="color: #ffffff; font-weight: 600;">✨ {teacher_name} | Section {c_name}-{u_sec}</p></div><div style="background: white; padding: 10px 20px; border-radius: 15px; border: 1px solid #d4af37; text-align: center;"><span style="color: #1b4332; font-size: 10px; letter-spacing: 2px; display: block;">TIMELINE</span><b style="color: #d4af37; font-size: 18px;">{today_obj.strftime('%d %B, %Y')}</b></div></div>''', unsafe_allow_html=True)
 
     tab1, tab2, tab3 = st.tabs(["🖋️ MARKING", "📅 ARCHIVE", "💎 INTEL"])
 
