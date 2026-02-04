@@ -1,122 +1,133 @@
 import streamlit as st
-import base64
-import os
 import pandas as pd
-import datetime, pytz
+from attendance_logic import render_student_attendance
+from attendance_system import render_attendance_system
 from news_utility import render_news_ticker
-from attendance_system import get_db
+import os
 
-st.session_state['is_mobile'] = True
-
-def get_base64_image(image_path):
-    if os.path.exists(image_path):
-        with open(image_path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
-    return ""
+st.set_page_config(page_title="APS PORTAL", layout="wide", initial_sidebar_state="collapsed")
 
 def render_mobile_view():
-    u = st.session_state.user_info
-    role = str(u.get('role', 'Student'))
-    user_id = int(u.get('id', 0))
-    logo_base64 = get_base64_image("/home/sami/Downloads/sami.png")
-    pk_tz = pytz.timezone("Asia/Karachi")
-    today = datetime.datetime.now(pk_tz).date()
+    if 'user_info' not in st.session_state:
+        st.error("Please login again.")
+        return
+        
+    u = st.session_state.get('user_info', {})
+    role = st.session_state.get('role', 'Student')
+    logo_path = '/home/sami/Downloads/sami.png'
     
-    st.markdown(f'''
+    if 'active_menu' not in st.session_state:
+        st.session_state.active_menu = "Dashboard"
+    
+    # --- FINAL HEAVY MOBILE UI CSS ---
+    st.markdown('''
         <style>
-        [data-testid="stSidebar"], .stAppHeader, footer, [data-testid="stHeader"] {{ display: none !important; }}
-        .block-container {{ padding: 0 !important; margin: 0 !important; }}
-        [data-testid="stVerticalBlock"] {{ gap: 0 !important; padding: 0 !important; }}
+        header[data-testid="stHeader"] { background-color: #1b4332 !important; height: 60px !important; }
+        .block-container { padding: 10px !important; }
+        footer { visibility: hidden; }
+
+        /* Floating Gold Toggle */
+        button[data-testid="stSidebarCollapseButton"] {
+            background-color: #FFFF00 !important;
+            position: fixed !important; top: 12px !important; left: 12px !important;
+            z-index: 1000001 !important; width: 45px !important; height: 38px !important;
+            border-radius: 8px !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+        }
+
+        /* SIDEBAR DESIGN */
+        [data-testid="stSidebar"] { 
+            background: linear-gradient(180deg, #051611 0%, #1b4332 100%) !important;
+            border-right: 3px solid #d4af37 !important;
+        }
         
-        .fixed-header-top {{ 
-            position: fixed; top: 0; left: 0; right: 0; z-index: 10001; 
-            height: 50px; background: #1b4332; display: flex; 
-            align-items: center; padding: 0 15px; border-bottom: 2px solid #d4af37; 
-        }}
-        
-        .main-scroll-body {{ 
-            margin-top: -45px !important; 
-            padding: 12px; 
-            padding-bottom: 100px !important;
-        }}
+        .logo-box { display: flex; justify-content: center; padding: 20px 0; }
 
-        .stats-card {{
-            background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
-            border-radius: 12px; padding: 15px; color: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }}
+        /* Navigation Buttons */
+        .stButton > button {
+            background-color: transparent !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(212, 175, 55, 0.4) !important;
+            border-radius: 12px !important;
+            height: 48px !important;
+            font-weight: 700 !important;
+            margin-bottom: -10px !important;
+            text-transform: uppercase;
+        }
+        .stButton > button:hover, .stButton > button:active {
+            background: #d4af37 !important;
+            color: #1b4332 !important;
+            border: 1px solid white !important;
+        }
 
-        .action-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }}
-        .action-item {{ background: white; border-radius: 10px; padding: 12px; text-align: center; border: 1px solid #eee; }}
+        /* MOBILE PROFILE CARDS */
+        .m-card {
+            background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px;
+            border-left: 5px solid #d4af37; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .m-label { color: #888; font-size: 11px; font-weight: 800; text-transform: uppercase; display: block; }
+        .m-value { color: #1b4332; font-size: 15px; font-weight: 700; }
 
-        .stTabs [data-baseweb="tab-list"] {{
-            position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
-            background-color: #1b4332 !important; border-top: 2px solid #d4af37 !important;
-            z-index: 10002 !important; height: 55px !important;
-            display: flex !important; justify-content: space-around !important;
-        }}
-        .stTabs [data-baseweb="tab"] {{ color: white !important; font-size: 12px !important; }}
+        .header-strip {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background: #1b4332; display: flex; align-items: center; justify-content: center;
+            color: #d4af37; font-weight: 900; font-size: 18px; z-index: 1000;
+        }
         </style>
-
-        <div class="fixed-header-top">
-            <img src="data:image/png;base64,{logo_base64}" style="height:25px; margin-right:10px;">
-            <div style="color:white; font-weight:800; font-size:14px;">APS PORTAL</div>
-        </div>
+        <div class="header-strip">APS OKARA PORTAL</div>
     ''', unsafe_allow_html=True)
 
-    render_news_ticker()
-
-    tab_home, tab_atten, tab_prof = st.tabs(["🏠 HOME", "📅 ATTEN", "👤 PROF"])
-
-    with tab_home:
-        st.markdown('<div class="main-scroll-body">', unsafe_allow_html=True)
-        st.markdown(f'''
-            <div class="stats-card">
-                <div style="font-size: 10px; opacity: 0.8; letter-spacing: 1px;">DASHBOARD</div>
-                <div style="font-size: 18px; font-weight: 800; margin-top: 2px;">{u.get('full_name', 'User').upper()}</div>
-                <div style="display: flex; justify-content: space-between; margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <div><small style="font-size:9px;">ROLE</small><br><b style="font-size:13px;">{role.upper()}</b></div>
-                    <div style="text-align:right;"><small style="font-size:9px;">CLASS</small><br><b style="font-size:13px;">{u.get('assigned_class', 'N/A')}</b></div>
-                </div>
-            </div>
-        ''', unsafe_allow_html=True)
-
-        st.markdown('<div style="font-weight: 700; font-size:12px; color: #1b4332; margin: 12px 0 8px 2px;">QUICK ACTIONS</div>', unsafe_allow_html=True)
-        st.markdown('''
-            <div class="action-grid">
-                <div class="action-item"><span style="font-size:20px;">📝</span><br><small style="font-weight:600;">Homework</small></div>
-                <div class="action-item"><span style="font-size:20px;">🏆</span><br><small style="font-weight:600;">Results</small></div>
-                <div class="action-item"><span style="font-size:20px;">💳</span><br><small style="font-weight:600;">Fee Slip</small></div>
-                <div class="action-item"><span style="font-size:20px;">📢</span><br><small style="font-weight:600;">Events</small></div>
-            </div>
-        ''', unsafe_allow_html=True)
+    # --- SIDEBAR ---
+    with st.sidebar:
+        st.markdown('<div class="logo-box">', unsafe_allow_html=True)
+        if os.path.exists(logo_path): st.image(logo_path, width=130)
+        else: st.markdown("<h3 style='color:#d4af37;'>APS</h3>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown("<hr style='border-color:rgba(212,175,55,0.3); margin:0 0 15px 0;'>", unsafe_allow_html=True)
 
-    with tab_atten:
-        st.markdown('<div class="main-scroll-body">', unsafe_allow_html=True)
-        with get_db() as conn:
-            if role == 'Teacher' and u.get('is_class_teacher') == 1:
-                st.write("### Attendance Marking")
-                df = pd.read_sql("SELECT id, roll_number, full_name FROM apsokara_student WHERE student_class=? AND student_section=? ORDER BY CAST(roll_number AS INTEGER)", conn, params=(u.get('assigned_class'), u.get('section')))
-                if df.empty: st.info("No students.")
-                else:
-                    for _, s in df.iterrows():
-                        st.write(f"**{s['roll_number']}. {s['full_name']}**")
-                        st.segmented_control("S", ["P", "A", "L"], default="P", key=f"att_{s['id']}", label_visibility="collapsed")
-                    if st.button("🚀 SYNC", use_container_width=True, type="primary"):
-                        st.success("Synced!")
-            else:
-                st.write("### My Record")
-                # FIXED PARAMS TUPLE (added comma)
-                df = pd.read_sql("SELECT date, status FROM apsokara_attendance WHERE student_id=? ORDER BY date DESC", conn, params=(user_id,))
-                st.dataframe(df, use_container_width=True, hide_index=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with tab_prof:
-        st.markdown('<div class="main-scroll-body">', unsafe_allow_html=True)
-        st.write(f"Logged as: **{u.get('full_name')}**")
-        if st.button("🚪 LOGOUT", use_container_width=True):
+        if st.button("🏠 DASHBOARD", use_container_width=True): st.session_state.active_menu = "Dashboard"
+        if st.button("📝 ATTENDANCE", use_container_width=True): st.session_state.active_menu = "Attendance"
+        if st.button("📊 RESULTS", use_container_width=True): st.session_state.active_menu = "Results"
+        if st.button("👤 PROFILE", use_container_width=True): st.session_state.active_menu = "Profile"
+        
+        st.markdown("<div style='height:80px;'></div>", unsafe_allow_html=True)
+        if st.button("🚪 LOGOUT", use_container_width=True, type="primary"):
             st.session_state.clear(); st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- CONTENT AREA ---
+    page = st.session_state.active_menu
+    st.markdown('<div style="margin-top: 100px;">', unsafe_allow_html=True)
+    render_news_ticker()
+    
+    if page == "Profile":
+        st.markdown(f"#### 👤 {u.get('full_name')}")
+        def info_card(l, v):
+            if v: st.markdown(f'<div class="m-card"><span class="m-label">{l}</span><span class="m-value">{v}</span></div>', unsafe_allow_html=True)
+        
+        if role == "Student":
+            info_card("Father Name", u.get("father_name"))
+            info_card("B-Form / ID", u.get("id"))
+            info_card("Roll Number", u.get("roll_no"))
+            info_card("Class & Sec", f"{u.get('class')} - {u.get('sec')}")
+            info_card("Wing", u.get("wing"))
+            info_card("Parents Phone", u.get("parent_phone"))
+            info_card("Address", u.get("address"))
+        else:
+            info_card("Father Name", u.get("father_name"))
+            info_card("CNIC", u.get("id"))
+            info_card("Contact", u.get("phone"))
+            if role == "Class Teacher":
+                info_card("Assigned Class", f"{u.get('class')} - {u.get('sec')} ({u.get('wing')})")
+            info_card("Address", u.get("address"))
+
+    elif page == "Dashboard":
+        st.markdown(f"##### Welcome Back, {u.get('full_name')}!")
+        st.info("System is operational. Select a module from the menu.")
+        
+    elif page == "Attendance":
+        if role == "Class Teacher": render_attendance_system(u)
+        else: render_student_attendance(u)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 render_mobile_view()
