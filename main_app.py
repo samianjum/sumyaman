@@ -385,153 +385,27 @@ def show_login():
                 st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d['role_db'], True
                 st.rerun()
 
-# --- MOBILE DETECTION ---
+
+# --- MOBILE & SECURITY GUARD ---
 import streamlit_javascript as st_js
 from mobile_portal import render_mobile_view
+
 width = st_js.st_javascript("window.innerWidth")
-if width is not None and width < 700:
-    if st.session_state.logged_in:
+
+if st.session_state.get('logged_in'):
+    # A. Mobile View Check
+    if width is not None and width < 700:
         render_mobile_view()
         st.stop()
-# ------------------------
-if st.session_state.get('needs_face_auth'):
-    st.warning('🛡️ Biometric Identity Verification Required')
-    auth_img = st.camera_input('Scan Face to Unlock Portal', key='login_face_scanner')
-    if auth_img:
-        st.session_state.needs_face_auth = False
-        st.success('Access Granted!')
-        st.rerun()
-    st.stop()
-if not st.session_state.logged_in: show_login()
-else: show_dashboard()
-
-
-def logout():
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
-    st.rerun()
-st.markdown('''
-<style>
-    /* Global Font Clarity */
-    html, body, [class*="st-"] {
-        color: #0c0d0e !important; /* Super Dark Font */
-        font-weight: 500;
-    }
     
-    /* Headers ko mazeed prominent karna */
-    h1, h2, h3, h4 { 
-        color: #1b4332 !important; 
-        font-weight: 800 !important;
-        letter-spacing: -0.5px;
-    }
+    # B. Face ID Check
+    if st.session_state.get('needs_face_auth'):
+        from face_security import render_face_lock_setup
+        render_face_lock_setup(st.session_state.user_info)
+        st.stop()
 
-    /* Tabs ko Light aur Sophisticated banana */
-    .stTabs [data-baseweb="tab"] {
-        background-color: #f0fdf4 !important; /* Very Light Mint */
-        color: #1b4332 !important;
-        border: 1px solid #d1fae5 !important;
-        border-radius: 12px 12px 0 0 !important;
-        padding: 10px 20px !important;
-        margin-right: 5px !important;
-    }
-    
-    /* Selected Tab highlight */
-    .stTabs [aria-selected="true"] {
-        background-color: #1b4332 !important;
-        color: #d4af37 !important; /* Gold text on Green background */
-        border-bottom: 3px solid #d4af37 !important;
-    }
-
-    /* Hero Cards (Bande ki info wala box) */
-    .hero-card {
-        background: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 10px 25px rgba(27, 67, 50, 0.1) !important;
-    }
-
-    /* Sidebar text clarity */
-    section[data-testid="stSidebar"] .stText, section[data-testid="stSidebar"] label {
-        color: #ffffff !important;
-        font-weight: 600 !important;
-    }
-</style>
-''', unsafe_allow_html=True)
-
-st.markdown('''
-<style>
-    /* Dark Fonts Everywhere */
-    * { color: #0c0d0e; }
-    
-    /* Sidebar Fix */
-    [data-testid="stSidebar"] { background-color: #1b4332 !important; }
-    [data-testid="stSidebar"] * { color: #ffffff !important; }
-    
-    /* Tabs Styling - Light & Modern */
-    .stTabs [data-baseweb="tab"] {
-        background-color: #f8fafc !important;
-        color: #1b4332 !important;
-        border: 1px solid #e2e8f0 !important;
-        font-weight: 700 !important;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #1b4332 !important;
-        color: #d4af37 !important;
-        border-bottom: 4px solid #d4af37 !important;
-    }
-    
-    /* Buttons - Gold & Bold */
-    .stButton>button {
-        background-color: #d4af37 !important;
-        color: #1b4332 !important;
-        font-weight: 900 !important;
-        border: 2px solid #1b4332 !important;
-        box-shadow: 0 4px 0 #b08d28 !important;
-    }
-    .stButton>button:active { transform: translateY(2px); box-shadow: none !important; }
-
-    /* Stat Cards */
-    .stat-card { background: #ffffff !important; border: 2px solid #1b4332 !important; }
-    .stat-val { color: #1b4332 !important; }
-</style>
-''', unsafe_allow_html=True)
-
-# UNIVERSAL THEME FORCE
-
-st.markdown('''
-<style>
-    /* 1. Force background and text globally */
-    .stApp { background-color: #f0fdf4 !important; }
-    * { font-family: 'Poppins', sans-serif; color: #0c0d0e !important; }
-
-    /* 2. Force all Buttons in all modules */
-    div.stButton > button {
-        background-color: #d4af37 !important;
-        color: #1b4332 !important;
-        border: 2px solid #1b4332 !important;
-        font-weight: 800 !important;
-        border-radius: 8px !important;
-        text-transform: uppercase !important;
-    }
-
-    /* 3. Force all DataFrames/Tables and Inputs */
-    .stDataFrame, [data-testid="stTable"] { border: 1px solid #1b4332 !important; }
-    input, textarea, select { border: 1px solid #1b4332 !important; border-radius: 5px !important; }
-
-    /* 4. Force specific tags that might be used in modules */
-    h1, h2, h3, h4, b, strong { color: #1b4332 !important; }
-    
-    /* 5. Highlight Green for Success/Info boxes inside modules */
-    .stAlert { background-color: #f0fdf4 !important; border: 1px solid #1b4332 !important; color: #1b4332 !important; }
-
-    /* 6. Tabs Clarity Fix */
-    .stTabs [data-baseweb="tab-list"] { background-color: transparent !important; }
-    .stTabs [data-baseweb="tab"] {
-        color: #1b4332 !important;
-        font-weight: bold !important;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #1b4332 !important;
-        color: #d4af37 !important;
-    }
-</style>
-''', unsafe_allow_html=True)
+# --- FINAL ROUTING ---
+if not st.session_state.get('logged_in'):
+    show_login()
+else:
+    show_dashboard()
