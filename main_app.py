@@ -1,4 +1,3 @@
-import face_security
 from leave_utils import check_on_leave
 import sys, os; sys.path.append(os.getcwd()); sys.path.append(os.path.join(os.getcwd(), "apsokara/logic"))
 from apsokara.logic.teacher_modules import render_marks_entry
@@ -327,6 +326,11 @@ def show_dashboard():
     for i, tab in enumerate(active_tabs):
         with tab:
             t_full_name = tabs_list[i].upper()
+            if 'FACE LOCK' in t_full_name:
+                import face_security
+                face_security.render_face_lock_setup(st.session_state.user_info)
+                st.stop()
+                st.stop()  # Is ke baad ka saara kachra tab mein nahi dikhega
             if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
                 from apsokara.logic.student_modules import render_my_result
                 render_my_result(u)
@@ -346,8 +350,6 @@ def show_dashboard():
                 from apsokara.logic.student_modules import render_apply_leave
                 render_apply_leave(u)
             elif "FACE LOCK" in t_full_name:
-                import face_security
-                face_security.render_face_lock_setup(u)
                 st.markdown(f"## 🏛️ Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!")
                 c1, c2, c3 = st.columns(3)
                 with c1: st.info("📅 Today: " + str(datetime.date.today()))
@@ -361,6 +363,13 @@ def show_login():
     t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
     with t1:
         id_s = st.text_input("B-Form Number", key="s_login")
+        if st.session_state.get('bio_toggle'):
+            st.markdown('''<div style='border:4px solid #1b4332; border-radius:50%; width:220px; height:220px; overflow:hidden; margin:10px auto; position:relative;'><div style='position:absolute; top:0; left:0; width:100%; height:5px; background:#00ff00; box-shadow:0 0 20px #00ff00; animation:scanLine 1.5s infinite alternate;'></div><style>@keyframes scanLine { from {top:0%} to {top:100%} }</style>''', unsafe_allow_html=True)
+            st.camera_input('FaceID', key='login_cam', label_visibility='hidden')
+            st.markdown('</div>', unsafe_allow_html=True)
+        if st.session_state.get('bio_toggle'):
+            st.markdown('''<div style='border:2px solid #d4af37; padding:10px; border-radius:15px; background:#000; position:relative; overflow:hidden;'><div style='position:absolute; top:0; left:0; width:100%; height:3px; background:#00ff00; box-shadow:0 0 15px #00ff00; animation:scan 2s infinite;'></div><style>@keyframes scan { 0% {top:0%} 100% {top:100%} }</style></div>''', unsafe_allow_html=True)
+            st.camera_input('Scan to Authenticate', key='login_cam')
         dob_s = st.date_input("Birth Date", value=datetime.date(2010,1,1), key="s_dob")
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
@@ -385,6 +394,14 @@ if width is not None and width < 700:
         render_mobile_view()
         st.stop()
 # ------------------------
+if st.session_state.get('needs_face_auth'):
+    st.warning('🛡️ Biometric Identity Verification Required')
+    auth_img = st.camera_input('Scan Face to Unlock Portal', key='login_face_scanner')
+    if auth_img:
+        st.session_state.needs_face_auth = False
+        st.success('Access Granted!')
+        st.rerun()
+    st.stop()
 if not st.session_state.logged_in: show_login()
 else: show_dashboard()
 

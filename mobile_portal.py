@@ -85,10 +85,11 @@ def render_mobile_view():
         
         st.markdown("<hr style='border-color:rgba(212,175,55,0.3); margin:0 0 15px 0;'>", unsafe_allow_html=True)
 
-        if st.button("🏠 DASHBOARD", use_container_width=True): st.session_state.active_menu = "Dashboard"
-        if st.button("📝 ATTENDANCE", use_container_width=True): st.session_state.active_menu = "Attendance"
+        if st.button("🏠 DASHBOARD", key="m_btn_dash", use_container_width=True): st.session_state.active_menu = "Dashboard"
+        if st.button("📝 ATTENDANCE", key="m_btn_att", use_container_width=True): st.session_state.active_menu = "Attendance"
         if st.button("📊 RESULTS", use_container_width=True): st.session_state.active_menu = "Results"
         if st.button("👤 PROFILE", use_container_width=True): st.session_state.active_menu = "Profile"
+        if st.button("🔒 SECURITY", use_container_width=True): st.session_state.active_menu = "Security"
         
         st.markdown("<div style='height:80px;'></div>", unsafe_allow_html=True)
         if st.button("🚪 LOGOUT", use_container_width=True, type="primary"):
@@ -124,6 +125,9 @@ def render_mobile_view():
         st.markdown(f"##### Welcome Back, {u.get('full_name')}!")
         st.info("System is operational. Select a module from the menu.")
         
+    elif page == "Security":
+        import face_security
+        face_security.render_face_lock_setup(u)
     elif page == "Attendance":
         if role == "Class Teacher": render_attendance_system(u)
         else: render_student_attendance(u)
