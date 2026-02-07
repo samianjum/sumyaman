@@ -21,7 +21,6 @@ def render_mobile_view():
     # ---------------------------------------
     # --- STICKY SECURITY GUARD ---
     if st.session_state.get('needs_face_auth', False) and 'face_auth_verified' not in st.session_state:
-        render_face_lock_setup(st.session_state.user_info)
         st.stop()
     if 'user_info' not in st.session_state:
         st.error("Please login again.")

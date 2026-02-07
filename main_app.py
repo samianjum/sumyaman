@@ -414,17 +414,14 @@ if st.session_state.get('logged_in'):
 
     # --- SECURE BIOMETRIC GATE ---
     if st.session_state.get('needs_face_auth'):
-        render_face_lock_setup(st.session_state.user_info)
         st.stop()
 
     # --- AI BIOMETRIC LOCK ---
     if st.session_state.get('needs_face_auth'):
-        render_face_lock_setup(st.session_state.user_info)
         st.stop()
 
     # --- AI BIOMETRIC GATEWAY ---
     if st.session_state.get('needs_face_auth'):
-        render_face_lock_setup(st.session_state.user_info)
         st.stop()
 
 # --- FINAL ROUTING ---
