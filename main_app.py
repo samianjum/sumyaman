@@ -16,7 +16,21 @@ import pandas as pd
 import plotly.graph_objects as go # Donut chart ke liye
 
 # 1. Page Config
-st.set_page_config(page_title="ARMY PUBLIC SCHOOL & COLLAGE SYSTEM Portal", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
+
+# --- PWA MOBILE INSTALLER INJECTION ---
+st.markdown('''
+    <link rel='manifest' href='./static/app_assets/manifest_v3.json'>
+    <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./static/app_assets/sw.js').then(function(reg) {
+          console.log('PWA ServiceWorker registered');
+        });
+      });
+    }
+    </script>
+''', unsafe_allow_html=True)
 
 st.markdown('''
 <style>
