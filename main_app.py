@@ -374,7 +374,7 @@ def show_login():
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
             if d:
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, "Student", True
+                import sqlite3; _c=sqlite3.connect('db.sqlite3', check_same_thread=False); _r=_c.execute('SELECT face_status FROM apsokara_student WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and _r[0]=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True
                 st.rerun()
     with t2:
         id_t = st.text_input("CNIC Number", key="t_login")
@@ -382,7 +382,7 @@ def show_login():
         if st.button("ENTER STAFF PORTAL", key="t_btn"):
             d = fetch_user_data(id_t, str(dob_t), "Teacher")
             if d:
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d['role_db'], True
+                import sqlite3; _c=sqlite3.connect('db.sqlite3', check_same_thread=False); _r=_c.execute('SELECT face_status FROM apsokara_teacher WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and _r[0]=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True
                 st.rerun()
 
 
@@ -399,6 +399,20 @@ if st.session_state.get('logged_in'):
         st.stop()
     
     # B. Face ID Check
+
+    # --- SECURE BIOMETRIC GATE ---
+    if st.session_state.get('needs_face_auth'):
+        from face_security import render_face_lock_setup
+        render_face_lock_setup(st.session_state.user_info)
+        st.stop()
+
+    # --- AI BIOMETRIC LOCK ---
+    if st.session_state.get('needs_face_auth'):
+        from face_security import render_face_lock_setup
+        render_face_lock_setup(st.session_state.user_info)
+        st.stop()
+
+    # --- AI BIOMETRIC GATEWAY ---
     if st.session_state.get('needs_face_auth'):
         from face_security import render_face_lock_setup
         render_face_lock_setup(st.session_state.user_info)
