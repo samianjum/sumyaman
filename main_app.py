@@ -400,7 +400,6 @@ def show_login():
 
 # --- MOBILE & SECURITY GUARD ---
 import streamlit_javascript as st_js
-from mobile_portal import render_mobile_view
 
 width = st_js.st_javascript("window.innerWidth")
 
@@ -429,3 +428,5 @@ if not st.session_state.get('logged_in'):
     show_login()
 else:
     show_dashboard()
+
+from mobile_portal import render_mobile_view
