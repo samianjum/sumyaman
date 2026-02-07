@@ -1,4 +1,6 @@
 import streamlit as st
+from face_security import render_face_lock_setup
+from face_security import render_face_lock_setup
 import pandas as pd
 from attendance_logic import render_student_attendance
 from attendance_system import render_attendance_system
@@ -8,6 +10,21 @@ import os
 st.set_page_config(page_title="APS PORTAL", layout="wide", initial_sidebar_state="collapsed")
 
 def render_mobile_view():
+    # --- SAMI'S AUTO-SYNC DATABASE GUARD ---
+    import sqlite3
+    u_id = st.session_state.get('user_info', {}).get('id')
+    u_role = st.session_state.get('role', 'Student')
+    u_table = 'apsokara_student' if u_role == 'Student' else 'apsokara_teacher'
+    if u_id:
+        with sqlite3.connect('db.sqlite3') as _conn:
+            _res = _conn.execute(f'SELECT face_status FROM {u_table} WHERE id=?', (u_id,)).fetchone()
+            if _res and _res[0] == 'ENROLLED' and 'face_auth_verified' not in st.session_state:
+                st.session_state.needs_face_auth = True
+    # ---------------------------------------
+    # --- STICKY SECURITY GUARD ---
+    if st.session_state.get('needs_face_auth', False) and 'face_auth_verified' not in st.session_state:
+        render_face_lock_setup(st.session_state.user_info)
+        st.stop()
     if 'user_info' not in st.session_state:
         st.error("Please login again.")
         return
@@ -134,4 +151,3 @@ def render_mobile_view():
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-render_mobile_view()
