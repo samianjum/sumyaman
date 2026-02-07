@@ -341,8 +341,6 @@ def show_dashboard():
         with tab:
             t_full_name = tabs_list[i].upper()
             if 'FACE LOCK' in t_full_name:
-                import face_security
-                face_security.render_face_lock_setup(st.session_state.user_info)
                 st.stop()
                 st.stop()  # Is ke baad ka saara kachra tab mein nahi dikhega
             if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
@@ -416,19 +414,16 @@ if st.session_state.get('logged_in'):
 
     # --- SECURE BIOMETRIC GATE ---
     if st.session_state.get('needs_face_auth'):
-        from face_security import render_face_lock_setup
         render_face_lock_setup(st.session_state.user_info)
         st.stop()
 
     # --- AI BIOMETRIC LOCK ---
     if st.session_state.get('needs_face_auth'):
-        from face_security import render_face_lock_setup
         render_face_lock_setup(st.session_state.user_info)
         st.stop()
 
     # --- AI BIOMETRIC GATEWAY ---
     if st.session_state.get('needs_face_auth'):
-        from face_security import render_face_lock_setup
         render_face_lock_setup(st.session_state.user_info)
         st.stop()
 

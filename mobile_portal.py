@@ -141,8 +141,6 @@ def render_mobile_view():
         st.info("System is operational. Select a module from the menu.")
         
     elif page == "Security":
-        import face_security
-        face_security.render_face_lock_setup(u)
     elif page == "Attendance":
         if role == "Class Teacher": render_attendance_system(u)
         else: render_student_attendance(u)
