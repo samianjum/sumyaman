@@ -1,6 +1,4 @@
 import streamlit as st
-from face_security import render_face_lock_setup
-from face_security import render_face_lock_setup
 import pandas as pd
 from attendance_logic import render_student_attendance
 from attendance_system import render_attendance_system
