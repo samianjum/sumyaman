@@ -11,7 +11,7 @@ def render_mobile_view():
             
             /* Streamlit ka default top gap khatam */
             .stApp { margin-top: 0px !important; }
-            .block-container { padding-top: 0rem !important; margin-top: 0px !important; }
+            .block-container { padding-top: 60px !important; }
             
             /* News patti aur header ke beech ka gap khatam */
             .aps-ticker-container { margin: 0 !important; }
