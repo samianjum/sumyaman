@@ -3,52 +3,93 @@ import pandas as pd
 from attendance_logic import render_student_attendance
 
 def render_mobile_view():
-    # 1. CSS for Tight Layout
+    # 1. THEME MATCHING CSS (Green & Gold)
     st.markdown("""
+        
         <style>
-            /* Pure page ki top padding khatam karna */
-            .stApp { margin-top: -60px !important; }
-            .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; }
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
             
+            /* Pure page ka top margin khatam */
+            .stApp { margin-top: -70px !important; }
+            .block-container { padding-top: 0rem !important; }
+            
+            /* News patti aur Header ke beech ka gap khatam */
+            .aps-ticker-container { margin-bottom: 0px !important; margin-top: 0px !important; }
+            
+            /* Global Font and Background */
+            * { font-family: 'Poppins', sans-serif; }
+            .stApp { background-color: #F0F0F0; }
+
             [data-testid="stSidebar"] { background-color: #1b4332 !important; }
-            
+            [data-testid="stSidebar"] * { color: white !important; }
+
             .mobile-header-v2 {
                 background: linear-gradient(90deg, #1b4332 0%, #2d6a4f 100%);
-                padding: 10px; 
-                border-radius: 0 0 15px 15px;
-                color: #d4af37; 
-                text-align: center; 
-                margin-top: 5px;
-                border-bottom: 2px solid #d4af37;
+                padding: 15px;
+                border-radius: 0px 0px 20px 20px;
+                color: #d4af37;
+                text-align: center;
+                box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+                margin-top: -10px !important; /* Header ko patti ke kareeb karna */
+                margin-bottom: 15px;
+                border-bottom: 3px solid #d4af37;
             }
-            
-            /* Fuzool gaps points */
-            div[data-testid="stVerticalBlock"] > div { gap: 0rem !important; padding-top: 0rem !important; }
+
+            .stButton>button {
+                background-color: #1b4332 !important;
+                color: white !important;
+                border: 2px solid #d4af37 !important;
+                border-radius: 12px !important;
+                font-weight: 800 !important;
+            }
         </style>
+
     """, unsafe_allow_html=True)
 
-    # 2. SIDEBAR
+    # 2. SIDEBAR (Matching Theme)
     with st.sidebar:
-        st.image("sami.png", width=80)
-        selection = st.radio("Navigation", ["🏠 Home", "📊 Attendance", "👤 Profile"])
+        st.image("sami.png", width=100)
+        st.markdown("<h2 style='color:white; text-align:center;'>MENU</h2>", unsafe_allow_html=True)
+        selection = st.radio("Navigate", ["🏠 Home", "📊 Attendance", "👤 Profile"])
+        st.divider()
         if st.button("🚪 Logout", use_container_width=True):
             st.session_state.logged_in = False
             st.rerun()
 
-    # 3. HEADER (News patti ke foran baad aaye ga)
-    st.markdown('<div class="mobile-header-v2"><h3>🏛️ APS PORTAL</h3></div>', unsafe_allow_html=True)
+    # 3. HEADER
+    st.markdown('<div class="mobile-header-v2"><h1>🏛️ APS PORTAL</h1></div>', unsafe_allow_html=True)
 
     if 'user_info' in st.session_state:
         u = st.session_state.user_info
-        display_name = u.get('full_name') or u.get('name') or "User"
+        # Matching Main App logic for name
+        display_name = u.get('full_name') or u.get('name') or u.get('student_name') or "User"
 
+        # 4. BODY SECTION
         if selection == "🏠 Home":
-            st.write(f"### Salam, {display_name} 👋")
-            col1, col2 = st.columns(2)
-            col1.metric("Role", st.session_state.role)
-            col2.metric("Status", "Online")
+            st.markdown(f"### Salam, {display_name} ✨")
             
+            # Info Card
+            st.markdown(f"""
+                <div style='background: white; padding: 20px; border-radius: 15px; border-left: 5px solid #d4af37; box-shadow: 0 4px 10px rgba(0,0,0,0.05);'>
+                    <p style='margin:0; color:#666; font-size:12px;'>CURRENT ROLE</p>
+                    <h4 style='margin:0; color:#1b4332;'>{st.session_state.get('role', 'Member')}</h4>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            st.write("")
+            col1, col2 = st.columns(2)
+            col1.metric("Status", "Active")
+            col2.metric("Portal", "Mobile")
+
         elif selection == "📊 Attendance":
+            st.markdown("### 📊 Attendance System")
             render_student_attendance(u)
+
+        elif selection == "👤 Profile":
+            st.markdown("### 👤 User Profile")
+            st.info("Profile details are synced from the secure vault.")
+            st.json(u)
+
     else:
-        st.error("Session Expired.")
+        st.error("Session expired. Please login again.")
+        st.session_state.logged_in = False
