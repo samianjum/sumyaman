@@ -10,8 +10,8 @@ def render_mobile_view():
             @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
             
             /* Streamlit ka default top gap khatam */
-            .stApp { margin-top: -65px !important; }
-            .block-container { padding-top: 0rem !important; margin-top: -20px !important; }
+            .stApp { margin-top: -45px !important; }
+            .block-container { padding-top: 0rem !important; margin-top: -10px !important; }
             
             /* News patti aur header ke beech ka gap khatam */
             .aps-ticker-container { margin: 0 !important; }
