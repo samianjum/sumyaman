@@ -16,7 +16,7 @@ import pandas as pd
 import plotly.graph_objects as go # Donut chart ke liye
 
 # 1. Page Config
-st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="APS OKARA PORTAL", page_icon="sami.png", layout="wide", initial_sidebar_state="expanded")
 
 # --- PWA MOBILE INSTALLER INJECTION ---
 st.markdown('''
@@ -164,7 +164,7 @@ def get_base64(file_path):
         return base64.b64encode(data).decode()
     except: return ""
 
-LOGO_PATH = '/home/sami/Downloads/sami.png'
+LOGO_PATH = 'sami.png'
 img_base64 = get_base64(LOGO_PATH)
 
 def get_history_df(student_id):
