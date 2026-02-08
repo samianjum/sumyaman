@@ -18,10 +18,8 @@ def get_filtered_news():
         with sqlite3.connect("db.sqlite3", timeout=30) as conn:
             placeholders = ', '.join(['?'] * len(roles_list))
             query = f"SELECT content FROM apsokara_schoolnews WHERE target_role IN ({placeholders}) AND start_date <= ? AND end_date >= ? ORDER BY created_at DESC"
-            # Fixed the tuple parameter error here
-            params = tuple(roles_list) + (today, today)
-            return pd.read_sql_query(query, conn, params=params)
-    except Exception as e:
+            return pd.read_sql_query(query, conn, params=tuple(roles_list) + (today, today))
+    except:
         return pd.DataFrame(columns=['content'])
 
 def render_news_ticker():
@@ -36,59 +34,47 @@ def render_news_ticker():
             <style>
             @keyframes smooth-loop {{ from {{ transform: translateX(0); }} to {{ transform: translateX(-50%); }} }}
 
-            .aps-ticker-container {{
+            .aps-ticker-container {
                 background: #1b4332 !important; 
                 border-top: 2px solid #d4af37 !important; 
                 border-bottom: 2px solid #d4af37 !important;
                 display: flex !important; 
                 align-items: center !important; 
-                margin: 10px 0 !important; 
-                height: 50px !important; 
+                margin: 0 !important; 
+                height: 40px !important; 
                 overflow: hidden !important; 
                 position: relative !important;
-                z-index: 99999 !important;
-                visibility: visible !important;
+                z-index: 99 !important;
             }}
             .aps-label {{
-                background: #d4af37 !important; 
-                color: #1b4332 !important; 
-                padding: 0 15px !important; 
-                height: 100% !important;
+                background: #d4af37; color: #1b4332 !important; padding: 0 25px; height: 100%;
+                display: flex; align-items: center; font-weight: 900; font-size: 1.1rem; z-index: 100;
+                position: absolute; left: 0; clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
+            }}
+            .ticker-content-wrapper {{ display: inline-block; white-space: nowrap; animation: smooth-loop 60s linear infinite; padding-left: 100%; }}
+            .moving-text {{ display: inline-flex; font-size: 1.6rem !important; font-weight: 800 !important; color: #FFFFFF !important; }}
+
+            /* Mobile Fix */
+            @media (max-width: 768px) {{
+                .aps-ticker-container {
+                background: #1b4332 !important; 
+                border-top: 2px solid #d4af37 !important; 
+                border-bottom: 2px solid #d4af37 !important;
                 display: flex !important; 
                 align-items: center !important; 
-                font-weight: 900 !important; 
-                font-size: 0.9rem !important;
-                position: absolute !important; 
-                left: 0 !important; 
-                z-index: 100000 !important;
-                clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%) !important;
+                margin: 0 !important; 
+                height: 40px !important; 
+                overflow: hidden !important; 
+                position: relative !important;
+                z-index: 99 !important;
             }}
-            .ticker-content-wrapper {{ 
-                display: inline-block !important; 
-                white-space: nowrap !important; 
-                animation: smooth-loop 40s linear infinite !important; 
-                padding-left: 100% !important; 
-            }}
-            .moving-text {{ 
-                display: inline-flex !important; 
-                font-size: 1.1rem !important; 
-                font-weight: 700 !important; 
-                color: #FFFFFF !important; 
-            }}
-
-            @media (max-width: 768px) {{
-                .aps-ticker-container {{ 
-                    height: 38px !important; 
-                    top: 60px !important; /* Mobile view adjust */
-                    margin-bottom: 0 !important;
-                }}
-                .aps-label {{ font-size: 0.65rem !important; padding: 0 8px !important; }}
-                .moving-text {{ font-size: 0.85rem !important; }}
+                .aps-label {{ font-size: 0.7rem !important; padding: 0 15px !important; }}
+                .moving-text {{ font-size: 1rem !important; }}
             }}
             </style>
             
             <div class="aps-ticker-container">
-                <div class="aps-label">LATEST UPDATES</div>
+                <div class="aps-label">APS UPDATES</div>
                 <div class="ticker-content-wrapper">
                     <div class="moving-text">{display_text} &nbsp;&nbsp;&nbsp;&nbsp; ★ &nbsp;&nbsp;&nbsp;&nbsp; {display_text}</div>
                 </div>
