@@ -34,7 +34,6 @@ def render_news_ticker():
             <style>
             @keyframes smooth-loop {{ from {{ transform: translateX(0); }} to {{ transform: translateX(-50%); }} }}
 
-            /* --- DESKTOP DEFAULT STYLE --- */
             .aps-ticker-container {{
                 background: #1b4332; border-top: 3px solid #d4af37; border-bottom: 3px solid #d4af37;
                 display: flex; align-items: center; margin: 20px 0; height: 55px; overflow: hidden; position: relative;
@@ -47,35 +46,12 @@ def render_news_ticker():
             .ticker-content-wrapper {{ display: inline-block; white-space: nowrap; animation: smooth-loop 60s linear infinite; padding-left: 100%; }}
             .moving-text {{ display: inline-flex; font-size: 1.6rem !important; font-weight: 800 !important; color: #FFFFFF !important; }}
 
-            
-            /* --- MOBILE OVERRIDE --- */
-            @media (max-width: 768px) {
-                .aps-ticker-container {
-                    background: #1b4332 !important; /* Back to Green */
-                    border-bottom: 2px solid #d4af37 !important;
-                    margin: 0 !important; 
-                    height: 35px !important; /* Slightly bigger */
-                    position: relative !important; /* Fixed se hata kar normal kar diya */
-                    top: 0 !important;
-                    z-index: 1000;
-                }
-                .aps-label { 
-                    display: flex !important; /* Mobile par bhi label dikhao */
-                    font-size: 0.6rem !important;
-                    padding: 0 10px !important;
-                    clip-path: none !important;
-                    border-right: 2px solid #1b4332;
-                }
-                .ticker-content-wrapper { 
-                    animation: smooth-loop 30s linear infinite !important; 
-                }
-                .moving-text { 
-                    font-size: 0.9rem !important; 
-                    font-weight: 600 !important; 
-                    color: #FFFFFF !important; 
-                }
-            }
-}
+            /* Mobile Fix */
+            @media (max-width: 768px) {{
+                .aps-ticker-container {{ height: 40px !important; margin: 10px 0 !important; }}
+                .aps-label {{ font-size: 0.7rem !important; padding: 0 15px !important; }}
+                .moving-text {{ font-size: 1rem !important; }}
+            }}
             </style>
             
             <div class="aps-ticker-container">
