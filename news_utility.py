@@ -30,6 +30,7 @@ def render_news_ticker():
         news_list = df['content'].tolist()
         display_text = " &nbsp;&nbsp;&nbsp;&nbsp; ★ &nbsp;&nbsp;&nbsp;&nbsp; ".join(news_list)
         
+        # Using double {{ for CSS inside f-string to avoid NameError
         st.markdown(f'''
             <style>
             @keyframes smooth-loop {{ from {{ transform: translateX(0); }} to {{ transform: translateX(-50%); }} }}
@@ -41,24 +42,24 @@ def render_news_ticker():
                 display: flex; 
                 align-items: center; 
                 margin: 0 !important; 
-                margin-top: -20px !important;
-                height: 45px; 
+                margin-top: -35px !important;
+                height: 40px; 
                 overflow: hidden; 
                 position: relative;
-                z-index: 999;
+                z-index: 9999;
             }}
             .aps-label {{
-                background: #d4af37; color: #1b4332 !important; padding: 0 20px; height: 100%;
-                display: flex; align-items: center; font-weight: 900; font-size: 0.9rem; z-index: 1000;
+                background: #d4af37; color: #1b4332 !important; padding: 0 15px; height: 100%;
+                display: flex; align-items: center; font-weight: 900; font-size: 0.8rem; z-index: 10000;
                 position: absolute; left: 0; clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
             }}
             .ticker-content-wrapper {{ display: inline-block; white-space: nowrap; animation: smooth-loop 40s linear infinite; padding-left: 100%; }}
-            .moving-text {{ display: inline-flex; font-size: 1.2rem !important; font-weight: 700 !important; color: #FFFFFF !important; }}
+            .moving-text {{ display: inline-flex; font-size: 1rem !important; font-weight: 700 !important; color: #FFFFFF !important; }}
 
             @media (max-width: 768px) {{
-                .aps-ticker-container {{ height: 35px !important; margin-top: -25px !important; }}
-                .aps-label {{ font-size: 0.6rem !important; padding: 0 10px !important; }}
-                .moving-text {{ font-size: 0.85rem !important; }}
+                .aps-ticker-container {{ height: 30px !important; margin-top: -45px !important; }}
+                .aps-label {{ font-size: 0.5rem !important; padding: 0 8px !important; }}
+                .moving-text {{ font-size: 0.8rem !important; }}
             }}
             </style>
             
