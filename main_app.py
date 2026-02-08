@@ -14,6 +14,7 @@ import base64
 import sqlite3
 import pandas as pd
 import plotly.graph_objects as go # Donut chart ke liye
+from mobile_portal import render_mobile_view
 
 # 1. Page Config
 st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
@@ -429,4 +430,3 @@ if not st.session_state.get('logged_in'):
 else:
     show_dashboard()
 
-from mobile_portal import render_mobile_view
