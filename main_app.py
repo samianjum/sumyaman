@@ -19,10 +19,10 @@ from mobile_portal import render_mobile_view
 # 1. Page Config
 st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
 
-st.markdown('''
-    <style>
+# --- LAYOUT COMPRESSION ---
+st.markdown('<style>.block-container {padding-top: 0rem !important;} header {visibility: hidden;} .stApp {margin-top: -50px !important;}</style>', unsafe_allow_html=True)
+
         /* Streamlit ke default header aur padding ko khatam karna */
-        .block-container { padding-top: 0rem !important; }
         header { visibility: hidden !important; height: 0px !important; }
         #MainMenu { visibility: hidden !important; }
         .stApp { margin-top: -50px !important; }
@@ -31,10 +31,8 @@ st.markdown('''
             .stApp { margin-top: -60px !important; }
         }
     </style>
-''', unsafe_allow_html=True)
 
 # --- PWA MOBILE INSTALLER INJECTION ---
-st.markdown('''
     <link rel='manifest' href='./static/app_assets/manifest_v3.json'>
     <script>
     if ('serviceWorker' in navigator) {
@@ -45,10 +43,7 @@ st.markdown('''
       });
     }
     </script>
-''', unsafe_allow_html=True)
 
-st.markdown('''
-<style>
     /* Sidebar styling */
     [data-testid="stSidebar"] { background-color: #1b4332 !important; }
     [data-testid="stSidebar"] * { color: white !important; }
@@ -61,7 +56,6 @@ st.markdown('''
     h1, h2, h3 { color: #1b4332 !important; }
     .stTabs [aria-selected="true"] { border-top: 5px solid #d4af37 !important; }
 </style>
-''', unsafe_allow_html=True)
 render_news_ticker()
 
 # --- LEAVE SYSTEM HELPER FUNCTIONS ---
@@ -114,7 +108,6 @@ def display_notifications():
             notices_html = "<div style='padding:30px; text-align:center; color:#999;'>No new notifications</div>"
 
         st.markdown(f"""
-        <style>
             .notif-wrapper {{ position: fixed; bottom: 30px; right: 30px; z-index: 999999; }}
             .notif-bell {{ background: #FF0000; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 2px solid white; font-size: 28px; position: relative; }}
             .notif-badge {{ position: absolute; top: -5px; right: -5px; background: #1b4332; color: white; border-radius: 50%; width: 26px; height: 26px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }}
@@ -147,7 +140,6 @@ def display_ticker():
         if notices:
             items = "".join([f"<span style='background:{n[2]};padding:2px 8px;border-radius:4px;font-size:11px;margin-right:8px;color:white;font-weight:bold;'>NEWS</span><b style='color:#FFD700;font-size:16px;'> {n[0]}: </b><span style='color:white;font-size:15px;'>{n[1]}</span> &nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp; " for n in notices])
             st.markdown(f"""
-            <style>
                 .ticker-wrapper {{ display: flex; background: #1b4332; border-radius: 10px; overflow: hidden; border: 1px solid #333; height: 50px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; margin-bottom: 20px; }}
                 .live-label {{ background: #ff0000; color: white; padding: 0 25px; height: 100%; display: flex; align-items: center; font-weight: 900; font-size: 14px; z-index: 10; box-shadow: 10px 0 20px rgba(0,0,0,0.5); text-transform: uppercase; }}
                 .ticker-scroll-container {{ flex-grow: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); }}
@@ -296,7 +288,6 @@ elif False: pass # APS Subject Teacher
 else: primary, secondary, accent, btn_color = "#1b4332", "#F4F7F6", "#333333", "#2196F3"
 
 st.markdown(f'''
-<style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
     * {{ font-family: 'Poppins', sans-serif; color: {accent}; }}
     .stApp {{ background-color: {secondary}; }}
@@ -316,7 +307,6 @@ st.markdown(f'''
     .stat-val {{ font-size: 28px; font-weight: 800; color: {primary}; }}
     .stat-lbl {{ font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; }}
 </style>
-''', unsafe_allow_html=True)
 
 def show_dashboard():
     role = st.session_state.role
@@ -345,7 +335,6 @@ def show_dashboard():
             </div>
         </div>
     </div>
-    ''', unsafe_allow_html=True)
 
     if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT", "🔒 FACE LOCK"]
     elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🔒 FACE LOCK"]
@@ -386,16 +375,13 @@ def show_dashboard():
                 st.image("https://img.freepik.com/free-vector/education-background-with-books-lamp_23-2147501981.jpg", width='stretch')
                 st.write(f'## Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!')
 def show_login():
-    st.markdown(f'''<div style="text-align:center; padding-top:0px;"><img src="data:image/png;base64,{img_base64}" width="100"><h1 style="color:#000000; font-weight:800;">ARMY PUBLIC SCHOOL & COLLAGE SYSTEM PORTAL</h1></div>''', unsafe_allow_html=True)
     t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
     with t1:
         id_s = st.text_input("B-Form Number", key="s_login")
         if st.session_state.get('bio_toggle'):
-            st.markdown('''<div style='border:4px solid #1b4332; border-radius:50%; width:220px; height:220px; overflow:hidden; margin:10px auto; position:relative;'><div style='position:absolute; top:0; left:0; width:100%; height:5px; background:#00ff00; box-shadow:0 0 20px #00ff00; animation:scanLine 1.5s infinite alternate;'></div><style>@keyframes scanLine { from {top:0%} to {top:100%} }</style>''', unsafe_allow_html=True)
             st.camera_input('FaceID', key='login_cam', label_visibility='hidden')
             st.markdown('</div>', unsafe_allow_html=True)
         if st.session_state.get('bio_toggle'):
-            st.markdown('''<div style='border:2px solid #d4af37; padding:10px; border-radius:15px; background:#000; position:relative; overflow:hidden;'><div style='position:absolute; top:0; left:0; width:100%; height:3px; background:#00ff00; box-shadow:0 0 15px #00ff00; animation:scan 2s infinite;'></div><style>@keyframes scan { 0% {top:0%} 100% {top:100%} }</style></div>''', unsafe_allow_html=True)
             st.camera_input('Scan to Authenticate', key='login_cam')
         dob_s = st.date_input("Birth Date", value=datetime.date(2010,1,1), key="s_dob")
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
