@@ -58,7 +58,7 @@ def check_on_leave(student_id):
         today = datetime.date.today().isoformat()
         cur = conn.cursor()
         # Naye table 'apsokara_studentleave' se check karna
-        query = "SELECT id FROM apsokara_studentleave WHERE student_id=? AND status='Approved' AND ? BETWEEN from_date AND to_date"
+        query = "SELECT id FROM apsokara_studentleave WHERE student_id=%s AND status='Approved' AND %s BETWEEN from_date AND to_date"
         cur.execute(query, (student_id, today))
         res = cur.fetchone()
         conn.close()
@@ -70,7 +70,7 @@ def get_pending_count(u):
     try:
         conn = sqlalchemy.create_engine('postgresql://postgres:Aliali110##@db.hircnwxantxdqskuwtob.supabase.co:5432/postgres').connect()
         cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) FROM apsokara_leaverequests WHERE student_class=? AND student_section=? AND wing=? AND status='Pending'", (u.get('class'), u.get('sec'), u.get('wing')))
+        cur.execute("SELECT COUNT(*) FROM apsokara_leaverequests WHERE student_class=%s AND student_section=%s AND wing=%s AND status='Pending'", (u.get('class'), u.get('sec'), u.get('wing')))
         count = cur.fetchone()[0]
         conn.close()
         return f" ({count})" if count > 0 else ""
@@ -169,7 +169,7 @@ img_base64 = 'iVBORw0KGgoAAAANSUhEUgAAAGMAAABlCAYAAABZYl2IAAAQAElEQVR4Acy9B4BdRd
 
 def get_history_df(student_id):
         conn = sqlalchemy.create_engine('postgresql://postgres:Aliali110##@db.hircnwxantxdqskuwtob.supabase.co:5432/postgres').connect()
-    q = "SELECT date, status FROM apsokara_attendance WHERE student_id=? AND session_year = (SELECT session_year FROM apsokara_student WHERE id=?) GROUP BY date ORDER BY date DESC"
+        q = "SELECT date, status FROM apsokara_attendance WHERE student_id=%s AND session_year = (SELECT session_year FROM apsokara_student WHERE id=%s) GROUP BY date ORDER BY date DESC"
     df = pd.read_sql_query(q, conn, params=(u['id'], u['id']))
     conn.close()
     if not df.empty:
@@ -183,7 +183,7 @@ def get_history_df(student_id):
 def get_student_overall_stats(student_id):
         conn = sqlalchemy.create_engine('postgresql://postgres:Aliali110##@db.hircnwxantxdqskuwtob.supabase.co:5432/postgres').connect()
     # Count only unique dates for this student
-    q = "SELECT status, COUNT(*) as count FROM apsokara_attendance WHERE student_id=? AND session_year = (SELECT session_year FROM apsokara_student WHERE id=?) GROUP BY status"
+    q = "SELECT status, COUNT(*) as count FROM apsokara_attendance WHERE student_id=%s AND session_year = (SELECT session_year FROM apsokara_student WHERE id=%s) GROUP BY status"
     df = pd.read_sql_query(q, conn, params=(u['id'], u['id']))
     conn.close()
     stats = {"P": 0, "A": 0, "L": 0, "Total": 0}
@@ -198,7 +198,7 @@ def check_attendance_state(t_class, t_sec, t_wing):
     today = datetime.date.today().isoformat()
     cursor.execute("""SELECT MAX(edit_count) FROM apsokara_attendance 
                       WHERE student_class=? AND student_section=? AND date=? 
-                      AND student_id IN (SELECT cnic FROM apsokara_student WHERE wing=?)""", 
+                      AND student_id IN (SELECT cnic FROM apsokara_student WHERE wing=%s)""", 
                    (t_class, t_sec, today, t_wing))
     res = cursor.fetchone()
     conn.close()
@@ -211,7 +211,7 @@ def save_attendance(attendance_data, t_class, t_sec, is_edit=False):
     new_count = 2 if is_edit else 1
     try:
         for s_id, status in attendance_data.items():
-            cursor.execute("DELETE FROM apsokara_attendance WHERE student_id=? AND session_year = (SELECT session_year FROM apsokara_student WHERE id=?) AND date=?", (s_id, today))
+            cursor.execute("DELETE FROM apsokara_attendance WHERE student_id=%s AND session_year = (SELECT session_year FROM apsokara_student WHERE id=%s) AND date=%s", (s_id, today))
             cursor.execute('''INSERT INTO apsokara_attendance 
                             (student_id, date, status, class, student_section, edit_count) 
                             VALUES (?, ?, ?, ?, ?, ?)''', (s_id, today, status, t_class, t_sec, new_count))
@@ -229,9 +229,9 @@ def fetch_user_data(user_id, dob_val, user_type):
     cursor = conn.cursor()
     try:
         if user_type == "Teacher":
-            q = "SELECT *, assigned_wing as wing, assigned_class as class, assigned_section as sec FROM apsokara_teacher WHERE cnic = ? AND dob = ?"
+            q = "SELECT *, assigned_wing as wing, assigned_class as class, assigned_section as sec FROM apsokara_teacher WHERE cnic = %s AND dob = %s"
         else:
-            q = "SELECT *, student_class as class, student_section as sec FROM apsokara_student WHERE b_form = ? AND dob = ?"
+            q = "SELECT *, student_class as class, student_section as sec FROM apsokara_student WHERE b_form = %s AND dob = %s"
         
         cursor.execute(q, (user_id, dob_val))
         row = cursor.fetchone()
@@ -259,11 +259,11 @@ def fetch_user_data(user_id, dob_val, user_type):
 def get_daily_analytics(t_class, t_sec, t_wing):
         conn = sqlalchemy.create_engine('postgresql://postgres:Aliali110##@db.hircnwxantxdqskuwtob.supabase.co:5432/postgres').connect()
     today = datetime.date.today().isoformat()
-    q_total = "SELECT COUNT(*) FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?"
+    q_total = "SELECT COUNT(*) FROM apsokara_student WHERE student_class=%s AND student_section=%s AND wing=%s"
     total = pd.read_sql_query(q_total, conn, params=(t_class, t_sec, t_wing)).iloc[0,0]
     q_stats = """SELECT status, COUNT(*) as count FROM apsokara_attendance 
                  WHERE student_class=? AND student_section=? AND date=?
-                 AND student_id IN (SELECT cnic FROM apsokara_student WHERE wing=?)
+                 AND student_id IN (SELECT cnic FROM apsokara_student WHERE wing=%s)
                  GROUP BY status"""
     df_stats = pd.read_sql_query(q_stats, conn, params=(t_class, t_sec, today, t_wing))
     conn.close()
@@ -386,7 +386,7 @@ def show_login():
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
             if d:
-                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_student WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Secure Data...', icon='🔄');
+                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_student WHERE id=%s', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Secure Data...', icon='🔄');
                 st.rerun()
     with t2:
         id_t = st.text_input("CNIC Number", key="t_login")
@@ -394,7 +394,7 @@ def show_login():
         if st.button("ENTER STAFF PORTAL", key="t_btn"):
             d = fetch_user_data(id_t, str(dob_t), "Teacher")
             if d:
-                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_teacher WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Staff Vault...', icon='🔄');
+                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_teacher WHERE id=%s', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Staff Vault...', icon='🔄');
                 st.rerun()
 
 
