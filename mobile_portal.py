@@ -5,45 +5,47 @@ from attendance_logic import render_student_attendance
 def render_mobile_view():
     # 1. THEME MATCHING CSS (Green & Gold)
     st.markdown("""
-        
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
-            
-            /* Pure page ka top margin khatam */
-            .stApp { margin-top: -70px !important; }
-            .block-container { padding-top: 0rem !important; }
-            
-            /* News patti aur Header ke beech ka gap khatam */
-            .aps-ticker-container { margin-bottom: 0px !important; margin-top: 0px !important; }
             
             /* Global Font and Background */
             * { font-family: 'Poppins', sans-serif; }
             .stApp { background-color: #F0F0F0; }
 
-            [data-testid="stSidebar"] { background-color: #1b4332 !important; }
-            [data-testid="stSidebar"] * { color: white !important; }
+            /* Sidebar Matching Main App (#1b4332) */
+            [data-testid="stSidebar"] {
+                background-color: #1b4332 !important;
+            }
+            [data-testid="stSidebar"] * {
+                color: white !important;
+            }
 
+            /* Header Gradient (Matching Dark Green) */
             .mobile-header-v2 {
                 background: linear-gradient(90deg, #1b4332 0%, #2d6a4f 100%);
-                padding: 15px;
-                border-radius: 0px 0px 20px 20px;
-                color: #d4af37;
+                padding: 20px;
+                border-radius: 0px 0px 25px 25px;
+                color: #d4af37; /* Gold Title */
                 text-align: center;
-                box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-                margin-top: -10px !important; /* Header ko patti ke kareeb karna */
-                margin-bottom: 15px;
+                box-shadow: 0px 4px 15px rgba(0,0,0,0.2);
+                margin-bottom: 25px;
                 border-bottom: 3px solid #d4af37;
             }
 
+            /* Buttons (Gold Border & Style) */
             .stButton>button {
                 background-color: #1b4332 !important;
                 color: white !important;
                 border: 2px solid #d4af37 !important;
                 border-radius: 12px !important;
                 font-weight: 800 !important;
+                text-transform: uppercase;
             }
-        </style>
 
+            /* Metrics and Cards */
+            div[data-testid="stMetricValue"] { color: #1b4332 !important; }
+            h1, h2, h3 { color: #1b4332 !important; }
+        </style>
     """, unsafe_allow_html=True)
 
     # 2. SIDEBAR (Matching Theme)
