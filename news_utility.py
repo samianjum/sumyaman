@@ -18,7 +18,7 @@ def get_filtered_news():
         with sqlite3.connect("db.sqlite3", timeout=30) as conn:
             placeholders = ', '.join(['?'] * len(roles_list))
             query = f"SELECT content FROM apsokara_schoolnews WHERE target_role IN ({placeholders}) AND start_date <= ? AND end_date >= ? ORDER BY created_at DESC"
-            return pd.read_sql_query(query, conn, params=tuple(roles_list) + (today, today))
+            return pd.read_sql_query(query, conn, params=tuple(roles_list) + (today, tuple(roles_list) + (today, today)))
     except:
         return pd.DataFrame(columns=['content'])
 
@@ -40,56 +40,28 @@ def render_news_ticker():
                 border-bottom: 2px solid #d4af37;
                 display: flex; 
                 align-items: center; 
-                margin: 0 !important; 
-                height: 45px; 
+                margin: 20px 0; 
+                height: 50px; 
                 overflow: hidden; 
                 position: relative;
             }}
             .aps-label {{
-                background: #d4af37; 
-                color: #1b4332 !important; 
-                padding: 0 15px; 
-                height: 100%;
-                display: flex; 
-                align-items: center; 
-                font-weight: 900; 
-                font-size: 0.9rem; 
-                z-index: 100;
-                position: absolute; 
-                left: 0; 
-                clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
+                background: #d4af37; color: #1b4332 !important; padding: 0 20px; height: 100%;
+                display: flex; align-items: center; font-weight: 900; font-size: 1rem; z-index: 100;
+                position: absolute; left: 0; clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
             }}
-            .ticker-content-wrapper {{ 
-                display: inline-block; 
-                white-space: nowrap; 
-                animation: smooth-loop 40s linear infinite; 
-                padding-left: 100%; 
-            }}
-            .moving-text {{ 
-                display: inline-flex; 
-                font-size: 1.1rem !important; 
-                font-weight: 700 !important; 
-                color: #FFFFFF !important; 
-            }}
+            .ticker-content-wrapper {{ display: inline-block; white-space: nowrap; animation: smooth-loop 40s linear infinite; padding-left: 100%; }}
+            .moving-text {{ display: inline-flex; font-size: 1.2rem !important; font-weight: 700 !important; color: #FFFFFF !important; }}
 
-            
-            @media (max-width: 768px) {
-                .aps-ticker-container { 
+            @media (max-width: 768px) {{
+                .aps-ticker-container {{ 
                     height: 40px !important; 
-                    margin-top: 55px !important; /* Ye patti ko neechay laye ga */
-                    position: relative !important;
-                    display: flex !important;
-                    visibility: visible !important;
-                }
-                .aps-label { 
-                    font-size: 0.7rem !important; 
-                    padding: 0 10px !important; 
-                }
-                .moving-text { 
-                    font-size: 0.9rem !important; 
-                }
-            }
-}
+                    margin-top: 55px !important; /* Brought down to avoid cutting */
+                    margin-bottom: 0 !important;
+                }}
+                .aps-label {{ font-size: 0.7rem !important; padding: 0 10px !important; }}
+                .moving-text {{ font-size: 0.9rem !important; }}
+            }}
             </style>
             
             <div class="aps-ticker-container">
