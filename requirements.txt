@@ -1,12 +1,7 @@
-reportlab
+streamlit
 pandas
-sqlalchemy
-psycopg2-binary
-sqlalchemy
-psycopg2-binary
 plotly
 reportlab
-pandas
 streamlit-javascript
-plotly
-reportlab
+sqlalchemy
+psycopg2-binary
