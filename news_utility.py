@@ -46,12 +46,24 @@ def render_news_ticker():
             .ticker-content-wrapper {{ display: inline-block; white-space: nowrap; animation: smooth-loop 60s linear infinite; padding-left: 100%; }}
             .moving-text {{ display: inline-flex; font-size: 1.6rem !important; font-weight: 800 !important; color: #FFFFFF !important; }}
 
+            
             /* Mobile Fix */
-            @media (max-width: 768px) {{
-                .aps-ticker-container {{ height: 40px !important; margin: 10px 0 !important; }}
-                .aps-label {{ font-size: 0.7rem !important; padding: 0 15px !important; }}
-                .moving-text {{ font-size: 1rem !important; }}
-            }}
+            @media (max-width: 768px) {
+                .aps-ticker-container { 
+                    height: 35px !important; 
+                    margin: 0 !important;
+                }
+                .aps-label { 
+                    font-size: 0.6rem !important; 
+                    padding: 0 10px !important;
+                    width: auto !important;
+                }
+                .moving-text { 
+                    font-size: 0.85rem !important; 
+                    font-weight: 600 !important;
+                }
+            }
+}
             </style>
             
             <div class="aps-ticker-container">
