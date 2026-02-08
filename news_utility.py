@@ -40,8 +40,8 @@ def render_news_ticker():
                 border-bottom: 2px solid #d4af37 !important;
                 display: flex !important; 
                 align-items: center !important; 
-                margin: 0 !important; 
-                height: 40px !important; 
+                margin-top: 10px !important; 
+                height: 45px !important; 
                 overflow: hidden !important; 
                 position: relative !important;
                 z-index: 99 !important;
@@ -62,8 +62,8 @@ def render_news_ticker():
                 border-bottom: 2px solid #d4af37 !important;
                 display: flex !important; 
                 align-items: center !important; 
-                margin: 0 !important; 
-                height: 40px !important; 
+                margin-top: 10px !important; 
+                height: 45px !important; 
                 overflow: hidden !important; 
                 position: relative !important;
                 z-index: 99 !important;

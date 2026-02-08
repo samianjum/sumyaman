@@ -19,7 +19,19 @@ from mobile_portal import render_mobile_view
 # 1. Page Config
 st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
 
-st.markdown('<style>.block-container {padding-top: 0rem !important; margin-top: -30px !important;}</style>', unsafe_allow_html=True)
+st.markdown('''
+    <style>
+        /* Streamlit ke default header aur padding ko khatam karna */
+        .block-container { padding-top: 0rem !important; }
+        header { visibility: hidden !important; height: 0px !important; }
+        #MainMenu { visibility: hidden !important; }
+        .stApp { margin-top: -50px !important; }
+        
+        @media (max-width: 768px) {
+            .stApp { margin-top: -60px !important; }
+        }
+    </style>
+''', unsafe_allow_html=True)
 
 # --- PWA MOBILE INSTALLER INJECTION ---
 st.markdown('''
