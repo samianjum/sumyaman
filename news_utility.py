@@ -34,9 +34,9 @@ def render_news_ticker():
             <style>
             @keyframes smooth-loop {{ from {{ transform: translateX(0); }} to {{ transform: translateX(-50%); }} }}
 
-            .aps-ticker-container {{
+            .aps-ticker-container { margin-top: -15px !important; margin-bottom: 0px !important;{
                 background: #1b4332; border-top: 3px solid #d4af37; border-bottom: 3px solid #d4af37;
-                display: flex; align-items: center; margin: 20px 0; height: 55px; overflow: hidden; position: relative;
+                display: flex; align-items: center; margin: 0 !important; height: 55px; overflow: hidden; position: relative;
             }}
             .aps-label {{
                 background: #d4af37; color: #1b4332 !important; padding: 0 25px; height: 100%;
@@ -48,7 +48,7 @@ def render_news_ticker():
 
             /* Mobile Fix */
             @media (max-width: 768px) {{
-                .aps-ticker-container {{ height: 40px !important; margin: 10px 0 !important; }}
+                .aps-ticker-container { margin-top: -15px !important; margin-bottom: 0px !important;{ height: 40px !important; margin: 10px 0 !important; }}
                 .aps-label {{ font-size: 0.7rem !important; padding: 0 15px !important; }}
                 .moving-text {{ font-size: 1rem !important; }}
             }}
