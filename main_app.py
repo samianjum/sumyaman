@@ -406,7 +406,9 @@ width = st_js.st_javascript("window.innerWidth")
 if st.session_state.get('logged_in'):
     # A. Mobile View Check
     if width is not None and width < 700:
-        render_mobile_view()
+
+if __name__ == '__main__':
+    render_mobile_view()
         st.stop()
     
     # B. Face ID Check
