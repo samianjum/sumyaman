@@ -10,8 +10,8 @@ def render_mobile_view():
             @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
             
             /* Streamlit ka default top gap khatam */
-            .stApp { margin-top: -45px !important; }
-            .block-container { padding-top: 0rem !important; margin-top: -10px !important; }
+            .stApp { margin-top: 0px !important; }
+            .block-container { padding-top: 0rem !important; margin-top: 0px !important; }
             
             /* News patti aur header ke beech ka gap khatam */
             .aps-ticker-container { margin: 0 !important; }
@@ -28,7 +28,7 @@ def render_mobile_view():
                 border-radius: 0px 0px 20px 20px;
                 color: #d4af37;
                 text-align: center;
-                margin-top: -10px !important; /* News patti ke bilkul neechay */
+                margin-top: 0px !important; /* News patti ke bilkul neechay */
                 margin-bottom: 10px;
                 border-bottom: 3px solid #d4af37;
                 box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
