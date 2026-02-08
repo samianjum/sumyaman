@@ -21,7 +21,7 @@ def render_mobile_view():
             }
 
             /* Header Gradient (Matching Dark Green) */
-            .mobile-header {
+            .mobile-header-v2 {
                 background: linear-gradient(90deg, #1b4332 0%, #2d6a4f 100%);
                 padding: 20px;
                 border-radius: 0px 0px 25px 25px;
@@ -59,7 +59,7 @@ def render_mobile_view():
             st.rerun()
 
     # 3. HEADER
-    st.markdown('<div class="mobile-header"><h1>🏛️ APS PORTAL</h1></div>', unsafe_allow_html=True)
+    st.markdown('<div class="mobile-header-v2"><h1>🏛️ APS PORTAL</h1></div>', unsafe_allow_html=True)
 
     if 'user_info' in st.session_state:
         u = st.session_state.user_info
