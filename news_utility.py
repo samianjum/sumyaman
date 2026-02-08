@@ -47,18 +47,35 @@ def render_news_ticker():
             .ticker-content-wrapper {{ display: inline-block; white-space: nowrap; animation: smooth-loop 60s linear infinite; padding-left: 100%; }}
             .moving-text {{ display: inline-flex; font-size: 1.6rem !important; font-weight: 800 !important; color: #FFFFFF !important; }}
 
-            /* --- MOBILE OVERRIDE (Screen width less than 768px) --- */
-            @media (max-width: 768px) {{
-                .aps-ticker-container {{
-                    background: #1a1a1a !important; border-top: none !important; border-bottom: 1px solid #d4af37 !important;
-                    margin: 0 !important; height: 25px !important; position: fixed !important; top: 50px !important;
-                    left: 0; right: 0; z-index: 10000; overflow-x: auto;
-                }}
-                .aps-label {{ display: none !important; }}
-                .ticker-content-wrapper {{ animation: smooth-loop 25s linear infinite !important; padding-left: 10px !important; }}
-                .moving-text {{ font-size: 0.75rem !important; font-weight: 500 !important; color: #eeeeee !important; text-transform: uppercase; }}
-                .aps-ticker-container:active .ticker-content-wrapper {{ animation-play-state: paused !important; }}
-            }}
+            
+            /* --- MOBILE OVERRIDE --- */
+            @media (max-width: 768px) {
+                .aps-ticker-container {
+                    background: #1b4332 !important; /* Back to Green */
+                    border-bottom: 2px solid #d4af37 !important;
+                    margin: 0 !important; 
+                    height: 35px !important; /* Slightly bigger */
+                    position: relative !important; /* Fixed se hata kar normal kar diya */
+                    top: 0 !important;
+                    z-index: 1000;
+                }
+                .aps-label { 
+                    display: flex !important; /* Mobile par bhi label dikhao */
+                    font-size: 0.6rem !important;
+                    padding: 0 10px !important;
+                    clip-path: none !important;
+                    border-right: 2px solid #1b4332;
+                }
+                .ticker-content-wrapper { 
+                    animation: smooth-loop 30s linear infinite !important; 
+                }
+                .moving-text { 
+                    font-size: 0.9rem !important; 
+                    font-weight: 600 !important; 
+                    color: #FFFFFF !important; 
+                }
+            }
+}
             </style>
             
             <div class="aps-ticker-container">
