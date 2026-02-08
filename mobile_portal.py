@@ -31,7 +31,9 @@ def render_mobile_view():
             with col1:
                 st.image("sami.png", width=60)
             with col2:
-                st.subheader(f"Salam, {u['name']}")
+                # Safe way to get name without crashing
+                display_name = u.get('name') or u.get('student_name') or u.get('username') or 'User'
+                st.subheader(f'Salam, {display_name}')
                 st.caption(f"ID: {u['id']} | Role: {st.session_state.role}")
 
         st.divider()
