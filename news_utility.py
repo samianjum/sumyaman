@@ -72,11 +72,24 @@ def render_news_ticker():
                 color: #FFFFFF !important; 
             }}
 
-            @media (max-width: 768px) {{
-                .aps-ticker-container {{ height: 35px !important; }}
-                .aps-label {{ font-size: 0.6rem !important; padding: 0 8px !important; }}
-                .moving-text {{ font-size: 0.85rem !important; }}
-            }}
+            
+            @media (max-width: 768px) {
+                .aps-ticker-container { 
+                    height: 40px !important; 
+                    margin-top: 55px !important; /* Ye patti ko neechay laye ga */
+                    position: relative !important;
+                    display: flex !important;
+                    visibility: visible !important;
+                }
+                .aps-label { 
+                    font-size: 0.7rem !important; 
+                    padding: 0 10px !important; 
+                }
+                .moving-text { 
+                    font-size: 0.9rem !important; 
+                }
+            }
+}
             </style>
             
             <div class="aps-ticker-container">
