@@ -170,7 +170,7 @@ img_base64 = get_base64(LOGO_PATH)
 def get_history_df(student_id):
     conn = sqlite3.connect('db.sqlite3')
     q = "SELECT date, status FROM apsokara_attendance WHERE student_id=? AND session_year = (SELECT session_year FROM apsokara_student WHERE id=?) GROUP BY date ORDER BY date DESC"
-        df = pd.read_sql_query(q, conn, params=(u['id'], u['id']))
+    df = pd.read_sql_query(q, conn, params=(u['id'], u['id']))
     conn.close()
     if not df.empty:
         df['date'] = pd.to_datetime(df['date'])
@@ -184,7 +184,7 @@ def get_student_overall_stats(student_id):
     conn = sqlite3.connect('db.sqlite3')
     # Count only unique dates for this student
     q = "SELECT status, COUNT(*) as count FROM apsokara_attendance WHERE student_id=? AND session_year = (SELECT session_year FROM apsokara_student WHERE id=?) GROUP BY status"
-        df = pd.read_sql_query(q, conn, params=(u['id'], u['id']))
+    df = pd.read_sql_query(q, conn, params=(u['id'], u['id']))
     conn.close()
     stats = {"P": 0, "A": 0, "L": 0, "Total": 0}
     for _, row in df.iterrows():
