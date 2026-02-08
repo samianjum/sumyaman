@@ -2,3 +2,5 @@ reportlab
 pandas
 sqlalchemy
 psycopg2-binary
+sqlalchemy
+psycopg2-binary
