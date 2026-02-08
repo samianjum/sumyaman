@@ -79,7 +79,7 @@ def render_news_ticker():
             @media (max-width: 768px) {{
                 .aps-ticker-container {{ 
                     height: 38px !important; 
-                    margin-top: 45px !important; /* Mobile view adjust */
+                    margin-top: 65px !important; /* Mobile view adjust */
                     margin-bottom: 0 !important;
                 }}
                 .aps-label {{ font-size: 0.65rem !important; padding: 0 8px !important; }}
