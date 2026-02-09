@@ -342,9 +342,76 @@ def show_dashboard():
         with tab:
             t_full_name = tabs_list[i].upper()
             if 'FACE LOCK' in t_full_name:
-                pass # Ready for new Face ID system
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Portal...', icon='🔄');
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Portal...', icon='🔄');
+                pass # Face Lock system ready for update
+                pass # Face Lock system ready for update
+            if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
+                from apsokara.logic.student_modules import render_my_result
+                render_my_result(u)
+            elif "ATTENDANCE HISTORY" in t_full_name:
+                from attendance_logic import render_student_attendance
+                render_student_attendance(u)
+            elif "MARKS ENTRY" in t_full_name:
+                from apsokara.logic.teacher_modules import render_marks_entry
+                render_marks_entry(u)
+            elif "FINAL UPLOAD" in t_full_name:
+                from apsokara.logic.class_teacher_modules import render_final_upload
+                render_final_upload(u)
+            elif "ATTENDANCE SYSTEM" in t_full_name or "ATTENDANCE" in t_full_name:
+                from attendance_system import render_attendance_system
+                render_attendance_system(u)
+            elif "LEAVE" in t_full_name:
+                from apsokara.logic.student_modules import render_apply_leave
+                render_apply_leave(u)
+            elif "FACE LOCK" in t_full_name:
+                st.markdown(f"## 🏛️ Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!")
+                c1, c2, c3 = st.columns(3)
+                with c1: st.info("📅 Today: " + str(datetime.date.today()))
+                with c2: st.success("✅ System Status: Active")
+                with c3: st.warning("🔔 New Notices: Check Notifications")
+                st.divider()
+                st.image("https://img.freepik.com/free-vector/education-background-with-books-lamp_23-2147501981.jpg", width='stretch')
+                st.write(f'## Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!')
+def show_login():
+    st.markdown(f'''<div style="text-align:center; padding-top:0px;"><img src="data:image/png;base64,{img_base64}" width="100"><h1 style="color:#000000; font-weight:800;">ARMY PUBLIC SCHOOL & COLLAGE SYSTEM PORTAL</h1></div>''', unsafe_allow_html=True)
+    t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
+    with t1:
+        id_s = st.text_input("B-Form Number", key="s_login")
+        if st.session_state.get('bio_toggle'):
+            st.markdown('''<div style='border:4px solid #1b4332; border-radius:50%; width:220px; height:220px; overflow:hidden; margin:10px auto; position:relative;'><div style='position:absolute; top:0; left:0; width:100%; height:5px; background:#00ff00; box-shadow:0 0 20px #00ff00; animation:scanLine 1.5s infinite alternate;'></div><style>@keyframes scanLine { from {top:0%} to {top:100%} }</style>''', unsafe_allow_html=True)
+            st.camera_input('FaceID', key='login_cam', label_visibility='hidden')
+            st.markdown('</div>', unsafe_allow_html=True)
+        if st.session_state.get('bio_toggle'):
+            st.markdown('''<div style='border:2px solid #d4af37; padding:10px; border-radius:15px; background:#000; position:relative; overflow:hidden;'><div style='position:absolute; top:0; left:0; width:100%; height:3px; background:#00ff00; box-shadow:0 0 15px #00ff00; animation:scan 2s infinite;'></div><style>@keyframes scan { 0% {top:0%} 100% {top:100%} }</style></div>''', unsafe_allow_html=True)
+            st.camera_input('Scan to Authenticate', key='login_cam')
+        dob_s = st.date_input("Birth Date", value=datetime.date(2010,1,1), key="s_dob")
+        if st.button("ENTER STUDENT PORTAL", key="s_btn"):
+            d = fetch_user_data(id_s, str(dob_s), "Student")
+            if d:
+                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Secure Data...', icon='🔄');
+                st.rerun()
+    with t2:
+        id_t = st.text_input("CNIC Number", key="t_login")
+        dob_t = st.date_input("Birth Date ", value=datetime.date(1990,1,1), key="t_dob")
+        if st.button("ENTER STAFF PORTAL", key="t_btn"):
+            d = fetch_user_data(id_t, str(dob_t), "Teacher")
+            if d:
+                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Staff Vault...', icon='🔄');
+                st.rerun()
+
+
+# --- MOBILE & SECURITY GUARD ---
+import streamlit_javascript as st_js
+
+width = st_js.st_javascript("window.innerWidth")
+
+if st.session_state.get('logged_in'):
+    # A. Mobile View Check
+    if width is not None and width < 700:
+        render_mobile_view()
+        st.stop()
+    
+    # B. Face ID Check
+
 # --- FINAL ROUTING ---
 if not st.session_state.get('logged_in'):
     show_login()
