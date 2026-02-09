@@ -1,58 +1,22 @@
 import streamlit as st
+import os
 if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
-    st.warning('🛡️ Face ID Required')
+    st.warning('🛡️ Face ID Verification Required')
     v_img = st.camera_input('Scan face')
     if v_img:
         from face_engine import engine
-        u, r = st.session_state.get('temp_user'), st.session_state.get('temp_role', 'Student')
+        u = st.session_state.get('temp_user')
+        r = st.session_state.get('temp_role', 'Student')
         if u:
             ref = f'assets/profiles/{r.lower()}_{u["id"]}.jpg'
             ok, msg = engine.verify(v_img, ref)
             if ok:
                 st.session_state.update({'user_info': u, 'role': r, 'logged_in': True, 'face_verified': True})
                 st.rerun()
-            else: st.error('Mismatch!')
-    st.stop()
-import streamlit as st
-        from face_engine import engine
-        u = st.session_state.get('temp_user')
-        role = st.session_state.get('temp_role')
-        if u:
-            ref = f'assets/profiles/{role.lower()}_{u["id"]}.jpg'
-            if ok:
-                st.session_state.user_info = u
-                st.session_state.role = role
-                st.session_state.logged_in = True
-                st.rerun()
             else:
-                st.error('Face ID Mismatch!')
-    st.stop()
-import streamlit as st
-
-        from face_engine import engine
-        u = st.session_state.temp_user
-        role = st.session_state.temp_role
-        ref = f"assets/profiles/{role.lower()}_{u['id']}.jpg"
-
-    st.warning("🛡️ Face ID Required for this account")
-        from face_engine import engine
-        u, r = st.session_state.temp_user, st.session_state.temp_role
-        ref = f"assets/profiles/{r.lower()}_{u['id']}.jpg"
-        if ok:
-            st.session_state.user_info, st.session_state.role = u, r
-            st.rerun()
-        else: st.error("Mismatch!")
-    st.stop()
-        if ok:
-            st.session_state.user_info = u
-            st.session_state.role = role
-            st.session_state.logged_in = True
-            st.rerun()
-        else:
-            st.error("Face ID Mismatch!")
+                st.error(f'Mismatch: {msg}')
     st.stop()
 
-from auth_gate import login_page as show_login
 from leave_utils import check_on_leave
 import sys, os; sys.path.append(os.getcwd()); sys.path.append(os.path.join(os.getcwd(), "apsokara/logic"))
 from apsokara.logic.teacher_modules import render_marks_entry
