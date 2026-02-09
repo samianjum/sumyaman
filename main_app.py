@@ -19,7 +19,6 @@ from mobile_portal import render_mobile_view
 # 1. Page Config
 st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
 
-st.markdown('<style>.block-container {padding-top: 1rem !important;} header {visibility: hidden;}</style>', unsafe_allow_html=True)
 
 st.markdown("""
     <link rel='manifest' href='./static/app_assets/manifest_v3.json'>
@@ -27,32 +26,15 @@ st.markdown("""
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('./static/app_assets/sw.js');
-      });
-    }
-    </script>
 """, unsafe_allow_html=True)
 
 
 
-# --- LAYOUT COMPRESSION ---
-        }
 
-# --- PWA MOBILE INSTALLER INJECTION ---
     if ('serviceWorker' in navigator) {
-          console.log('PWA ServiceWorker registered');
-        });
-      });
-    }
-    </script>
 
-    [data-testid="stSidebar"] { background-color: #1b4332 !important; }
-    [data-testid="stSidebar"] * { color: white !important; }
     
-    .stButton>button { border: 2px solid #d4af37 !important; transition: 0.3s !important; }
-    .stButton>button:hover { background-color: #ffffff !important; color: #1b4332 !important; border: 2px solid #1b4332 !important; }
     
-    h1, h2, h3 { color: #1b4332 !important; }
-    .stTabs [aria-selected="true"] { border-top: 5px solid #d4af37 !important; }
 render_news_ticker()
 
 # --- LEAVE SYSTEM HELPER FUNCTIONS ---
@@ -79,7 +61,6 @@ def get_pending_count(u):
         cur.execute("SELECT COUNT(*) FROM apsokara_leaverequests WHERE student_class=? AND student_section=? AND wing=? AND status='Pending'", (u.get('class'), u.get('sec'), u.get('wing')))
         count = cur.fetchone()[0]
         conn.close()
-        return f" ({count})" if count > 0 else ""
     except: return ""
 
 # --- PROFESSIONAL NOTIFICATION SYSTEM (INJECTED) ---
@@ -91,35 +72,22 @@ def display_notifications():
         notices = cur.fetchall()
         conn.close()
         count = len(notices)
-        badge_val = f"{count}" if count <= 9 else "9+"
         notices_html = ""
         for n in notices:
             notices_html += f"""
             <div style="padding:12px; border-bottom:1px solid #f0f0f0; transition: background 0.3s;">
-                <div style="font-weight:700; color:#1b4332; font-size:14px; margin-bottom:3px;">{n[0]}</div>
-                <div style="color:#444; font-size:13px; line-height:1.4;">{n[1]}</div>
-                <div style="color:#999; font-size:10px; margin-top:5px; text-align:right;">{n[2]}</div>
             </div>
             """
         if not notices:
             notices_html = "<div style='padding:30px; text-align:center; color:#999;'>No new notifications</div>"
 
         st.markdown(f"""
-            .notif-wrapper {{ position: fixed; bottom: 30px; right: 30px; z-index: 999999; }}
-            .notif-bell {{ background: #FF0000; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 2px solid white; font-size: 28px; position: relative; }}
-            .notif-badge {{ position: absolute; top: -5px; right: -5px; background: #1b4332; color: white; border-radius: 50%; width: 26px; height: 26px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }}
-            .notif-window {{ position: absolute; bottom: 80px; right: 0; width: 330px; max-height: 450px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; border: 1px solid #ddd; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }}
-            @keyframes popUp {{ from {{ transform: scale(0.8) translateY(20px); opacity: 0; }} to {{ transform: scale(1) translateY(0); opacity: 1; }} }}
-            .notif-wrapper:focus-within .notif-window {{ display: flex; }}
-            .notif-content {{ overflow-y: auto; background: #fff; }}
         <div class="notif-wrapper" tabindex="0">
             <div class="notif-window">
                 <div class="notif-header">🔔 Recent Notifications</div>
-                <div class="notif-content">{notices_html}</div>
             </div>
             <div class="notif-bell">
                 <span>🔔</span>
-                <div class="notif-badge">{badge_val}</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -133,19 +101,10 @@ def display_ticker():
         notices = cur.fetchall()
         conn.close()
         if notices:
-            items = "".join([f"<span style='background:{n[2]};padding:2px 8px;border-radius:4px;font-size:11px;margin-right:8px;color:white;font-weight:bold;'>NEWS</span><b style='color:#FFD700;font-size:16px;'> {n[0]}: </b><span style='color:white;font-size:15px;'>{n[1]}</span> &nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp; " for n in notices])
             st.markdown(f"""
-                .ticker-wrapper {{ display: flex; background: #1b4332; border-radius: 10px; overflow: hidden; border: 1px solid #333; height: 50px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; margin-bottom: 20px; }}
-                .live-label {{ background: #ff0000; color: white; padding: 0 25px; height: 100%; display: flex; align-items: center; font-weight: 900; font-size: 14px; z-index: 10; box-shadow: 10px 0 20px rgba(0,0,0,0.5); text-transform: uppercase; }}
-                .ticker-scroll-container {{ flex-grow: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); }}
-                .ticker-text {{ display: inline-block; padding-left: 100%; animation: tv-marquee 40s linear infinite; color: white; }}
-                @keyframes tv-marquee {{ 0% {{ transform: translate3d(0, 0, 0); }} 100% {{ transform: translate3d(-100%, 0, 0); }} }}
-                .live-label::after {{ content: ""; width: 10px; height: 10px; background: white; border-radius: 50%; margin-left: 10px; animation: pulse-dot 1s infinite; }}
-                @keyframes pulse-dot {{ 0% {{ opacity: 1; }} 50% {{ opacity: 0.2; }} 100% {{ opacity: 1; }} }}
             <div class="ticker-wrapper">
                 <div class="live-label">Live Updates</div>
                 <div class="ticker-scroll-container">
-                    <div class="ticker-text">{items} {items}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -157,7 +116,6 @@ display_notifications()
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.role = None
-    st.session_state.user_info = {}
 
 def get_base64(file_path):
     try:
@@ -177,7 +135,6 @@ def get_history_df(student_id):
         df['date'] = pd.to_datetime(df['date'])
         df['Day'] = df['date'].dt.strftime('%A')
         df['Date'] = df['date'].dt.strftime('%d-%m-%Y')
-        df.refull_name(columns={'status': 'Status'}, inplace=True)
         return df[['Date', 'Day', 'Status']]
     return pd.DataFrame()
 
@@ -187,7 +144,6 @@ def get_student_overall_stats(student_id):
     q = "SELECT status, COUNT(*) as count FROM apsokara_attendance WHERE student_id=? AND session_year = (SELECT session_year FROM apsokara_student WHERE id=?) GROUP BY status"
     df = pd.read_sql_query(q, conn, params=(u['id'], u['id']))
     conn.close()
-    stats = {"P": 0, "A": 0, "L": 0, "Total": 0}
     for _, row in df.iterrows():
         stats[row['status']] = row['count']
     stats['Total'] = sum([stats['P'], stats['A'], stats['L']])
@@ -249,7 +205,6 @@ def fetch_user_data(user_id, dob_val, user_type):
             return data
         return None
     except Exception as e:
-        st.error(f"Database Error: {e}")
         return None
     finally:
         conn.close()
@@ -268,7 +223,6 @@ def get_daily_analytics(t_class, t_sec, t_wing):
                  GROUP BY status"""
     df_stats = pd.read_sql_query(q_stats, conn, params=(t_class, t_sec, today, t_wing))
     conn.close()
-    stats = {"Present": 0, "Absent": 0, "Leave": 0, "Total": 0}
     for _, row in df_stats.iterrows():
         key = "Present" if row['status'] == 'P' else ("Absent" if row['status'] == 'A' else "Leave")
         stats[key] = row['count']
@@ -283,53 +237,26 @@ else: primary, secondary, accent, btn_color = "#1b4332", "#F4F7F6", "#333333", "
 
 st.markdown(f'''
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
-    * {{ font-family: 'Poppins', sans-serif; color: {accent}; }}
-    .hero-card {{ background: #F0F0F0; border-radius: 25px; padding: 30px 40px; margin-bottom: 30px; display: flex !important; flex-direction: row !important; align-items: center !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 2px solid {primary}; position: relative; }}
-    .hero-logo-container {{ flex: 0 0 130px !important; height: 130px !important; background: white; border-radius: 20px; display: flex !important; align-items: center !important; justify-content: center !important; margin-right: 35px !important; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }}
-    .hero-logo-container img {{ width: 90px !important; }}
-    .welcome-text {{ font-size: 34px !important; font-weight: 800 !important; margin: 0 0 15px 0 !important; color: {primary}; line-height: 1.1; }}
-    .details-row {{ display: flex !important; flex-wrap: wrap !important; gap: 12px !important; margin-top: 5px !important; }}
-    .detail-item {{ background: white; padding: 8px 16px; border-radius: 12px; border: 1px solid {primary}33; }}
-    .detail-item b {{ display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 2px; color: {primary}; opacity: 0.8; }}
-    .detail-item span {{ font-size: 14px !important; font-weight: 600 !important; color: {accent}; }}
-    .stTabs [data-baseweb="tab-list"] {{ gap: 15px !important; justify-content: center !important; display: flex !important; width: 100% !important; background-color: transparent !important; margin: 20px 0 30px 0 !important; }}
-    .stTabs [data-baseweb="tab"] {{ height: 50px; background-color: {secondary}; border-radius: 12px; padding: 10px 25px; font-weight: 600; border: 1px solid {primary}33; transition: all 0.3s; }}
-    .stTabs [aria-selected="true"] {{ background-color: {primary} !important; color: white !important; border-bottom: none !important; }}
-    .stButton>button {{ background-color: {btn_color} !important; color: {"#000000" if role == "Subject Teacher" else "white"} !important; font-weight: 800 !important; border-radius: 12px !important; border: none !important; padding: 15px 30px !important; text-transform: uppercase !important; width: 100%; }}
-    .stat-card {{ background: white; padding: 20px; border-radius: 20px; text-align: center; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }}
-    .stat-val {{ font-size: 28px; font-weight: 800; color: {primary}; }}
-    .stat-lbl {{ font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; }}
 
 def show_dashboard():
     role = st.session_state.role
     u = st.session_state.user_info
     if role == "Student":
         tag, tag_col = "🎓 STUDENT PORTAL", "#1b4332"
-        extra = f'''<div class="detail-item"><b>👨‍👦 Father</b><span>{u.get("father_name")}</span></div><div class="detail-item"><b>🆔 CNIC</b><span>{u.get("cnic")}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get("dob")}</span></div><div class="detail-item"><b>☪️ Religion</b><span>{u.get("religion")}</span></div><div class="detail-item"><b>📞 Contact</b><span>{u.get("contact")}</span></div><div class="detail-item"><b>🏠 Address</b><span>{u.get("address")}</span></div><div class="detail-item"><b>🏫 Assigned</b><span>{u.get("class")}-{u.get("sec")} ({u.get("wing")})</span></div>'''
     elif role == "Class Teacher":
         tag, tag_col = "👨‍🏫 CLASS INCHARGE", "#1b4332"
-        extra = f'''<div class="detail-item"><b>👨‍👦 Father</b><span>{u.get("father_name")}</span></div><div class="detail-item"><b>🆔 CNIC</b><span>{u.get("cnic")}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get("dob")}</span></div><div class="detail-item"><b>☪️ Religion</b><span>{u.get("religion")}</span></div><div class="detail-item"><b>📞 Contact</b><span>{u.get("contact")}</span></div><div class="detail-item"><b>🏠 Address</b><span>{u.get("address")}</span></div><div class="detail-item"><b>🏫 Assigned</b><span>{u.get("class")}-{u.get("sec")} ({u.get("wing")})</span></div>'''
     else:
         tag, tag_col = "📖 SUBJECT TEACHER", "#1b4332"
-        extra = f'''<div class="detail-item"><b>👨‍👦 Father</b><span>{u.get("father_name")}</span></div><div class="detail-item"><b>🆔 CNIC</b><span>{u.get("cnic")}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get("dob")}</span></div><div class="detail-item"><b>☪️ Religion</b><span>{u.get("religion")}</span></div><div class="detail-item"><b>📞 Contact</b><span>{u.get("contact")}</span></div><div class="detail-item"><b>🏠 Address</b><span>{u.get("address")}</span></div><div class="detail-item"><b>🏫 Assigned</b><span>{u.get("class")}-{u.get("sec")} ({u.get("wing")})</span></div>'''
 
     st.markdown(f'''
     <div class="hero-card">
-        <div style="position: absolute; top: 15px; right: 15px; z-index: 1000;"><a href="/" target="_self" style="text-decoration: none;"><button style="background: {primary}; border: none; color: white; padding: 10px 18px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 700;">🚪 LOGOUT</button></a></div>
-        <div class="hero-logo-container"><img src="data:image/png;base64,{img_base64}"></div>
         <div class="hero-info">
-            <div style="font-size:11px; font-weight:800; letter-spacing:2px; color:{tag_col}; margin-bottom:5px;">{tag}</div>
-            <div class="welcome-text">Welcome Back, {u.get('full_name', u.get('full_name', 'User'))}! ✨</div>
             <div class="details-row">
-                <div class="detail-item"><b>👤 Full Name</b><span>{u.get('full_name', u.get('full_name', 'User'))}</span></div>
-                <div class="detail-item"><b>🏢 Wing</b><span>{u.get('wing')} Wing</span></div>
-                {extra}
             </div>
         </div>
     </div>
 
     if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT", "🔒 FACE LOCK"]
-    elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🔒 FACE LOCK"]
     else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY", "📝 ATTENDANCE", "🔒 FACE LOCK"]
     
     active_tabs = st.tabs(tabs_list)
@@ -358,14 +285,12 @@ def show_dashboard():
                 from apsokara.logic.student_modules import render_apply_leave
                 render_apply_leave(u)
             elif "FACE LOCK" in t_full_name:
-                st.markdown(f"## 🏛️ Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!")
                 c1, c2, c3 = st.columns(3)
                 with c1: st.info("📅 Today: " + str(datetime.date.today()))
                 with c2: st.success("✅ System Status: Active")
                 with c3: st.warning("🔔 New Notices: Check Notifications")
                 st.divider()
                 st.image("https://img.freepik.com/free-vector/education-background-with-books-lamp_23-2147501981.jpg", width='stretch')
-                st.write(f'## Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!')
 def show_login():
     t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
     with t1:
