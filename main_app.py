@@ -338,7 +338,6 @@ def show_dashboard():
     for i, tab in enumerate(active_tabs):
         with tab:
             t_full_name = tabs_list[i].upper()
-                st.stop()  # Is ke baad ka saara kachra tab mein nahi dikhega
             if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
                 from apsokara.logic.student_modules import render_my_result
                 render_my_result(u)
