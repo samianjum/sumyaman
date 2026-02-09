@@ -6,3 +6,4 @@ Pillow
 plotly
 pandas
 streamlit-javascript
+streamlit-javascript
