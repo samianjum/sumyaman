@@ -1,15 +1,9 @@
 import streamlit as st
 import os
-if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
     st.warning('🛡️ Face ID Verification Required')
-    v_img = st.camera_input('Scan face')
-    if v_img:
-        from face_engine import engine
         u = st.session_state.get('temp_user')
         r = st.session_state.get('temp_role', 'Student')
         if u:
-            ref = f'assets/profiles/{r.lower()}_{u["id"]}.jpg'
-            ok, msg = engine.verify(v_img, ref)
             if ok:
                 st.session_state.update({'user_info': u, 'role': r, 'logged_in': True, 'face_verified': True})
                 st.rerun()
@@ -490,7 +484,6 @@ width = st_js.st_javascript("window.innerWidth")
 if st.session_state.get('logged_in'):
 
         st.markdown("<h3 style='text-align:center;'>🛡️ Face Verification Required</h3>", unsafe_allow_html=True)
-            ref = f"assets/profiles/{st.session_state.role.lower()}_{st.session_state.user_info.get('id')}.jpg"
             if ok:
                 st.rerun()
             else:
@@ -504,15 +497,13 @@ if st.session_state.get('logged_in'):
     
     # B. Face ID Check
 
-    # --- SECURE BIOMETRIC GATE ---
 
-    # --- AI BIOMETRIC LOCK ---
 
-    # --- AI BIOMETRIC GATEWAY ---
+
 
 # --- FINAL ROUTING ---
 if not st.session_state.get('logged_in'):
+    from auth_gate import login_page as show_login
     show_login()
 else:
     show_dashboard()
-
