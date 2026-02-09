@@ -1,41 +1,45 @@
 import streamlit as st
 if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
-    st.markdown('<h2 style="text-align:center;">🛡️ 2-Step Verification</h2>', unsafe_allow_html=True)
-    v_img = st.camera_input('Scan your face to continue')
+    st.warning('🛡️ Face ID Required')
+    v_img = st.camera_input('Scan face')
     if v_img:
+        from face_engine import engine
+        u, r = st.session_state.get('temp_user'), st.session_state.get('temp_role', 'Student')
+        if u:
+            ref = f'assets/profiles/{r.lower()}_{u["id"]}.jpg'
+            ok, msg = engine.verify(v_img, ref)
+            if ok:
+                st.session_state.update({'user_info': u, 'role': r, 'logged_in': True, 'face_verified': True})
+                st.rerun()
+            else: st.error('Mismatch!')
+    st.stop()
+import streamlit as st
         from face_engine import engine
         u = st.session_state.get('temp_user')
         role = st.session_state.get('temp_role')
         if u:
             ref = f'assets/profiles/{role.lower()}_{u["id"]}.jpg'
-            ok, msg = engine.verify(v_img, ref)
             if ok:
                 st.session_state.user_info = u
                 st.session_state.role = role
                 st.session_state.logged_in = True
-                st.session_state.face_verified = True
                 st.rerun()
             else:
                 st.error('Face ID Mismatch!')
     st.stop()
 import streamlit as st
 
-    if v_img:
         from face_engine import engine
         u = st.session_state.temp_user
         role = st.session_state.temp_role
         ref = f"assets/profiles/{role.lower()}_{u['id']}.jpg"
-        ok, msg = engine.verify(v_img, ref)
 
     st.warning("🛡️ Face ID Required for this account")
-    if v_img:
         from face_engine import engine
         u, r = st.session_state.temp_user, st.session_state.temp_role
         ref = f"assets/profiles/{r.lower()}_{u['id']}.jpg"
-        ok, msg = engine.verify(v_img, ref)
         if ok:
             st.session_state.user_info, st.session_state.role = u, r
-            st.session_state.logged_in, st.session_state.face_verified = True, True
             st.rerun()
         else: st.error("Mismatch!")
     st.stop()
@@ -43,7 +47,6 @@ import streamlit as st
             st.session_state.user_info = u
             st.session_state.role = role
             st.session_state.logged_in = True
-            st.session_state.face_verified = True
             st.rerun()
         else:
             st.error("Face ID Mismatch!")
@@ -525,12 +528,9 @@ width = st_js.st_javascript("window.innerWidth")
 if st.session_state.get('logged_in'):
 
         st.markdown("<h3 style='text-align:center;'>🛡️ Face Verification Required</h3>", unsafe_allow_html=True)
-        if v_img:
             from face_engine import engine
             ref = f"assets/profiles/{st.session_state.role.lower()}_{st.session_state.user_info.get('id')}.jpg"
-            ok, msg = engine.verify(v_img, ref)
             if ok:
-                st.session_state.face_verified = True
                 st.rerun()
             else:
                 st.error(msg)
