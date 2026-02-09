@@ -91,6 +91,23 @@ def login_page():
             if submit:
                 if user == "admin" and pwd == "admin123":
                     st.session_state.logged_in = True
+
+                # 2-Step Authenticator Check
+                if st.session_state.get('needs_face_auth'):
+                    st.session_state.logged_in = False # Temporarily hold
+                    st.warning("🛡️ 2-Step Verification: Please scan your face.")
+                    face_img = st.camera_input("Verify Identity")
+                    if face_img:
+                        from face_engine import engine
+                        ref = f"assets/profiles/{st.session_state.role.lower()}_{st.session_state.user_info.get('id')}.jpg"
+                        v, msg = engine.verify(face_img, ref)
+                        if v:
+                            st.session_state.logged_in = True
+                            st.session_state.face_verified = True
+                            st.rerun()
+                        else:
+                            st.error("Face ID mismatch! Access Denied.")
+                    st.stop()
                     st.rerun()
                 else:
                     st.error("Invalid Credentials!")
