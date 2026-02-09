@@ -19,22 +19,26 @@ from mobile_portal import render_mobile_view
 # 1. Page Config
 st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
 
-st.markdown('<style>.block-container {padding-top: 1rem !important;}</style>', unsafe_allow_html=True)
+st.markdown('<style>.block-container {padding-top: 1rem !important;} header {visibility: hidden;}</style>', unsafe_allow_html=True)
 
-
-# --- LAYOUT COMPRESSION ---
-
-        
-        @media (max-width: 768px) {
-        }
-    </style>
-
-# --- PWA MOBILE INSTALLER INJECTION ---
+st.markdown("""
     <link rel='manifest' href='./static/app_assets/manifest_v3.json'>
     <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./static/app_assets/sw.js').then(function(reg) {
+        navigator.serviceWorker.register('./static/app_assets/sw.js');
+      });
+    }
+    </script>
+""", unsafe_allow_html=True)
+
+
+
+# --- LAYOUT COMPRESSION ---
+        }
+
+# --- PWA MOBILE INSTALLER INJECTION ---
+    if ('serviceWorker' in navigator) {
           console.log('PWA ServiceWorker registered');
         });
       });
@@ -49,7 +53,6 @@ st.markdown('<style>.block-container {padding-top: 1rem !important;}</style>', u
     
     h1, h2, h3 { color: #1b4332 !important; }
     .stTabs [aria-selected="true"] { border-top: 5px solid #d4af37 !important; }
-</style>
 render_news_ticker()
 
 # --- LEAVE SYSTEM HELPER FUNCTIONS ---
@@ -109,7 +112,6 @@ def display_notifications():
             @keyframes popUp {{ from {{ transform: scale(0.8) translateY(20px); opacity: 0; }} to {{ transform: scale(1) translateY(0); opacity: 1; }} }}
             .notif-wrapper:focus-within .notif-window {{ display: flex; }}
             .notif-content {{ overflow-y: auto; background: #fff; }}
-        </style>
         <div class="notif-wrapper" tabindex="0">
             <div class="notif-window">
                 <div class="notif-header">🔔 Recent Notifications</div>
@@ -140,7 +142,6 @@ def display_ticker():
                 @keyframes tv-marquee {{ 0% {{ transform: translate3d(0, 0, 0); }} 100% {{ transform: translate3d(-100%, 0, 0); }} }}
                 .live-label::after {{ content: ""; width: 10px; height: 10px; background: white; border-radius: 50%; margin-left: 10px; animation: pulse-dot 1s infinite; }}
                 @keyframes pulse-dot {{ 0% {{ opacity: 1; }} 50% {{ opacity: 0.2; }} 100% {{ opacity: 1; }} }}
-            </style>
             <div class="ticker-wrapper">
                 <div class="live-label">Live Updates</div>
                 <div class="ticker-scroll-container">
@@ -298,7 +299,6 @@ st.markdown(f'''
     .stat-card {{ background: white; padding: 20px; border-radius: 20px; text-align: center; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }}
     .stat-val {{ font-size: 28px; font-weight: 800; color: {primary}; }}
     .stat-lbl {{ font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; }}
-</style>
 
 def show_dashboard():
     role = st.session_state.role
