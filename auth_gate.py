@@ -1,156 +1,80 @@
 import streamlit as st
-import base64
+import sqlite3
 import os
+import base64
 
 def get_base64_image(image_path):
-    try:
-        if os.path.exists(image_path):
-            with open(image_path, "rb") as img_file:
-                return base64.b64encode(img_file.read()).decode()
-        return None
-    except: return None
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    return None
 
 def login_page():
-    # Load Logo
     img_base64 = get_base64_image("/home/sami/Downloads/sami.png")
     logo_url = f"data:image/png;base64,{img_base64}" if img_base64 else ""
 
-    # Full CSS for Login
     st.markdown(f"""
     <style>
     header {{visibility: hidden !important;}}
-    [data-testid="stAppViewContainer"] {{
-        background-color: #F1F3F2 !important;
-    }}
-    
-    /* Login Box */
+    [data-testid="stAppViewContainer"] {{ background-color: #F1F3F2 !important; }}
     .login-card {{
-        background-color: white;
-        padding: 40px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        border-top: 6px solid #2F3E46;
-        text-align: center;
-        margin-bottom: -50px;
+        background-color: white; padding: 40px; border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 6px solid #2F3E46;
+        text-align: center; margin-bottom: -50px;
     }}
-
     .login-logo {{
-        width: 100px; height: 100px;
-        border-radius: 50%;
-        border: 3px solid #52796F;
-        background-image: url('{logo_url}');
-        background-size: cover; background-position: center;
-        margin: 0 auto 15px auto;
-    }}
-
-    .school-title {{
-        color: #2F3E46; font-size: 1.2rem; font-weight: 800;
-        margin-bottom: 5px; text-transform: uppercase;
-    }}
-
-    .login-footer {{
-        position: fixed; bottom: 20px; left: 0; right: 0;
-        text-align: center; color: #5F6F73; font-size: 13px;
-        font-weight: 500;
-    }}
-
-    /* Styling Streamlit Inputs */
-    div[data-baseweb="input"] {{
-        border-radius: 8px !important;
-    }}
-    
-    div.stButton > button {{
-        width: 100%;
-        background-color: #52796F !important;
-        color: white !important;
-        border: none !important;
-        padding: 10px !important;
-        font-weight: 600 !important;
+        width: 100px; height: 100px; border-radius: 50%; border: 3px solid #52796F;
+        background-image: url('{logo_url}'); background-size: cover; margin: 0 auto 15px auto;
     }}
     </style>
     """, unsafe_allow_html=True)
 
-    # Centering Layout
-    col1, col2, col3 = st.columns([1, 1.5, 1])
+    st.markdown('<div class="login-card"><div class="login-logo"></div><div class="school-title">APS OKARA PORTAL</div></div>', unsafe_allow_html=True)
+
+    t1, t2 = st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
+
+    with t1:
+        b_form = st.text_input("B-Form / ID Number", key="s_uid")
+        s_dob = st.date_input("Date of Birth", key="s_dob")
+        if st.button("Student Login"):
+            # Check DB (Pseudocode logic for matching)
+            conn = sqlite3.connect('db.sqlite3')
+            user = conn.execute("SELECT * FROM apsokara_student WHERE b_form=? AND dob=?", (b_form, str(s_dob))).fetchone()
+            if user:
+                handle_login_flow(user, "Student")
+            else:
+                st.error("Invalid Credentials")
+            conn.close()
+
+    with t2:
+        cnic = st.text_input("CNIC Number", key="t_uid")
+        t_dob = st.date_input("Date of Birth", key="t_dob")
+        if st.button("Staff Login"):
+            conn = sqlite3.connect('db.sqlite3')
+            user = conn.execute("SELECT * FROM apsokara_teacher WHERE cnic=? AND dob=?", (cnic, str(t_dob))).fetchone()
+            if user:
+                # Check Role (Class Teacher or Teacher)
+                role = "Class Teacher" if user[10] == 1 else "Teacher" # Assuming index 10 is is_class_teacher
+                handle_login_flow(user, role)
+            else:
+                st.error("Invalid Credentials")
+            conn.close()
+
+def handle_login_flow(user_data, role):
+    user_info = {'id': user_data[0], 'name': user_data[1], 'b_form': user_data[2], 'cnic': user_data[3]}
     
-    with col2:
-        st.markdown(f"""
-        <div class="login-card">
-            <div class="login-logo"></div>
-            <div class="school-title">ARMY PUBLIC SCHOOL & COLLEGE SYSTEM</div>
-            <p style="color: #52796F; font-weight: 600; margin-bottom: 20px;">OKARA CANTT | HQ PANEL</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Form inside col2
-        with st.form("login_form"):
-            user = st.text_input("Username", placeholder="Enter username")
-            pwd = st.text_input("Password", type="password", placeholder="Enter password")
-            submit = st.form_submit_button("LOGIN TO HQ")
-            
-            if submit:
-                if user == "admin" and pwd == "admin123":
-                    st.session_state.logged_in = True
+    # 2-Step Check
+    conn = sqlite3.connect('db.sqlite3')
+    table = 'apsokara_student' if role == 'Student' else 'apsokara_teacher'
+    status = conn.execute(f"SELECT face_status FROM {table} WHERE id=?", (user_info['id'],)).fetchone()
+    conn.close()
 
-                    # --- 2-Step Face Authenticator Logic ---
-                    import sqlite3
-                    uid = st.session_state.user_info.get('id')
-                    role = st.session_state.role
-                    _c = sqlite3.connect('db.sqlite3')
-                    _table = 'apsokara_student' if role == 'Student' else 'apsokara_teacher'
-                    _status = _c.execute(f'SELECT face_status FROM {_table} WHERE id=?', (uid,)).fetchone()
-                    _c.close()
-                    if _status and str(_status[0]).upper() == 'ENROLLED':
-                        st.session_state.logged_in = False  # Hold login
-                        st.session_state.needs_face_auth = True
-                        st.rerun()
-                    # ---------------------------------------
-
-                # 2-Step Authenticator Check
-                if st.session_state.get('needs_face_auth'):
-                    st.session_state.logged_in = False # Temporarily hold
-                    st.warning("🛡️ 2-Step Verification: Please scan your face.")
-                    face_img = st.camera_input("Verify Identity")
-                    if face_img:
-                        from face_engine import engine
-                        ref = f"assets/profiles/{st.session_state.role.lower()}_{st.session_state.user_info.get('id')}.jpg"
-                        v, msg = engine.verify(face_img, ref)
-                        if v:
-                            st.session_state.logged_in = True
-
-                            # --- 2-Step Face Authenticator Logic ---
-                            import sqlite3
-                            uid = st.session_state.user_info.get('id')
-                            role = st.session_state.role
-                            _c = sqlite3.connect('db.sqlite3')
-                            _table = 'apsokara_student' if role == 'Student' else 'apsokara_teacher'
-                            _status = _c.execute(f'SELECT face_status FROM {_table} WHERE id=?', (uid,)).fetchone()
-                            _c.close()
-                            if _status and str(_status[0]).upper() == 'ENROLLED':
-                                st.session_state.logged_in = False  # Hold login
-                                st.session_state.needs_face_auth = True
-                                st.rerun()
-                            # ---------------------------------------
-                            st.session_state.face_verified = True
-                            st.rerun()
-                        else:
-                            st.error("Face ID mismatch! Access Denied.")
-                    st.stop()
-                    st.rerun()
-                else:
-                    st.error("Invalid Credentials!")
-
-    st.markdown('<div class="login-footer">© 2026 APSACS OKARA | ACADEMIC MANAGEMENT SYSTEM</div>', unsafe_allow_html=True)
-
-def check_access():
-    if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
-    
-    if not st.session_state.logged_in:
-        login_page()
-        return False
-    return True
-
-def logout_user():
-    st.session_state.logged_in = False
+    if status and str(status[0]).upper() == 'ENROLLED':
+        st.session_state.temp_user = user_info
+        st.session_state.temp_role = role
+        st.session_state.needs_face_auth = True
+    else:
+        st.session_state.user_info = user_info
+        st.session_state.role = role
+        st.session_state.logged_in = True
     st.rerun()

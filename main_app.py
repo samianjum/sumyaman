@@ -1,6 +1,5 @@
 import streamlit as st
 
-if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
     st.markdown("<h2 style='text-align:center;'>🛡️ 2-Step Verification</h2>", unsafe_allow_html=True)
     v_img = st.camera_input("Scan your face to continue")
     if v_img:
@@ -9,6 +8,21 @@ if st.session_state.get('needs_face_auth') and not st.session_state.get('face_ve
         role = st.session_state.temp_role
         ref = f"assets/profiles/{role.lower()}_{u['id']}.jpg"
         ok, msg = engine.verify(v_img, ref)
+
+if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
+    st.warning("🛡️ Face ID Required for this account")
+    v_img = st.camera_input("Verify Face")
+    if v_img:
+        from face_engine import engine
+        u, r = st.session_state.temp_user, st.session_state.temp_role
+        ref = f"assets/profiles/{r.lower()}_{u['id']}.jpg"
+        ok, msg = engine.verify(v_img, ref)
+        if ok:
+            st.session_state.user_info, st.session_state.role = u, r
+            st.session_state.logged_in, st.session_state.face_verified = True, True
+            st.rerun()
+        else: st.error("Mismatch!")
+    st.stop()
         if ok:
             st.session_state.user_info = u
             st.session_state.role = role
@@ -481,7 +495,6 @@ def show_dashboard():
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
             if d:
-                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_student WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Secure Data...', icon='🔄');
                 st.rerun()
     with t2:
         id_t = st.text_input("CNIC Number", key="t_login")
@@ -489,7 +502,6 @@ def show_dashboard():
         if st.button("ENTER STAFF PORTAL", key="t_btn"):
             d = fetch_user_data(id_t, str(dob_t), "Teacher")
             if d:
-                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_teacher WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Staff Vault...', icon='🔄');
                 st.rerun()
 
 
@@ -500,7 +512,6 @@ width = st_js.st_javascript("window.innerWidth")
 
 if st.session_state.get('logged_in'):
 
-    if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
         st.markdown("<h3 style='text-align:center;'>🛡️ Face Verification Required</h3>", unsafe_allow_html=True)
         v_img = st.camera_input("Scan your face to unlock")
         if v_img:
