@@ -1,7 +1,8 @@
 streamlit
-pandas
+opencv-python-headless
+face-recognition
+numpy
+Pillow
 plotly
-reportlab
+pandas
 streamlit-javascript
-sqlalchemy
-psycopg2-binary
