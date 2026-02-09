@@ -439,7 +439,6 @@ def show_dashboard():
                         os.makedirs("assets/profiles", exist_ok=True)
                         with open(save_path, "wb") as f_img:
                             f_img.write(img.getbuffer())
-                        from face_engine import engine
                         engine.update_db_status(uid, role, 'ENROLLED')
                         st.success("✅ Face ID Enabled! Next login will require verification.")
                         st.rerun()
@@ -458,7 +457,6 @@ def show_dashboard():
                         # Basic check against session data
                         if st.button("Verify & Reset"):
                             if v_input == str(original):
-                                from face_engine import engine
                                 engine.update_db_status(uid, role, 'NOT SET')
                                 st.success("Face ID has been reset. You can now re-enroll.")
                                 st.rerun()
@@ -492,7 +490,6 @@ width = st_js.st_javascript("window.innerWidth")
 if st.session_state.get('logged_in'):
 
         st.markdown("<h3 style='text-align:center;'>🛡️ Face Verification Required</h3>", unsafe_allow_html=True)
-            from face_engine import engine
             ref = f"assets/profiles/{st.session_state.role.lower()}_{st.session_state.user_info.get('id')}.jpg"
             if ok:
                 st.rerun()
