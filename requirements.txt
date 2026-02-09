@@ -1,7 +1,6 @@
 streamlit
-pandas
-plotly
-reportlab
-streamlit-javascript
-sqlalchemy
-psycopg2-binary
+opencv-python-headless
+deepface
+tf-keras
+numpy
+Pillow
