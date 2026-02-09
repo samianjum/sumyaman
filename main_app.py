@@ -1,9 +1,15 @@
 import streamlit as st
 import os
+if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
     st.warning('🛡️ Face ID Verification Required')
+    v_img = st.camera_input('Scan face')
+    if v_img:
+        from face_engine import engine
         u = st.session_state.get('temp_user')
         r = st.session_state.get('temp_role', 'Student')
         if u:
+            ref = f'assets/profiles/{r.lower()}_{u["id"]}.jpg'
+            ok, msg = engine.verify(v_img, ref)
             if ok:
                 st.session_state.update({'user_info': u, 'role': r, 'logged_in': True, 'face_verified': True})
                 st.rerun()
