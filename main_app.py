@@ -333,15 +333,11 @@ def show_dashboard():
     </div>
     ''', unsafe_allow_html=True)
 
-    if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT", "🔒 FACE LOCK"]
-    elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🔒 FACE LOCK"]
-    else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY", "📝 ATTENDANCE", "🔒 FACE LOCK"]
     
     active_tabs = st.tabs(tabs_list)
     for i, tab in enumerate(active_tabs):
         with tab:
             t_full_name = tabs_list[i].upper()
-            if 'FACE LOCK' in t_full_name:
                 st.stop()
                 st.stop()  # Is ke baad ka saara kachra tab mein nahi dikhega
             if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
@@ -362,7 +358,6 @@ def show_dashboard():
             elif "LEAVE" in t_full_name:
                 from apsokara.logic.student_modules import render_apply_leave
                 render_apply_leave(u)
-            elif "FACE LOCK" in t_full_name:
                 st.markdown(f"## 🏛️ Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!")
                 c1, c2, c3 = st.columns(3)
                 with c1: st.info("📅 Today: " + str(datetime.date.today()))
@@ -387,7 +382,7 @@ def show_login():
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
             if d:
-                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_student WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Secure Data...', icon='🔄');
+import sqlite3;  _c=sqlite3.connect('db.sqlite3', timeout=10);  _c.close();  st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True;  st.toast('Syncing Secure Data...', icon='🔄');
                 st.rerun()
     with t2:
         id_t = st.text_input("CNIC Number", key="t_login")
@@ -395,7 +390,7 @@ def show_login():
         if st.button("ENTER STAFF PORTAL", key="t_btn"):
             d = fetch_user_data(id_t, str(dob_t), "Teacher")
             if d:
-                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_teacher WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Staff Vault...', icon='🔄');
+import sqlite3;  _c=sqlite3.connect('db.sqlite3', timeout=10);  _c.close();  st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True;  st.toast('Syncing Staff Vault...', icon='🔄');
                 st.rerun()
 
 
@@ -412,16 +407,10 @@ if st.session_state.get('logged_in'):
     
     # B. Face ID Check
 
-    # --- SECURE BIOMETRIC GATE ---
-    if st.session_state.get('needs_face_auth'):
         st.stop()
 
-    # --- AI BIOMETRIC LOCK ---
-    if st.session_state.get('needs_face_auth'):
         st.stop()
 
-    # --- AI BIOMETRIC GATEWAY ---
-    if st.session_state.get('needs_face_auth'):
         st.stop()
 
 # --- FINAL ROUTING ---
