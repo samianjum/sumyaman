@@ -338,7 +338,6 @@ def show_dashboard():
     for i, tab in enumerate(active_tabs):
         with tab:
             t_full_name = tabs_list[i].upper()
-                st.stop()
                 st.stop()  # Is ke baad ka saara kachra tab mein nahi dikhega
             if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
                 from apsokara.logic.student_modules import render_my_result
@@ -403,15 +402,11 @@ if st.session_state.get('logged_in'):
     # A. Mobile View Check
     if width is not None and width < 700:
         render_mobile_view()
-        st.stop()
     
     # B. Face ID Check
 
-        st.stop()
 
-        st.stop()
 
-        st.stop()
 
 # --- FINAL ROUTING ---
 if not st.session_state.get('logged_in'):
