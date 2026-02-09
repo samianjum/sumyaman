@@ -333,11 +333,16 @@ def show_dashboard():
     </div>
     ''', unsafe_allow_html=True)
 
+    if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT"]
+    elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}"]
+    else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY", "📝 ATTENDANCE"]
     
     active_tabs = st.tabs(tabs_list)
     for i, tab in enumerate(active_tabs):
         with tab:
             t_full_name = tabs_list[i].upper()
+                st.stop()
+                st.stop()  # Is ke baad ka saara kachra tab mein nahi dikhega
             if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
                 from apsokara.logic.student_modules import render_my_result
                 render_my_result(u)
@@ -380,7 +385,7 @@ def show_login():
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
             if d:
-import sqlite3;  _c=sqlite3.connect('db.sqlite3', timeout=10);  _c.close();  st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True;  st.toast('Syncing Secure Data...', icon='🔄');
+                st.session_state.update({'user_info': d, 'role': 'Student', 'logged_in': True})
                 st.rerun()
     with t2:
         id_t = st.text_input("CNIC Number", key="t_login")
@@ -388,7 +393,7 @@ import sqlite3;  _c=sqlite3.connect('db.sqlite3', timeout=10);  _c.close();  st.
         if st.button("ENTER STAFF PORTAL", key="t_btn"):
             d = fetch_user_data(id_t, str(dob_t), "Teacher")
             if d:
-import sqlite3;  _c=sqlite3.connect('db.sqlite3', timeout=10);  _c.close();  st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True;  st.toast('Syncing Staff Vault...', icon='🔄');
+                st.session_state.update({'user_info': d, 'role': d.get('role_db', 'Teacher'), 'logged_in': True})
                 st.rerun()
 
 
@@ -401,11 +406,9 @@ if st.session_state.get('logged_in'):
     # A. Mobile View Check
     if width is not None and width < 700:
         render_mobile_view()
+        st.stop()
     
     # B. Face ID Check
-
-
-
 
 # --- FINAL ROUTING ---
 if not st.session_state.get('logged_in'):
