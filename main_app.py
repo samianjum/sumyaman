@@ -1,23 +1,3 @@
-
-import streamlit as st
-if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
-    st.warning("🛡️ 2-Step Verification Active")
-    v_img = st.camera_input("Scan your face to access your portal")
-    if v_img:
-        from face_engine_v2 import verify_face
-        u = st.session_state.get('user_info')
-        r = st.session_state.get('role')
-        ok, msg = verify_face(v_img, u['id'], r)
-        if ok:
-            st.session_state.face_verified = True
-            st.rerun()
-        else:
-            st.error(msg)
-    if st.button("Logout"):
-        st.session_state.clear()
-        st.rerun()
-    st.stop()
-
 from leave_utils import check_on_leave
 import sys, os; sys.path.append(os.getcwd()); sys.path.append(os.path.join(os.getcwd(), "apsokara/logic"))
 from apsokara.logic.teacher_modules import render_marks_entry
@@ -407,6 +387,7 @@ def show_login():
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
             if d:
+                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_student WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Secure Data...', icon='🔄');
                 st.rerun()
     with t2:
         id_t = st.text_input("CNIC Number", key="t_login")
@@ -414,6 +395,7 @@ def show_login():
         if st.button("ENTER STAFF PORTAL", key="t_btn"):
             d = fetch_user_data(id_t, str(dob_t), "Teacher")
             if d:
+                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_teacher WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Staff Vault...', icon='🔄');
                 st.rerun()
 
 
@@ -430,10 +412,16 @@ if st.session_state.get('logged_in'):
     
     # B. Face ID Check
 
+    # --- SECURE BIOMETRIC GATE ---
+    if st.session_state.get('needs_face_auth'):
         st.stop()
 
+    # --- AI BIOMETRIC LOCK ---
+    if st.session_state.get('needs_face_auth'):
         st.stop()
 
+    # --- AI BIOMETRIC GATEWAY ---
+    if st.session_state.get('needs_face_auth'):
         st.stop()
 
 # --- FINAL ROUTING ---
