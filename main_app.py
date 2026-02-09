@@ -5,8 +5,13 @@ from apsokara.logic.student_modules import render_my_result
 from apsokara.logic.class_teacher_modules import render_final_upload
 from news_utility import render_news_ticker
 import streamlit as st
-import cv2
-from deepface import DeepFace
+try:
+    import cv2
+    from deepface import DeepFace
+    import numpy as np
+    from PIL import Image
+except ImportError:
+    pass
 import numpy as np
 from PIL import Image
 import base64
