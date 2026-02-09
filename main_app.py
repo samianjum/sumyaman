@@ -19,10 +19,10 @@ from mobile_portal import render_mobile_view
 # 1. Page Config
 st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
 
-# --- LAYOUT COMPRESSION ---
-st.markdown('<style>.block-container {padding-top: 0rem !important;} header {visibility: hidden;} .stApp {margin-top: -50px !important;}</style>', unsafe_allow_html=True)
+st.markdown('<style>.block-container {padding-top: 0rem !important;} header {visibility: hidden !important;} .stApp {margin-top: -20px !important;}</style>', unsafe_allow_html=True)
 
-        /* Streamlit ke default header aur padding ko khatam karna */
+# --- LAYOUT COMPRESSION ---
+
         header { visibility: hidden !important; height: 0px !important; }
         #MainMenu { visibility: hidden !important; }
         .stApp { margin-top: -50px !important; }
@@ -44,15 +44,12 @@ st.markdown('<style>.block-container {padding-top: 0rem !important;} header {vis
     }
     </script>
 
-    /* Sidebar styling */
     [data-testid="stSidebar"] { background-color: #1b4332 !important; }
     [data-testid="stSidebar"] * { color: white !important; }
     
-    /* Global Button and Tab Overrides */
     .stButton>button { border: 2px solid #d4af37 !important; transition: 0.3s !important; }
     .stButton>button:hover { background-color: #ffffff !important; color: #1b4332 !important; border: 2px solid #1b4332 !important; }
     
-    /* Header and Text Gold touches */
     h1, h2, h3 { color: #1b4332 !important; }
     .stTabs [aria-selected="true"] { border-top: 5px solid #d4af37 !important; }
 </style>

@@ -33,7 +33,7 @@ def render_news_ticker():
             @keyframes smooth-loop {{ from {{ transform: translateX(0); }} to {{ transform: translateX(-50%); }} }}
             .aps-ticker-container {{
                 background: #1b4332; border-top: 2px solid #d4af37; border-bottom: 2px solid #d4af37;
-                display: flex; align-items: center; margin-top: 50px !important; height: 40px; overflow: hidden; position: relative; z-index: 999;
+                display: flex; align-items: center; margin-top: 30px !important; height: 40px; overflow: hidden; position: relative; z-index: 999;
             }}
             .aps-label {{
                 background: #d4af37; color: #1b4332 !important; padding: 0 10px; height: 100%;
