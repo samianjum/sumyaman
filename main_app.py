@@ -19,16 +19,13 @@ from mobile_portal import render_mobile_view
 # 1. Page Config
 st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
 
-st.markdown('<style>.block-container {padding-top: 0rem !important;} header {visibility: hidden !important;} .stApp {margin-top: -20px !important;}</style>', unsafe_allow_html=True)
+st.markdown('<style>.block-container {padding-top: 1rem !important;}</style>', unsafe_allow_html=True)
+
 
 # --- LAYOUT COMPRESSION ---
 
-        header { visibility: hidden !important; height: 0px !important; }
-        #MainMenu { visibility: hidden !important; }
-        .stApp { margin-top: -50px !important; }
         
         @media (max-width: 768px) {
-            .stApp { margin-top: -60px !important; }
         }
     </style>
 
@@ -111,7 +108,6 @@ def display_notifications():
             .notif-window {{ position: absolute; bottom: 80px; right: 0; width: 330px; max-height: 450px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; border: 1px solid #ddd; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }}
             @keyframes popUp {{ from {{ transform: scale(0.8) translateY(20px); opacity: 0; }} to {{ transform: scale(1) translateY(0); opacity: 1; }} }}
             .notif-wrapper:focus-within .notif-window {{ display: flex; }}
-            .notif-header {{ background: #1b4332; color: white; padding: 15px; font-weight: 800; font-size: 16px; border-bottom: 2px solid #FFD700; }}
             .notif-content {{ overflow-y: auto; background: #fff; }}
         </style>
         <div class="notif-wrapper" tabindex="0">
@@ -287,7 +283,6 @@ else: primary, secondary, accent, btn_color = "#1b4332", "#F4F7F6", "#333333", "
 st.markdown(f'''
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
     * {{ font-family: 'Poppins', sans-serif; color: {accent}; }}
-    .stApp {{ background-color: {secondary}; }}
     .hero-card {{ background: #F0F0F0; border-radius: 25px; padding: 30px 40px; margin-bottom: 30px; display: flex !important; flex-direction: row !important; align-items: center !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 2px solid {primary}; position: relative; }}
     .hero-logo-container {{ flex: 0 0 130px !important; height: 130px !important; background: white; border-radius: 20px; display: flex !important; align-items: center !important; justify-content: center !important; margin-right: 35px !important; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }}
     .hero-logo-container img {{ width: 90px !important; }}
