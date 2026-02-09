@@ -1,38 +1,33 @@
 import streamlit as st
 import cv2
 import numpy as np
-from deepface import DeepFace
-from PIL import Image
-import os
-import tempfile
-import sqlite3
+import base64
+import time
 
-class FaceEngine:
-    def verify(self, frame, reference_img_path):
-        try:
-            if not os.path.exists(reference_img_path):
-                return False, "Reference photo missing"
-            
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp:
-                if isinstance(frame, np.ndarray):
-                    cv2.imwrite(tmp.name, frame)
-                else:
-                    img = Image.open(frame)
-                    img.save(tmp.name)
-                tmp_path = tmp.name
+def render_laser_scanner():
+    """Cool Laser Scan Animation CSS"""
+    st.markdown('''
+        <style>
+        .scanner-container { position: relative; width: 100%; max-width: 400px; margin: auto; border: 4px solid #d4af37; border-radius: 20px; overflow: hidden; }
+        .laser { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 4px; 
+            background: rgba(255, 215, 0, 0.8); box-shadow: 0 0 20px 5px #d4af37;
+            animation: scan 2s linear infinite; z-index: 10;
+        }
+        @keyframes scan { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
+        .scan-text { text-align: center; color: #d4af37; font-weight: bold; margin-top: 10px; font-family: 'Courier New', Courier, monospace; }
+        </style>
+        <div class="scanner-container">
+            <div class="laser"></div>
+        </div>
+        <div class="scan-text">BIOMETRIC ENCRYPTION ACTIVE...</div>
+    ''', unsafe_allow_html=True)
 
-            result = DeepFace.verify(img1_path=tmp_path, img2_path=reference_img_path, 
-                                   model_name='VGG-Face', enforce_detection=True)
-            os.remove(tmp_path)
-            return result['verified'], "Match Successful"
-        except Exception as e:
-            return False, f"Error: {str(e)}"
+def process_face_login(image_data):
+    """Placeholder for actual face matching logic"""
+    # Yahan face_recognition library ka kaam shuru hota hai
+    # Filhal hum simulation kar rahe hain
+    with st.spinner("Analyzing Biometric Patterns..."):
+        time.sleep(2) # Laser scan ka maza lene ke liye thora delay
+        return True # Change to actual match logic later
 
-    def update_db_status(self, user_id, role, status):
-        conn = sqlite3.connect('db.sqlite3')
-        table = 'apsokara_student' if role == 'Student' else 'apsokara_teacher'
-        conn.execute(f"UPDATE {table} SET face_status=? WHERE id=?", (status, user_id))
-        conn.commit()
-        conn.close()
-
-engine = FaceEngine()

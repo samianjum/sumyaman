@@ -1,6 +1,7 @@
-streamlit==1.54.0
-opencv-python-headless
-deepface
-tf-keras
-numpy
-Pillow
+streamlit
+pandas
+plotly
+reportlab
+streamlit-javascript
+sqlalchemy
+psycopg2-binary
