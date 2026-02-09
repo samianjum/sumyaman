@@ -92,6 +92,20 @@ def login_page():
                 if user == "admin" and pwd == "admin123":
                     st.session_state.logged_in = True
 
+                    # --- 2-Step Face Authenticator Logic ---
+                    import sqlite3
+                    uid = st.session_state.user_info.get('id')
+                    role = st.session_state.role
+                    _c = sqlite3.connect('db.sqlite3')
+                    _table = 'apsokara_student' if role == 'Student' else 'apsokara_teacher'
+                    _status = _c.execute(f'SELECT face_status FROM {_table} WHERE id=?', (uid,)).fetchone()
+                    _c.close()
+                    if _status and str(_status[0]).upper() == 'ENROLLED':
+                        st.session_state.logged_in = False  # Hold login
+                        st.session_state.needs_face_auth = True
+                        st.rerun()
+                    # ---------------------------------------
+
                 # 2-Step Authenticator Check
                 if st.session_state.get('needs_face_auth'):
                     st.session_state.logged_in = False # Temporarily hold
@@ -103,6 +117,20 @@ def login_page():
                         v, msg = engine.verify(face_img, ref)
                         if v:
                             st.session_state.logged_in = True
+
+                            # --- 2-Step Face Authenticator Logic ---
+                            import sqlite3
+                            uid = st.session_state.user_info.get('id')
+                            role = st.session_state.role
+                            _c = sqlite3.connect('db.sqlite3')
+                            _table = 'apsokara_student' if role == 'Student' else 'apsokara_teacher'
+                            _status = _c.execute(f'SELECT face_status FROM {_table} WHERE id=?', (uid,)).fetchone()
+                            _c.close()
+                            if _status and str(_status[0]).upper() == 'ENROLLED':
+                                st.session_state.logged_in = False  # Hold login
+                                st.session_state.needs_face_auth = True
+                                st.rerun()
+                            # ---------------------------------------
                             st.session_state.face_verified = True
                             st.rerun()
                         else:

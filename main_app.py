@@ -479,6 +479,20 @@ width = st_js.st_javascript("window.innerWidth")
 
 if st.session_state.get('logged_in'):
 
+    if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
+        st.markdown("<h3 style='text-align:center;'>🛡️ Face Verification Required</h3>", unsafe_allow_html=True)
+        v_img = st.camera_input("Scan your face to unlock")
+        if v_img:
+            from face_engine import engine
+            ref = f"assets/profiles/{st.session_state.role.lower()}_{st.session_state.user_info.get('id')}.jpg"
+            ok, msg = engine.verify(v_img, ref)
+            if ok:
+                st.session_state.face_verified = True
+                st.rerun()
+            else:
+                st.error(msg)
+        st.stop()
+
     # A. Mobile View Check
     if width is not None and width < 700:
         render_mobile_view()
