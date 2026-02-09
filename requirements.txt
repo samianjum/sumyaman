@@ -1,9 +1,7 @@
 streamlit
+streamlit-javascript
 opencv-python-headless
 face-recognition
 numpy
 Pillow
-plotly
-pandas
-streamlit-javascript
-streamlit-javascript
+pytz
