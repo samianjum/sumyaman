@@ -363,13 +363,13 @@ def show_dashboard():
                 from apsokara.logic.student_modules import render_apply_leave
                 render_apply_leave(u)
             elif "FACE LOCK" in t_full_name:
+                from face_lock import render_face_lock_setup
+                render_face_lock_setup(u, role)
                 st.markdown(f"## 🏛️ Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!")
                 c1, c2, c3 = st.columns(3)
-                with c1: st.info("📅 Today: " + str(datetime.date.today()))
                 with c2: st.success("✅ System Status: Active")
                 with c3: st.warning("🔔 New Notices: Check Notifications")
                 st.divider()
-                st.image("https://img.freepik.com/free-vector/education-background-with-books-lamp_23-2147501981.jpg", width='stretch')
                 st.write(f'## Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!')
 def show_login():
     st.markdown(f'''<div style="text-align:center; padding-top:0px;"><img src="data:image/png;base64,{img_base64}" width="100"><h1 style="color:#000000; font-weight:800;">ARMY PUBLIC SCHOOL & COLLAGE SYSTEM PORTAL</h1></div>''', unsafe_allow_html=True)

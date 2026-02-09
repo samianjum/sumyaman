@@ -1,23 +1,28 @@
 import streamlit as st
+from face_handler import register_face
 
 def render_face_lock_setup(user_info, role):
-    st.header("🛡️ Face Lock Registration")
-    st.info(f"Welcome {user_info.get('name', 'User')}. Please set up your Face ID for enhanced security.")
+    st.markdown("### 🔒 Smart Biometric Security")
+    st.write("Apne portal ko 2-Step Verification se secure karein.")
     
-    col1, col2 = st.columns([1, 1])
+    status = user_info.get('face_status', 'NOT_SET')
     
-    with col1:
-        st.subheader("1. Capture Face")
-        st.write("Apna chehra camera ke samne rakhein aur 'Capture' dabayein.")
-        img_file = st.camera_input("Take a photo")
+    if status == 'ENROLLED':
+        st.success("✅ Face ID is Active")
+        if st.button("Reset Face ID"):
+            # Yahan reset ka logic baad mein daal sakte hain
+            pass
+    else:
+        st.warning("⚠️ Face ID not registered.")
+        img = st.camera_input("Apna chehra scan karein register karne ke liye")
         
-    with col2:
-        st.subheader("2. Status")
-        if img_file:
-            st.success("Face Captured Successfully!")
-            st.button("Register Face ID")
-        else:
-            st.warning("Waiting for camera input...")
-
-    st.markdown("---")
-    st.write("💡 **Note:** Face lock enable karne ke baad, login ke waqt aapko camera se verify karna hoga.")
+        if img:
+            if st.button("Save Face ID"):
+                with st.spinner("Processing biometric data..."):
+                    success, msg = register_face(user_info['id'], role, img)
+                    if success:
+                        st.success(msg)
+                        st.balloons()
+                        st.info("Agli baar login par aap se Face Scan manga jayega.")
+                    else:
+                        st.error(msg)
