@@ -7,15 +7,48 @@ from apsokara.logic.teacher_modules import render_marks_entry
 from apsokara.logic.student_modules import render_my_result
 from news_utility import render_news_ticker
 import streamlit as st
+from news_utility import render_news_ticker
 import base64
 import datetime
 import base64
 import sqlite3
 import pandas as pd
 import plotly.graph_objects as go # Donut chart ke liye
+from mobile_portal import render_mobile_view
 
 # 1. Page Config
-st.set_page_config(page_title="ARMY PUBLIC SCHOOL & COLLAGE SYSTEM Portal", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
+
+# --- PWA MOBILE INSTALLER INJECTION ---
+st.markdown('''
+    <link rel='manifest' href='./static/app_assets/manifest_v3.json'>
+    <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./static/app_assets/sw.js').then(function(reg) {
+          console.log('PWA ServiceWorker registered');
+        });
+      });
+    }
+    </script>
+''', unsafe_allow_html=True)
+
+st.markdown('''
+<style>
+    /* Sidebar styling */
+    [data-testid="stSidebar"] { background-color: #1b4332 !important; }
+    [data-testid="stSidebar"] * { color: white !important; }
+    
+    /* Global Button and Tab Overrides */
+    .stButton>button { border: 2px solid #d4af37 !important; transition: 0.3s !important; }
+    .stButton>button:hover { background-color: #ffffff !important; color: #1b4332 !important; border: 2px solid #1b4332 !important; }
+    
+    /* Header and Text Gold touches */
+    h1, h2, h3 { color: #1b4332 !important; }
+    .stTabs [aria-selected="true"] { border-top: 5px solid #d4af37 !important; }
+</style>
+''', unsafe_allow_html=True)
+render_news_ticker()
 
 # --- LEAVE SYSTEM HELPER FUNCTIONS ---
 def check_on_leave(student_id):
@@ -38,7 +71,7 @@ def get_pending_count(u):
     try:
         conn = sqlite3.connect('db.sqlite3')
         cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) FROM apsokara_leaverequests WHERE class=? AND student_section=? AND wing=? AND status='Pending'", (u.get('class'), u.get('sec'), u.get('wing')))
+        cur.execute("SELECT COUNT(*) FROM apsokara_leaverequests WHERE student_class=? AND student_section=? AND wing=? AND status='Pending'", (u.get('class'), u.get('sec'), u.get('wing')))
         count = cur.fetchone()[0]
         conn.close()
         return f" ({count})" if count > 0 else ""
@@ -58,7 +91,7 @@ def display_notifications():
         for n in notices:
             notices_html += f"""
             <div style="padding:12px; border-bottom:1px solid #f0f0f0; transition: background 0.3s;">
-                <div style="font-weight:700; color:#1A237E; font-size:14px; margin-bottom:3px;">{n[0]}</div>
+                <div style="font-weight:700; color:#1b4332; font-size:14px; margin-bottom:3px;">{n[0]}</div>
                 <div style="color:#444; font-size:13px; line-height:1.4;">{n[1]}</div>
                 <div style="color:#999; font-size:10px; margin-top:5px; text-align:right;">{n[2]}</div>
             </div>
@@ -70,11 +103,11 @@ def display_notifications():
         <style>
             .notif-wrapper {{ position: fixed; bottom: 30px; right: 30px; z-index: 999999; }}
             .notif-bell {{ background: #FF0000; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 2px solid white; font-size: 28px; position: relative; }}
-            .notif-badge {{ position: absolute; top: -5px; right: -5px; background: #1A237E; color: white; border-radius: 50%; width: 26px; height: 26px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }}
+            .notif-badge {{ position: absolute; top: -5px; right: -5px; background: #1b4332; color: white; border-radius: 50%; width: 26px; height: 26px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }}
             .notif-window {{ position: absolute; bottom: 80px; right: 0; width: 330px; max-height: 450px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; border: 1px solid #ddd; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }}
             @keyframes popUp {{ from {{ transform: scale(0.8) translateY(20px); opacity: 0; }} to {{ transform: scale(1) translateY(0); opacity: 1; }} }}
             .notif-wrapper:focus-within .notif-window {{ display: flex; }}
-            .notif-header {{ background: #1A237E; color: white; padding: 15px; font-weight: 800; font-size: 16px; border-bottom: 2px solid #FFD700; }}
+            .notif-header {{ background: #1b4332; color: white; padding: 15px; font-weight: 800; font-size: 16px; border-bottom: 2px solid #FFD700; }}
             .notif-content {{ overflow-y: auto; background: #fff; }}
         </style>
         <div class="notif-wrapper" tabindex="0">
@@ -101,7 +134,7 @@ def display_ticker():
             items = "".join([f"<span style='background:{n[2]};padding:2px 8px;border-radius:4px;font-size:11px;margin-right:8px;color:white;font-weight:bold;'>NEWS</span><b style='color:#FFD700;font-size:16px;'> {n[0]}: </b><span style='color:white;font-size:15px;'>{n[1]}</span> &nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp; " for n in notices])
             st.markdown(f"""
             <style>
-                .ticker-wrapper {{ display: flex; background: #1a1a1a; border-radius: 10px; overflow: hidden; border: 1px solid #333; height: 50px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; margin-bottom: 20px; }}
+                .ticker-wrapper {{ display: flex; background: #1b4332; border-radius: 10px; overflow: hidden; border: 1px solid #333; height: 50px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; margin-bottom: 20px; }}
                 .live-label {{ background: #ff0000; color: white; padding: 0 25px; height: 100%; display: flex; align-items: center; font-weight: 900; font-size: 14px; z-index: 10; box-shadow: 10px 0 20px rgba(0,0,0,0.5); text-transform: uppercase; }}
                 .ticker-scroll-container {{ flex-grow: 1; overflow: hidden; white-space: nowrap; position: relative; display: flex; align-items: center; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); }}
                 .ticker-text {{ display: inline-block; padding-left: 100%; animation: tv-marquee 40s linear infinite; color: white; }}
@@ -165,7 +198,7 @@ def check_attendance_state(t_class, t_sec, t_wing):
     cursor = conn.cursor()
     today = datetime.date.today().isoformat()
     cursor.execute("""SELECT MAX(edit_count) FROM apsokara_attendance 
-                      WHERE class=? AND student_section=? AND date=? 
+                      WHERE student_class=? AND student_section=? AND date=? 
                       AND student_id IN (SELECT cnic FROM apsokara_student WHERE wing=?)""", 
                    (t_class, t_sec, today, t_wing))
     res = cursor.fetchone()
@@ -190,22 +223,29 @@ def save_attendance(attendance_data, t_class, t_sec, is_edit=False):
 
 
 
+
 def fetch_user_data(user_id, dob_val, user_type):
     conn = sqlite3.connect('db.sqlite3')
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     try:
         if user_type == "Teacher":
-            q = "SELECT id, full_name, assigned_wing as wing, assigned_class as class, assigned_section, is_class_teacher as section, is_class_teacher FROM apsokara_teacher WHERE cnic = ? AND dob = ?"
+            q = "SELECT *, assigned_wing as wing, assigned_class as class, assigned_section as sec FROM apsokara_teacher WHERE cnic = ? AND dob = ?"
         else:
-            q = "SELECT id, full_name, wing, student_class as class, student_section as section FROM apsokara_student WHERE b_form = ? AND dob = ?"
+            q = "SELECT *, student_class as class, student_section as sec FROM apsokara_student WHERE b_form = ? AND dob = ?"
         
         cursor.execute(q, (user_id, dob_val))
         row = cursor.fetchone()
         if row:
             data = dict(row)
-            data['role_db'] = user_type
-            data['is_class_teacher'] = row['is_class_teacher']  # Ye line KeyError: 'role_db' ko theek karegi
+            # Module compatibility fix
+            if 'id' in data:
+                data['id_num'] = data['id']
+            # Yahan asali jaadu hai:
+            if user_type == "Teacher" and row['is_class_teacher'] == 1:
+                data['role_db'] = "Class Teacher"
+            else:
+                data['role_db'] = user_type
             return data
         return None
     except Exception as e:
@@ -216,18 +256,19 @@ def fetch_user_data(user_id, dob_val, user_type):
 
 
 
+
 def get_daily_analytics(t_class, t_sec, t_wing):
     conn = sqlite3.connect('db.sqlite3')
     today = datetime.date.today().isoformat()
-    q_total = "SELECT COUNT(*) FROM apsokara_student WHERE class=? AND student_section=? AND wing=?"
+    q_total = "SELECT COUNT(*) FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?"
     total = pd.read_sql_query(q_total, conn, params=(t_class, t_sec, t_wing)).iloc[0,0]
     q_stats = """SELECT status, COUNT(*) as count FROM apsokara_attendance 
-                 WHERE class=? AND student_section=? AND date=?
+                 WHERE student_class=? AND student_section=? AND date=?
                  AND student_id IN (SELECT cnic FROM apsokara_student WHERE wing=?)
                  GROUP BY status"""
     df_stats = pd.read_sql_query(q_stats, conn, params=(t_class, t_sec, today, t_wing))
     conn.close()
-    stats = {"Present": 0, "Absent": 0, "Leave": 0, "Total": total}
+    stats = {"Present": 0, "Absent": 0, "Leave": 0, "Total": 0}
     for _, row in df_stats.iterrows():
         key = "Present" if row['status'] == 'P' else ("Absent" if row['status'] == 'A' else "Leave")
         stats[key] = row['count']
@@ -235,10 +276,10 @@ def get_daily_analytics(t_class, t_sec, t_wing):
 
 # --- CUSTOM CSS ---
 role = st.session_state.role
-if role == "Student": primary, secondary, accent, btn_color = "#B22222", "#FFFFFF", "#333333", "#FF0000"
-elif role == "Class Teacher": primary, secondary, accent, btn_color = "#1A237E", "#DCDCDC", "#000000", "#2196F3"
-elif role == "Subject Teacher": primary, secondary, accent, btn_color = "#DC143C", "#FFFFF0", "#212121", "#FFD700"
-else: primary, secondary, accent, btn_color = "#1A237E", "#F4F7F6", "#333333", "#2196F3"
+if True: primary, secondary, accent, btn_color = "#1b4332", "#f0fdf4", "#0c0d0e", "#d4af37" # APS Student
+elif False: pass # APS Class Teacher
+elif False: pass # APS Subject Teacher
+else: primary, secondary, accent, btn_color = "#1b4332", "#F4F7F6", "#333333", "#2196F3"
 
 st.markdown(f'''
 <style>
@@ -264,18 +305,17 @@ st.markdown(f'''
 ''', unsafe_allow_html=True)
 
 def show_dashboard():
-    render_news_ticker()
     role = st.session_state.role
     u = st.session_state.user_info
     if role == "Student":
-        tag, tag_col = "🎓 STUDENT PORTAL", "#B22222"
-        extra = f'''<div class="detail-item"><b>👨‍👦 Father Name</b><span>{u.get('father')}</span></div><div class="detail-item"><b>📅 Birth Date</b><span>{u.get('dob')}</span></div><div class="detail-item"><b>📚 Grade</b><span>{u.get("class")}-{u.get("sec")}</span></div><div class="detail-item"><b>🔢 Roll No</b><span>{u.get("roll")}</span></div>'''
+        tag, tag_col = "🎓 STUDENT PORTAL", "#1b4332"
+        extra = f'''<div class="detail-item"><b>👨‍👦 Father</b><span>{u.get("father_name")}</span></div><div class="detail-item"><b>🆔 CNIC</b><span>{u.get("cnic")}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get("dob")}</span></div><div class="detail-item"><b>☪️ Religion</b><span>{u.get("religion")}</span></div><div class="detail-item"><b>📞 Contact</b><span>{u.get("contact")}</span></div><div class="detail-item"><b>🏠 Address</b><span>{u.get("address")}</span></div><div class="detail-item"><b>🏫 Assigned</b><span>{u.get("class")}-{u.get("sec")} ({u.get("wing")})</span></div>'''
     elif role == "Class Teacher":
-        tag, tag_col = "👨‍🏫 CLASS INCHARGE", "#1A237E"
-        extra = f'''<div class="detail-item"><b>👨‍👦 Father Name</b><span>{u.get('father')}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get('dob')}</span></div><div class="detail-item"><b>🏫 Class</b><span>{u.get("class")} {u.get("sec")}</span></div>'''
+        tag, tag_col = "👨‍🏫 CLASS INCHARGE", "#1b4332"
+        extra = f'''<div class="detail-item"><b>👨‍👦 Father</b><span>{u.get("father_name")}</span></div><div class="detail-item"><b>🆔 CNIC</b><span>{u.get("cnic")}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get("dob")}</span></div><div class="detail-item"><b>☪️ Religion</b><span>{u.get("religion")}</span></div><div class="detail-item"><b>📞 Contact</b><span>{u.get("contact")}</span></div><div class="detail-item"><b>🏠 Address</b><span>{u.get("address")}</span></div><div class="detail-item"><b>🏫 Assigned</b><span>{u.get("class")}-{u.get("sec")} ({u.get("wing")})</span></div>'''
     else:
-        tag, tag_col = "📖 SUBJECT TEACHER", "#DC143C"
-        extra = f'''<div class="detail-item"><b>👨‍👦 Father Name</b><span>{u.get('father')}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get('dob')}</span></div><div class="detail-item"><b>🏛 Staff Type</b><span>Academic Staff</span></div>'''                                              
+        tag, tag_col = "📖 SUBJECT TEACHER", "#1b4332"
+        extra = f'''<div class="detail-item"><b>👨‍👦 Father</b><span>{u.get("father_name")}</span></div><div class="detail-item"><b>🆔 CNIC</b><span>{u.get("cnic")}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get("dob")}</span></div><div class="detail-item"><b>☪️ Religion</b><span>{u.get("religion")}</span></div><div class="detail-item"><b>📞 Contact</b><span>{u.get("contact")}</span></div><div class="detail-item"><b>🏠 Address</b><span>{u.get("address")}</span></div><div class="detail-item"><b>🏫 Assigned</b><span>{u.get("class")}-{u.get("sec")} ({u.get("wing")})</span></div>'''
 
     st.markdown(f'''
     <div class="hero-card">
@@ -286,7 +326,6 @@ def show_dashboard():
             <div class="welcome-text">Welcome Back, {u.get('full_name', u.get('full_name', 'User'))}! ✨</div>
             <div class="details-row">
                 <div class="detail-item"><b>👤 Full Name</b><span>{u.get('full_name', u.get('full_name', 'User'))}</span></div>
-                <div class="detail-item"><b>🆔 Identity No</b><span>{u.get('id_num')}</span></div>
                 <div class="detail-item"><b>🏢 Wing</b><span>{u.get('wing')} Wing</span></div>
                 {extra}
             </div>
@@ -294,36 +333,36 @@ def show_dashboard():
     </div>
     ''', unsafe_allow_html=True)
 
-    if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT"]
-    elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🎯 MARKS ENTRY", "📤 FINAL UPLOAD"]
-    else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY"]
+    if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT", "🔒 FACE LOCK"]
+    elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🔒 FACE LOCK"]
+    else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY", "📝 ATTENDANCE", "🔒 FACE LOCK"]
     
     active_tabs = st.tabs(tabs_list)
     for i, tab in enumerate(active_tabs):
         with tab:
             t_full_name = tabs_list[i].upper()
-            if 'MY RESULT' in t_full_name or 'RESULT' in t_full_name:
+            if 'FACE LOCK' in t_full_name:
+                st.stop()
+                st.stop()  # Is ke baad ka saara kachra tab mein nahi dikhega
+            if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
                 from apsokara.logic.student_modules import render_my_result
-                render_my_result(st.session_state.user_info)
+                render_my_result(u)
             elif "ATTENDANCE HISTORY" in t_full_name:
                 from attendance_logic import render_student_attendance
                 render_student_attendance(u)
-            elif 'MARKS ENTRY' in t_full_name:
+            elif "MARKS ENTRY" in t_full_name:
                 from apsokara.logic.teacher_modules import render_marks_entry
-                render_marks_entry(st.session_state.user_info)
-            elif 'FINAL UPLOAD' in t_full_name:
+                render_marks_entry(u)
+            elif "FINAL UPLOAD" in t_full_name:
                 from apsokara.logic.class_teacher_modules import render_final_upload
-                render_final_upload(st.session_state.user_info)
-            elif "ATTENDANCE" in t_full_name:
+                render_final_upload(u)
+            elif "ATTENDANCE SYSTEM" in t_full_name or "ATTENDANCE" in t_full_name:
                 from attendance_system import render_attendance_system
-                render_attendance_system(st.session_state.user_info)
+                render_attendance_system(u)
             elif "LEAVE" in t_full_name:
-                from leave_engine import render_leave_system
-                render_leave_system(st.session_state.user_info)
-            elif "DIARY" in t_full_name:
-                from diary_engine import render_diary
-                render_diary(st.session_state.user_info)
-            elif 'HOME' in t_full_name or 'DASHBOARD' in t_full_name:
+                from apsokara.logic.student_modules import render_apply_leave
+                render_apply_leave(u)
+            elif "FACE LOCK" in t_full_name:
                 st.markdown(f"## 🏛️ Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!")
                 c1, c2, c3 = st.columns(3)
                 with c1: st.info("📅 Today: " + str(datetime.date.today()))
@@ -337,11 +376,18 @@ def show_login():
     t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
     with t1:
         id_s = st.text_input("B-Form Number", key="s_login")
+        if st.session_state.get('bio_toggle'):
+            st.markdown('''<div style='border:4px solid #1b4332; border-radius:50%; width:220px; height:220px; overflow:hidden; margin:10px auto; position:relative;'><div style='position:absolute; top:0; left:0; width:100%; height:5px; background:#00ff00; box-shadow:0 0 20px #00ff00; animation:scanLine 1.5s infinite alternate;'></div><style>@keyframes scanLine { from {top:0%} to {top:100%} }</style>''', unsafe_allow_html=True)
+            st.camera_input('FaceID', key='login_cam', label_visibility='hidden')
+            st.markdown('</div>', unsafe_allow_html=True)
+        if st.session_state.get('bio_toggle'):
+            st.markdown('''<div style='border:2px solid #d4af37; padding:10px; border-radius:15px; background:#000; position:relative; overflow:hidden;'><div style='position:absolute; top:0; left:0; width:100%; height:3px; background:#00ff00; box-shadow:0 0 15px #00ff00; animation:scan 2s infinite;'></div><style>@keyframes scan { 0% {top:0%} 100% {top:100%} }</style></div>''', unsafe_allow_html=True)
+            st.camera_input('Scan to Authenticate', key='login_cam')
         dob_s = st.date_input("Birth Date", value=datetime.date(2010,1,1), key="s_dob")
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
             if d:
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, "Student", True
+                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_student WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Secure Data...', icon='🔄');
                 st.rerun()
     with t2:
         id_t = st.text_input("CNIC Number", key="t_login")
@@ -349,14 +395,38 @@ def show_login():
         if st.button("ENTER STAFF PORTAL", key="t_btn"):
             d = fetch_user_data(id_t, str(dob_t), "Teacher")
             if d:
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d['role_db'], True
+                import sqlite3; _c=sqlite3.connect('db.sqlite3', timeout=10); _r=_c.execute('SELECT face_status FROM apsokara_teacher WHERE id=?', (d['id'],)).fetchone(); _c.close(); st.session_state.needs_face_auth = True if (_r and str(_r[0]).strip().upper()=='ENROLLED') else False; st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Staff Vault...', icon='🔄');
                 st.rerun()
 
-if not st.session_state.logged_in: show_login()
-else: show_dashboard()
 
+# --- MOBILE & SECURITY GUARD ---
+import streamlit_javascript as st_js
 
-def logout():
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
-    st.rerun()
+width = st_js.st_javascript("window.innerWidth")
+
+if st.session_state.get('logged_in'):
+    # A. Mobile View Check
+    if width is not None and width < 700:
+        render_mobile_view()
+        st.stop()
+    
+    # B. Face ID Check
+
+    # --- SECURE BIOMETRIC GATE ---
+    if st.session_state.get('needs_face_auth'):
+        st.stop()
+
+    # --- AI BIOMETRIC LOCK ---
+    if st.session_state.get('needs_face_auth'):
+        st.stop()
+
+    # --- AI BIOMETRIC GATEWAY ---
+    if st.session_state.get('needs_face_auth'):
+        st.stop()
+
+# --- FINAL ROUTING ---
+if not st.session_state.get('logged_in'):
+    show_login()
+else:
+    show_dashboard()
+
