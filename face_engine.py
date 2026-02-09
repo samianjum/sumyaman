@@ -1,33 +1,62 @@
 import streamlit as st
 import cv2
 import numpy as np
-import base64
-import time
+from deepface import DeepFace
+from PIL import Image
+import os
+import tempfile
+import logging
 
-def render_laser_scanner():
-    """Cool Laser Scan Animation CSS"""
-    st.markdown('''
-        <style>
-        .scanner-container { position: relative; width: 100%; max-width: 400px; margin: auto; border: 4px solid #d4af37; border-radius: 20px; overflow: hidden; }
-        .laser { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 4px; 
-            background: rgba(255, 215, 0, 0.8); box-shadow: 0 0 20px 5px #d4af37;
-            animation: scan 2s linear infinite; z-index: 10;
-        }
-        @keyframes scan { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
-        .scan-text { text-align: center; color: #d4af37; font-weight: bold; margin-top: 10px; font-family: 'Courier New', Courier, monospace; }
-        </style>
-        <div class="scanner-container">
-            <div class="laser"></div>
-        </div>
-        <div class="scan-text">BIOMETRIC ENCRYPTION ACTIVE...</div>
-    ''', unsafe_allow_html=True)
+# Disable TensorFlow logging to keep terminal clean
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-def process_face_login(image_data):
-    """Placeholder for actual face matching logic"""
-    # Yahan face_recognition library ka kaam shuru hota hai
-    # Filhal hum simulation kar rahe hain
-    with st.spinner("Analyzing Biometric Patterns..."):
-        time.sleep(2) # Laser scan ka maza lene ke liye thora delay
-        return True # Change to actual match logic later
+class FaceEngine:
+    def __init__(self, model_name='VGG-Face', distance_metric='cosine'):
+        self.model_name = model_name
+        self.distance_metric = distance_metric
 
+    def verify(self, frame, reference_img_path):
+        """
+        Frame ko reference image se match karta hai.
+        """
+        try:
+            # Step 1: Check if reference exists
+            if not os.path.exists(reference_img_path):
+                return False, f"Reference photo missing at {reference_img_path}"
+
+            # Step 2: Convert Streamlit image to DeepFace compatible format
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp:
+                # Agar frame numpy array hai (OpenCV)
+                if isinstance(frame, np.ndarray):
+                    cv2.imwrite(tmp.name, frame)
+                else:
+                    # Agar frame PIL image ya uploaded file hai
+                    img = Image.open(frame)
+                    img.save(tmp.name)
+                
+                tmp_path = tmp.name
+
+            # Step 3: DeepFace Verification
+            # enforce_detection=True ka matlab hai agar face nahi dikha to error dega
+            result = DeepFace.verify(
+                img1_path=tmp_path, 
+                img2_path=reference_img_path, 
+                model_name=self.model_name,
+                distance_metric=self.distance_metric,
+                enforce_detection=True,
+                detector_backend='opencv' # Tez aur reliable
+            )
+
+            # Cleanup
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+            return result['verified'], "Identity Verified" if result['verified'] else "Face Mismatch"
+
+        except ValueError as v:
+            return False, "Face not detected. Please look clearly at the camera."
+        except Exception as e:
+            return False, f"Engine Error: {str(e)}"
+
+# Singleton Instance for global use
+engine = FaceEngine()

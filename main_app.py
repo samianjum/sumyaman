@@ -5,6 +5,10 @@ from apsokara.logic.student_modules import render_my_result
 from apsokara.logic.class_teacher_modules import render_final_upload
 from news_utility import render_news_ticker
 import streamlit as st
+import cv2
+from deepface import DeepFace
+import numpy as np
+from PIL import Image
 import base64
 import datetime
 import sqlite3
@@ -57,6 +61,30 @@ st.markdown('''
 render_news_ticker()
 
 # --- Rest of your original code ---
+
+def enroll_face(user_id, role):
+    st.subheader("📸 Face Enrollment")
+    st.info("Apni clear photo capture karein system mein register hone ke liye.")
+    new_img = st.camera_input("Capture Enrollment Photo", key=f"enroll_{user_id}")
+    
+    if new_img:
+        save_path = f"assets/profiles/{role.lower()}_{user_id}.jpg"
+        with open(save_path, "wb") as f:
+            f.write(new_img.getbuffer())
+        
+        # Database mein status update karna
+        import sqlite3
+        conn = sqlite3.connect('db.sqlite3')
+        table = 'apsokara_student' if role == 'Student' else 'apsokara_teacher'
+        conn.execute(f"UPDATE {table} SET face_status='ENROLLED' WHERE id=?", (user_id,))
+        conn.commit()
+        conn.close()
+        
+        st.success("✅ Face Enrolled Successfully! Next time aapko Face ID chahiye hogi.")
+        if st.button("Refresh Portal"):
+            st.rerun()
+
+
 def check_on_leave(student_id):
     try:
         import sqlite3
@@ -379,7 +407,7 @@ def show_dashboard():
                 st.write(f'## Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!')
 def show_login():
     st.markdown(f'''<div style="text-align:center; padding-top:0px;"><img src="data:image/png;base64,{img_base64}" width="100"><h1 style="color:#000000; font-weight:800;">ARMY PUBLIC SCHOOL & COLLAGE SYSTEM PORTAL</h1></div>''', unsafe_allow_html=True)
-    t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
+    t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN", "🛡️ Security"])
     with t1:
         id_s = st.text_input("B-Form Number", key="s_login")
         if st.session_state.get('bio_toggle'):
@@ -411,6 +439,31 @@ import streamlit_javascript as st_js
 width = st_js.st_javascript("window.innerWidth")
 
 if st.session_state.get('logged_in'):
+
+    if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
+        st.markdown("<h2 style='text-align:center;'>🛡️ Biometric Verification Required</h2>", unsafe_allow_html=True)
+        img_file = st.camera_input("Scan your face to unlock portal")
+        if img_file:
+            with st.spinner('Verifying Identity...'):
+                try:
+                    img = Image.open(img_file)
+                    img_array = np.array(img)
+                    img_cv = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+                    # Reference image path (User ki profile pic)
+                    ref_path = f"assets/profiles/{st.session_state.role.lower()}_{st.session_state.user_info.get('id')}.jpg"
+                    if os.path.exists(ref_path):
+                        result = DeepFace.verify(img_cv, ref_path, enforce_detection=True)
+                        if result['verified']:
+                            st.session_state.face_verified = True
+                            st.success("Identity Confirmed!")
+                            st.rerun()
+                        else:
+                            st.error("Face Mismatch! Access Denied.")
+                    else:
+                        st.warning("Enrollment photo not found in assets/profiles/")
+                except Exception as e:
+                    st.error("Face not detected. Please look directly at the camera.")
+        st.stop() # Jab tak face verify nahi hota, niche wala code (Tabs) nahi chalega
     # A. Mobile View Check
     if width is not None and width < 700:
         render_mobile_view()
