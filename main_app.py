@@ -1,7 +1,25 @@
 import streamlit as st
+if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
+    st.markdown('<h2 style="text-align:center;">🛡️ 2-Step Verification</h2>', unsafe_allow_html=True)
+    v_img = st.camera_input('Scan your face to continue')
+    if v_img:
+        from face_engine import engine
+        u = st.session_state.get('temp_user')
+        role = st.session_state.get('temp_role')
+        if u:
+            ref = f'assets/profiles/{role.lower()}_{u["id"]}.jpg'
+            ok, msg = engine.verify(v_img, ref)
+            if ok:
+                st.session_state.user_info = u
+                st.session_state.role = role
+                st.session_state.logged_in = True
+                st.session_state.face_verified = True
+                st.rerun()
+            else:
+                st.error('Face ID Mismatch!')
+    st.stop()
+import streamlit as st
 
-    st.markdown("<h2 style='text-align:center;'>🛡️ 2-Step Verification</h2>", unsafe_allow_html=True)
-    v_img = st.camera_input("Scan your face to continue")
     if v_img:
         from face_engine import engine
         u = st.session_state.temp_user
@@ -9,9 +27,7 @@ import streamlit as st
         ref = f"assets/profiles/{role.lower()}_{u['id']}.jpg"
         ok, msg = engine.verify(v_img, ref)
 
-if st.session_state.get('needs_face_auth') and not st.session_state.get('face_verified'):
     st.warning("🛡️ Face ID Required for this account")
-    v_img = st.camera_input("Verify Face")
     if v_img:
         from face_engine import engine
         u, r = st.session_state.temp_user, st.session_state.temp_role
@@ -104,7 +120,6 @@ render_news_ticker()
 def enroll_face(user_id, role):
     st.subheader("📸 Face Enrollment")
     st.info("Apni clear photo capture karein system mein register hone ke liye.")
-    new_img = st.camera_input("Capture Enrollment Photo", key=f"enroll_{user_id}")
     
     if new_img:
         save_path = f"assets/profiles/{role.lower()}_{user_id}.jpg"
@@ -452,7 +467,6 @@ def show_dashboard():
                 if status != 'ENROLLED':
                     st.subheader("🛡️ Setup 2-Step Face Verification")
                     st.write("Apne account ko secure banayein. Agli baar login ke liye face scan zaroori hoga.")
-                    img = st.camera_input("Capture your face to enable Face ID")
                     if img:
                         save_path = f"assets/profiles/{role.lower()}_{uid}.jpg"
                         os.makedirs("assets/profiles", exist_ok=True)
@@ -486,11 +500,9 @@ def show_dashboard():
 
         if st.session_state.get('bio_toggle'):
             st.markdown('''<div style='border:4px solid #1b4332; border-radius:50%; width:220px; height:220px; overflow:hidden; margin:10px auto; position:relative;'><div style='position:absolute; top:0; left:0; width:100%; height:5px; background:#00ff00; box-shadow:0 0 20px #00ff00; animation:scanLine 1.5s infinite alternate;'></div><style>@keyframes scanLine { from {top:0%} to {top:100%} }</style>''', unsafe_allow_html=True)
-            st.camera_input('FaceID', key='login_cam', label_visibility='hidden')
             st.markdown('</div>', unsafe_allow_html=True)
         if st.session_state.get('bio_toggle'):
             st.markdown('''<div style='border:2px solid #d4af37; padding:10px; border-radius:15px; background:#000; position:relative; overflow:hidden;'><div style='position:absolute; top:0; left:0; width:100%; height:3px; background:#00ff00; box-shadow:0 0 15px #00ff00; animation:scan 2s infinite;'></div><style>@keyframes scan { 0% {top:0%} 100% {top:100%} }</style></div>''', unsafe_allow_html=True)
-            st.camera_input('Scan to Authenticate', key='login_cam')
         dob_s = st.date_input("Birth Date", value=datetime.date(2010,1,1), key="s_dob")
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
@@ -513,7 +525,6 @@ width = st_js.st_javascript("window.innerWidth")
 if st.session_state.get('logged_in'):
 
         st.markdown("<h3 style='text-align:center;'>🛡️ Face Verification Required</h3>", unsafe_allow_html=True)
-        v_img = st.camera_input("Scan your face to unlock")
         if v_img:
             from face_engine import engine
             ref = f"assets/profiles/{st.session_state.role.lower()}_{st.session_state.user_info.get('id')}.jpg"
