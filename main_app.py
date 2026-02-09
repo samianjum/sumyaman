@@ -412,7 +412,7 @@ def show_dashboard():
                 st.write(f'## Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!')
 def show_login():
     st.markdown(f'''<div style="text-align:center; padding-top:0px;"><img src="data:image/png;base64,{img_base64}" width="100"><h1 style="color:#000000; font-weight:800;">ARMY PUBLIC SCHOOL & COLLAGE SYSTEM PORTAL</h1></div>''', unsafe_allow_html=True)
-    t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN", "🛡️ Security"])
+    t1, t2, t3 = st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN", "🛡️ Security"])
     with t1:
         id_s = st.text_input("B-Form Number", key="s_login")
         if st.session_state.get('bio_toggle'):
