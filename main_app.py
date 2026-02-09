@@ -341,9 +341,6 @@ def show_dashboard():
     for i, tab in enumerate(active_tabs):
         with tab:
             t_full_name = tabs_list[i].upper()
-                        if "MY RESULT" in t_full_name or "RESULT" in t_full_name:
-                from apsokara.logic.student_modules import render_my_result
-                render_my_result(u)
             elif "ATTENDANCE HISTORY" in t_full_name:
                 from attendance_logic import render_student_attendance
                 render_student_attendance(u)
@@ -359,15 +356,6 @@ def show_dashboard():
             elif "LEAVE" in t_full_name:
                 from apsokara.logic.student_modules import render_apply_leave
                 render_apply_leave(u)
-            elif "FACE LOCK" in t_full_name:
-                st.markdown(f"## 🏛️ Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!")
-                c1, c2, c3 = st.columns(3)
-                with c1: st.info("📅 Today: " + str(datetime.date.today()))
-                with c2: st.success("✅ System Status: Active")
-                with c3: st.warning("🔔 New Notices: Check Notifications")
-                st.divider()
-                st.image("https://img.freepik.com/free-vector/education-background-with-books-lamp_23-2147501981.jpg", width='stretch')
-                st.write(f'## Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!')
 def show_login():
     st.markdown(f'''<div style="text-align:center; padding-top:0px;"><img src="data:image/png;base64,{img_base64}" width="100"><h1 style="color:#000000; font-weight:800;">ARMY PUBLIC SCHOOL & COLLAGE SYSTEM PORTAL</h1></div>''', unsafe_allow_html=True)
     t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
@@ -384,7 +372,7 @@ def show_login():
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
             if d:
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Secure Data...', icon='🔄');
+                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True
                 st.rerun()
     with t2:
         id_t = st.text_input("CNIC Number", key="t_login")
@@ -392,7 +380,7 @@ def show_login():
         if st.button("ENTER STAFF PORTAL", key="t_btn"):
             d = fetch_user_data(id_t, str(dob_t), "Teacher")
             if d:
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Staff Vault...', icon='🔄');
+                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True
                 st.rerun()
 
 
@@ -409,9 +397,6 @@ if st.session_state.get('logged_in'):
     
     # B. Face ID Check
 
-    
-    
-    
 # --- FINAL ROUTING ---
 if not st.session_state.get('logged_in'):
     show_login()
