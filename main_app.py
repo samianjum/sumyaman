@@ -342,28 +342,12 @@ def show_dashboard():
         with tab:
             t_full_name = tabs_list[i].upper()
             if 'FACE LOCK' in t_full_name:
-                st.info('⚙️ Face ID System is being upgraded. Please check back later.')
-                pass
-            elif "ATTENDANCE HISTORY" in t_full_name:
-                from attendance_logic import render_student_attendance
-                render_student_attendance(u)
-            elif "MARKS ENTRY" in t_full_name:
-                from apsokara.logic.teacher_modules import render_marks_entry
-                render_marks_entry(u)
-            elif "FINAL UPLOAD" in t_full_name:
-                from apsokara.logic.class_teacher_modules import render_final_upload
-                render_final_upload(u)
-            elif "ATTENDANCE SYSTEM" in t_full_name or "ATTENDANCE" in t_full_name:
-                from attendance_system import render_attendance_system
-                render_attendance_system(u)
-            elif "LEAVE" in t_full_name:
-                from apsokara.logic.student_modules import render_apply_leave
-                render_apply_leave(u)
-            elif "FACE LOCK" in t_full_name:
-                st.info('⚙️ Face ID System is being upgraded. Please check back later.')
-                pass
-def show_login():
-    st.markdown(f'''<div style="text-align:center; padding-top:0px;"><img src="data:image/png;base64,{img_base64}" width="100"><h1 style="color:#000000; font-weight:800;">ARMY PUBLIC SCHOOL & COLLAGE SYSTEM PORTAL</h1></div>''', unsafe_allow_html=True)
-    t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
-    with t1:
-        id_s = st.text_input("B-Form Number", key="s_login")
+                pass # Ready for new Face ID system
+                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Portal...', icon='🔄');
+                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Portal...', icon='🔄');
+# --- FINAL ROUTING ---
+if not st.session_state.get('logged_in'):
+    show_login()
+else:
+    show_dashboard()
+
