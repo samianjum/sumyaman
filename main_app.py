@@ -375,6 +375,12 @@ def show_dashboard():
             elif "LEAVE" in t_full_name:
                 from apsokara.logic.student_modules import render_apply_leave
                 render_apply_leave(u)
+            elif "DAILY DIARY" in t_full_name:
+                from diary_engine import render_student_diary
+                render_student_diary(u)
+            elif "POST DIARY" in t_full_name:
+                from diary_engine import render_teacher_diary
+                render_teacher_diary(u)
             elif "FACE LOCK" in t_full_name:
                 from face_lock import render_face_lock_setup
                 render_face_lock_setup(u, role)
