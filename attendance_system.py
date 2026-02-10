@@ -157,10 +157,36 @@ def render_attendance_system(user_info):
                                     conn.rollback()
                                     st.error(f"Critical Error: {e}")
 
+        
         with tab2:
             v_date = st.date_input("Select Date", today_obj)
-            hist = pd.read_sql("SELECT s.roll_number, s.full_name, CASE WHEN a.status IS NULL THEN 'Not Marked' ELSE a.status END as status FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND DATE(a.date)=DATE(?) WHERE s.student_class=? AND s.wing=? AND s.student_section=? ORDER BY CAST(s.roll_number AS INTEGER)", conn, params=(v_date.isoformat(), c_name, u_wing, u_sec))
+            
+            # --- Analytics Injection ---
+            hist = pd.read_sql("""SELECT s.roll_number, s.full_name, 
+                                 CASE WHEN a.status IS NULL THEN 'Not Marked' ELSE a.status END as status 
+                                 FROM apsokara_student s 
+                                 LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND DATE(a.date)=DATE(?) 
+                                 WHERE s.student_class=? AND s.wing=? AND s.student_section=? 
+                                 ORDER BY CAST(s.roll_number AS INTEGER)""", 
+                                 conn, params=(v_date.isoformat(), c_name, u_wing, u_sec))
+            
+            if not hist.empty:
+                t_str = len(hist)
+                t_pres = len(hist[hist['status'] == 'Present'])
+                t_abs = len(hist[hist['status'] == 'Absent'])
+                t_lev = len(hist[hist['status'] == 'Leave'])
+                
+                st.markdown(f"""
+                    <div style="display: flex; justify-content: space-around; background: #1b4332; padding: 15px; border-radius: 15px; border: 1px solid #d4af37; margin-bottom: 20px; text-align: center;">
+                        <div><p style="color: #d4af37; margin:0; font-size: 10px;">TOTAL</p><b style="color: white; font-size: 18px;">{t_str}</b></div>
+                        <div style="border-left: 1px solid rgba(212,175,55,0.3); padding-left: 20px;"><p style="color: #d4af37; margin:0; font-size: 10px;">PRESENT</p><b style="color: #4ade80; font-size: 18px;">{t_pres}</b></div>
+                        <div style="border-left: 1px solid rgba(212,175,55,0.3); padding-left: 20px;"><p style="color: #d4af37; margin:0; font-size: 10px;">ABSENT</p><b style="color: #f87171; font-size: 18px;">{t_abs}</b></div>
+                        <div style="border-left: 1px solid rgba(212,175,55,0.3); padding-left: 20px;"><p style="color: #d4af37; margin:0; font-size: 10px;">LEAVE</p><b style="color: #fbbf24; font-size: 18px;">{t_lev}</b></div>
+                    </div>
+                """, unsafe_allow_html=True)
+            
             st.dataframe(hist, width='stretch', hide_index=True)
+
 
         
         with tab3:

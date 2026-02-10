@@ -343,7 +343,7 @@ def show_dashboard():
 
 
     # --- CLEAN ROLE SYNC ---
-    role = st.session_state.get('user_role', 'Student')
+    role = st.session_state.get('role', st.session_state.get('user_role', 'Student'))
     u = st.session_state.get('user_info', {})
     if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT", "🔒 FACE LOCK"]
 
@@ -435,7 +435,7 @@ def show_login():
                         st.session_state.show_face_gate = True
                         st.rerun()
                     else:
-                        st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True
+                        st.session_state.user_info, st.session_state.role, st.session_state.user_role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), d.get('role_db', 'Teacher'), True
                         st.rerun()
                 st.rerun()
 
@@ -488,6 +488,7 @@ if st.session_state.get('show_face_gate'):
             else:
                 st.session_state.logged_in = True
             st.session_state.user_info = u
+            st.session_state.role = role
             st.session_state.user_role = role
             if 'show_face_gate' in st.session_state:
                 del st.session_state['show_face_gate']
