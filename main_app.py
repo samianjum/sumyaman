@@ -7,6 +7,12 @@ from apsokara.logic.teacher_modules import render_marks_entry
 from apsokara.logic.student_modules import render_my_result
 from news_utility import render_news_ticker
 import streamlit as st
+
+# --- FACE GATE REDIRECTOR ---
+if st.session_state.get('show_face_gate', False):
+    from face_lock import show_face_verification_gate
+    show_face_verification_gate()
+    st.stop()
 from news_utility import render_news_ticker
 import base64
 import datetime
@@ -230,9 +236,9 @@ def fetch_user_data(user_id, dob_val, user_type):
     cursor = conn.cursor()
     try:
         if user_type == "Teacher":
-            q = "SELECT *, assigned_wing as wing, assigned_class as class, assigned_section as sec FROM apsokara_teacher WHERE cnic = ? AND dob = ?"
+            q = "SELECT face_status, face_encoding, *, assigned_wing as wing, assigned_class as class, assigned_section as sec FROM apsokara_teacher WHERE cnic = ? AND dob = ?"
         else:
-            q = "SELECT *, student_class as class, student_section as sec FROM apsokara_student WHERE b_form = ? AND dob = ?"
+            q = "SELECT face_status, face_encoding, *, student_class as class, student_section as sec FROM apsokara_student WHERE b_form = ? AND dob = ?"
         
         cursor.execute(q, (user_id, dob_val))
         row = cursor.fetchone()
@@ -333,7 +339,14 @@ def show_dashboard():
     </div>
     ''', unsafe_allow_html=True)
 
+    
+
+
+    # --- CLEAN ROLE SYNC ---
+    role = st.session_state.get('user_role', 'Student')
+    u = st.session_state.get('user_info', {})
     if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT", "🔒 FACE LOCK"]
+
     elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🔒 FACE LOCK"]
     else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY", "📝 ATTENDANCE", "🔒 FACE LOCK"]
     
@@ -387,7 +400,21 @@ def show_login():
         if st.button("ENTER STUDENT PORTAL", key="s_btn"):
             d = fetch_user_data(id_s, str(dob_s), "Student")
             if d:
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True; st.toast('Syncing Secure Data...', icon='🔄');
+                
+                status = str(d.get('face_status', 'NOT_SET')).upper()
+                if status == 'ENROLLED':
+                    st.session_state.pending_user, st.session_state.pending_role = d, 'Student'
+                    st.session_state.show_face_gate = True
+                    st.rerun()
+                else:
+                    status = str(d.get('face_status', 'NOT_SET')).upper()
+                    if status == 'ENROLLED':
+                        st.session_state.pending_user, st.session_state.pending_role = d, 'Student'
+                        st.session_state.show_face_gate = True
+                        st.rerun()
+                    else:
+                        st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True
+                        st.rerun()
                 st.rerun()
     with t2:
         id_t = st.text_input("CNIC Number", key="t_login")
@@ -395,7 +422,21 @@ def show_login():
         if st.button("ENTER STAFF PORTAL", key="t_btn"):
             d = fetch_user_data(id_t, str(dob_t), "Teacher")
             if d:
-                st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True; st.toast('Syncing Staff Vault...', icon='🔄');
+                
+                status = str(d.get('face_status', 'NOT_SET')).upper()
+                if status == 'ENROLLED':
+                    st.session_state.pending_user, st.session_state.pending_role = d, d.get('role_db', 'Teacher')
+                    st.session_state.show_face_gate = True
+                    st.rerun()
+                else:
+                    status = str(d.get('face_status', 'NOT_SET')).upper()
+                    if status == 'ENROLLED':
+                        st.session_state.pending_user, st.session_state.pending_role = d, d.get('role_db', 'Teacher')
+                        st.session_state.show_face_gate = True
+                        st.rerun()
+                    else:
+                        st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), True
+                        st.rerun()
                 st.rerun()
 
 
@@ -413,8 +454,54 @@ if st.session_state.get('logged_in'):
     # B. Face ID Check
 
 # --- FINAL ROUTING ---
+
+
+# --- FINAL ROUTING ENGINE ---
+if st.session_state.get('show_face_gate'):
+    from face_engine import show_verification_screen
+    from face_handler import verify_face
+    
+    u = st.session_state.pending_user
+    role = st.session_state.pending_role
+    
+    img = show_verification_screen()
+    if img:
+        success, msg = verify_face(u['id'], role, img)
+        if success:
+            st.success(msg)
+            import time
+            time.sleep(1)
+            if u.get('face_status') == 'ENROLLED':
+                st.session_state.show_face_gate = True
+                st.session_state.pending_user = u
+                st.rerun()
+            # --- FORCED BIOMETRIC GATE ---
+            f_status = str(u.get('face_status', 'NOT_SET')).upper() if 'u' in locals() else 'NOT_SET'
+            
+            st.toast(f"🔍 Security Check: Status is '{f_status}'")
+            if f_status == 'ENROLLED':
+                st.session_state.logged_in = False
+                st.session_state.show_face_gate = True
+                st.session_state.pending_user = u
+                st.session_state.pending_role = role
+                st.rerun()
+            else:
+                st.session_state.logged_in = True
+            st.session_state.user_info = u
+            st.session_state.user_role = role
+            if 'show_face_gate' in st.session_state:
+                del st.session_state['show_face_gate']
+            st.rerun()
+        else:
+            st.error(msg)
+    
+    if st.button("Cancel & Back to Login"):
+        st.session_state.show_face_gate = False
+        st.rerun()
+    st.stop()
+
+# --- LOGIN VS DASHBOARD ---
 if not st.session_state.get('logged_in'):
     show_login()
 else:
     show_dashboard()
-

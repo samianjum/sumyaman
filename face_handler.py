@@ -5,59 +5,44 @@ import io
 from PIL import Image
 
 def get_db_connection():
-    conn = sqlite3.connect('db.sqlite3', timeout=20)
-    return conn
+    return sqlite3.connect('db.sqlite3', timeout=20)
 
 def register_face(user_id, role, image_file):
-    """Face ko detect karke uski encoding database mein save karta hai."""
     try:
-        # Image load karein
         img = Image.open(image_file)
         img_array = np.array(img.convert('RGB'))
-        
-        # Encodings dhoondein
         encodings = face_recognition.face_encodings(img_array)
-        
-        if len(encodings) == 0:
-            return False, "No face detected. Please try again with better lighting."
+        if not encodings: return False, "❌ Face detect nahi hua."
         
         encoding_bytes = encodings[0].tobytes()
         table = "apsokara_student" if role == "Student" else "apsokara_teacher"
         
         conn = get_db_connection()
-        conn.execute(f"UPDATE {table} SET face_status='ENROLLED', face_encoding=? WHERE id=?", (encoding_bytes, user_id))
+        cursor = conn.cursor()
+        cursor.execute(f"UPDATE {table} SET face_status='ENROLLED', face_encoding=? WHERE id=?", (encoding_bytes, user_id))
         conn.commit()
         conn.close()
-        return True, "Face registered successfully!"
-    except Exception as e:
-        return False, str(e)
+        return True, "✅ Face ID Registered!"
+    except Exception as e: return False, str(e)
 
-def verify_face(user_id, role, captured_image):
-    """Captured face ko database wali encoding se match karta hai."""
+def verify_face(user_id, role, image_file):
     try:
         table = "apsokara_student" if role == "Student" else "apsokara_teacher"
         conn = get_db_connection()
-        res = conn.execute(f"SELECT face_encoding FROM {table} WHERE id=?", (user_id,)).fetchone()
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT face_encoding FROM {table} WHERE id=?", (user_id,))
+        row = cursor.fetchone()
         conn.close()
 
-        if not res or not res[0]:
-            return False, "No Face ID found for this user."
+        if not row or not row[0]: return False, "❌ No Face ID found."
 
-        stored_encoding = np.frombuffer(res[0], dtype=np.float64)
+        saved_enc = np.frombuffer(row[0], dtype=np.float64)
+        img = Image.open(image_file)
+        curr_enc = face_recognition.face_encodings(np.array(img.convert('RGB')))
+
+        if not curr_enc: return False, "❌ Camera mein face nahi dikha."
         
-        img = Image.open(captured_image)
-        img_array = np.array(img.convert('RGB'))
-        current_encodings = face_recognition.face_encodings(img_array)
-
-        if len(current_encodings) == 0:
-            return False, "No face detected."
-
-        # Compare faces
-        results = face_recognition.compare_faces([stored_encoding], current_encodings[0], tolerance=0.5)
-        
-        if results[0]:
-            return True, "Identity Verified!"
-        else:
-            return False, "Face did not match. Access Denied."
-    except Exception as e:
-        return False, str(e)
+        matches = face_recognition.compare_faces([saved_enc], curr_enc[0], tolerance=0.5)
+        if matches[0]: return True, "✅ Verified!"
+        return False, "❌ Face match nahi hua!"
+    except Exception as e: return False, str(e)

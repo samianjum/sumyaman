@@ -162,6 +162,7 @@ def render_attendance_system(user_info):
             hist = pd.read_sql("SELECT s.roll_number, s.full_name, CASE WHEN a.status IS NULL THEN 'Not Marked' ELSE a.status END as status FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND DATE(a.date)=DATE(?) WHERE s.student_class=? AND s.wing=? AND s.student_section=? ORDER BY CAST(s.roll_number AS INTEGER)", conn, params=(v_date.isoformat(), c_name, u_wing, u_sec))
             st.dataframe(hist, width='stretch', hide_index=True)
 
+        
         with tab3:
             st.markdown("""<style>
                 .main-card { background: #ffffff; border: 2px solid #1b4332; border-radius: 25px; padding: 25px; border: 1px solid #e2e8f0; }
@@ -172,75 +173,75 @@ def render_attendance_system(user_info):
             </style>""", unsafe_allow_html=True)
 
             st.markdown("<h2 style='color: #1b4332; font-weight: 800;'>💎 Student Intelligence Center</h2>", unsafe_allow_html=True)
-            s_query = st.text_input("🔍 Search Student Name", placeholder="Type name and press Enter...", label_visibility="collapsed")
+            
+            # Creating layout: Side flags and Main search
+            col_flags, col_intel = st.columns([1, 2.5])
+            
+            with col_flags:
+                st.markdown("### 🚩 Red Flags")
+                th_val = st.number_input("Threshold %", 0, 100, 75, key="th_val")
+                
+                # Logic to find low attendance students
+                rf_query = """SELECT s.id, s.full_name, s.father_name, 
+                                     COUNT(a.id) as total, 
+                                     SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres 
+                              FROM apsokara_student s 
+                              JOIN apsokara_attendance a ON s.id = a.student_id 
+                              WHERE s.student_class=? AND s.wing=? AND s.student_section=? 
+                              GROUP BY s.id"""
+                rf_df = pd.read_sql(rf_query, conn, params=(c_name, u_wing, u_sec))
+                if not rf_df.empty:
+                    rf_df['perc'] = (rf_df['pres'] / rf_df['total'] * 100).fillna(0)
+                    flags = rf_df[rf_df['perc'] < th_val]
+                    for _, r in flags.iterrows():
+                        if st.button(f"⚠️ {r['full_name']} s/o {r['father_name']} ({r['perc']:.0f}%)", key=f"rf_{r['id']}", use_container_width=True):
+                            st.session_state['s_search'] = r['full_name']
+                else:
+                    st.caption("No records yet.")
 
-            if s_query:
-                s_data = pd.read_sql("SELECT id, roll_number, full_name, father_name FROM apsokara_student WHERE (full_name LIKE ? OR father_name LIKE ?)   ", conn, params=(f"%{s_query}%", f"%{s_query}%"))
-                if not s_data.empty:
-                    sel = s_data.iloc[0]; sid = int(sel["id"])
-                    stats_df = pd.read_sql("SELECT date, status FROM apsokara_attendance WHERE student_id=? ORDER BY date DESC", conn, params=(sid,))
-                    t_days, t_pres = len(stats_df), len(stats_df[stats_df["status"] == "Present"])
-                    t_abs, t_leave = len(stats_df[stats_df["status"] == "Absent"]), len(stats_df[stats_df["status"] == "Leave"])
-                    perc = (t_pres / t_days * 100) if t_days > 0 else 0
+            with col_intel:
+                s_query = st.text_input("🔍 Search Student Name", value=st.session_state.get('s_search', ""), placeholder="Type name...", label_visibility="collapsed")
+                if s_query:
+                    s_data = pd.read_sql("""SELECT id, roll_number, full_name, father_name FROM apsokara_student 
+                                          WHERE (full_name LIKE ? OR father_name LIKE ?) AND student_class=? AND wing=? AND student_section=?""", 
+                                         conn, params=(f"%{s_query}%", f"%{s_query}%", c_name, u_wing, u_sec))
+                    if not s_data.empty:
+                        sel = s_data.iloc[0]; sid = int(sel["id"])
+                        stats_df = pd.read_sql("SELECT date, status FROM apsokara_attendance WHERE student_id=? ORDER BY date DESC", conn, params=(sid,))
+                        t_days, t_pres = len(stats_df), len(stats_df[stats_df["status"] == "Present"])
+                        t_abs, t_leave = len(stats_df[stats_df["status"] == "Absent"]), len(stats_df[stats_df["status"] == "Leave"])
+                        perc = (t_pres / t_days * 100) if t_days > 0 else 0
 
-                    # --- Row 1: Hero Analytics ---
-                    st.markdown(f"### 📊 Academic Overview: {sel['full_name']}")
-                    c1, c2, c3, c4 = st.columns(4)
-                    with c1: st.markdown(f'<div class="stat-hero" style="border-color: #1b4332;"><p>Sessions</p><h1>{t_days}</h1></div>', unsafe_allow_html=True)
-                    with c2: st.markdown(f'<div class="stat-hero" style="border-color: #1b4332;"><p>Present</p><h1>{t_pres}</h1></div>', unsafe_allow_html=True)
-                    with c3: st.markdown(f'<div class="stat-hero" style="border-color: #8b0000;"><p>Absent</p><h1>{t_abs}</h1></div>', unsafe_allow_html=True)
-                    with c4: st.markdown(f'<div class="stat-hero" style="border-color: #d4af37;"><p>Leave</p><h1>{t_leave}</h1></div>', unsafe_allow_html=True)
+                        st.markdown(f"### 📊 Academic Overview: {sel['full_name']}")
+                        c1, c2, c3, c4 = st.columns(4)
+                        with c1: st.markdown(f'<div class="stat-hero"><p>Sessions</p><h1>{t_days}</h1></div>', unsafe_allow_html=True)
+                        with c2: st.markdown(f'<div class="stat-hero"><p>Present</p><h1>{t_pres}</h1></div>', unsafe_allow_html=True)
+                        with c3: st.markdown(f'<div class="stat-hero" style="border-color: #8b0000;"><p>Absent</p><h1>{t_abs}</h1></div>', unsafe_allow_html=True)
+                        with c4: st.markdown(f'<div class="stat-hero" style="border-color: #d4af37;"><p>Leave</p><h1>{t_leave}</h1></div>', unsafe_allow_html=True)
 
-                    # --- Row 2: The "Intesting" Gauge Chart ---
-                    st.markdown("---")
-                    g1, g2 = st.columns([1.5, 1])
-                    with g1:
-                        st.markdown("#### ⚡ Attendance Reliability Score")
-                        fig = go.Figure(go.Indicator(
-                            mode = "gauge+number+delta",
-                            value = perc,
-                            domain = {'x': [0, 1], 'y': [0, 1]},
-                            title = {'text': "Current Integrity", 'font': {'size': 16}},
-                            gauge = {
-                                'axis': {'range': [None, 100], 'tickwidth': 1},
-                                'bar': {'color': "#1b4332"},
-                                'bgcolor': "white",
-                                'borderwidth': 2,
-                                'bordercolor': "#e2e8f0",
-                                'steps': [
-                                    {'range': [0, 50], 'color': "#f0fdf4"},
-                                    {'range': [50, 80], 'color': "#fef9c3"},
-                                    {'range': [80, 100], 'color': "#1b4332"}],
-                                'threshold': {
-                                    'line': {'color': "red", 'width': 4},
-                                    'thickness': 0.75,
-                                    'value': 75}}))
-                        fig.update_layout(height=300, margin=dict(t=30, b=0, l=10, r=10), paper_bgcolor="rgba(0,0,0,0)")
-                        st.plotly_chart(fig, width='stretch', key="intel_pdf_download")
+                        st.markdown("---")
+                        g1, g2 = st.columns([1.5, 1])
+                        with g1:
+                            fig = go.Figure(go.Indicator(
+                                mode = "gauge+number", value = perc,
+                                title = {'text': "Attendance Integrity", 'font': {'size': 16}},
+                                gauge = {'axis': {'range': [0, 100]}, 'bar': {'color': "#1b4332"}, 'threshold': {'line': {'color': "red", 'width': 4}, 'value': th_val}}))
+                            fig.update_layout(height=250, margin=dict(t=30, b=0, l=10, r=10), paper_bgcolor="rgba(0,0,0,0)")
+                            st.plotly_chart(fig, use_container_width=True)
+                        with g2:
+                            target_date = st.date_input("Verify Date", today_obj, key="intel_date")
+                            match = stats_df[stats_df["date"] == target_date.isoformat()]
+                            if not match.empty:
+                                s_val = match.iloc[0]["status"]
+                                color = "#1b4332" if s_val=="Present" else "#8b0000" if s_val=="Absent" else "#d4af37"
+                                st.markdown(f'<div style="background: {color}; color: white; padding: 30px 10px; border-radius: 20px; text-align: center;"><h2>{s_val}</h2></div>', unsafe_allow_html=True)
 
-                    with g2:
-                        st.markdown("#### 🎯 Quick Status Search")
-                        target_date = st.date_input("Pick a date to verify", today_obj, key="final_intel_date")
-                        match = stats_df[stats_df["date"] == target_date.isoformat()]
-                        if not match.empty:
-                            s_val = match.iloc[0]["status"]
-                            color = "#1b4332" if s_val=="Present" else "#8b0000" if s_val=="Absent" else "#d4af37"
-                            st.markdown(f'''<div style="background: {color}; color: white; padding: 45px 20px; border-radius: 25px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-top:10px;">
-                                <h2 style="margin:0;">{s_val}</h2><p style="opacity: 0.8; margin:0;">Record for {target_date}</p></div>''', unsafe_allow_html=True)
-                        else:
-                            st.info("No record found for this date.")
-
-                    # --- Row 3: History & Export ---
-                    st.markdown("---")
-                    st.markdown("#### 📜 Full Detailed Log")
-                    st.dataframe(stats_df, width='stretch', height=250)
-                    
-                    def make_pdf():
-                        b = io.BytesIO(); c = canvas.Canvas(b, pagesize=letter)
-                        c.drawString(100, 750, f"INTEL REPORT: {sel['full_name']}"); y=700
-                        for _, r in stats_df.iterrows(): c.drawString(100, y, f"{r['date']}: {r['status']}"); y-=20
-                        c.save()
-                        b.seek(0)
-                        return b.getvalue()
-                    st.download_button("📥 Download Official PDF History", make_pdf() or b"", f"{sel['full_name']}_Intel.pdf", "application/pdf", width='stretch', key=f"dl_{sel.get("id", 1)}")
-                else: st.error("No student found in your assigned section.")
+                        st.dataframe(stats_df, use_container_width=True, height=200)
+                        
+                        def make_pdf():
+                            b = io.BytesIO(); c = canvas.Canvas(b, pagesize=letter)
+                            c.drawString(100, 750, f"INTEL REPORT: {sel['full_name']}"); y=700
+                            for _, r in stats_df.iterrows(): c.drawString(100, y, f"{r['date']}: {r['status']}"); y-=20
+                            c.save(); b.seek(0); return b.getvalue()
+                        st.download_button("📥 Download PDF", make_pdf(), f"{sel['full_name']}.pdf", "application/pdf", use_container_width=True)
+                    else: st.error("No student found.")

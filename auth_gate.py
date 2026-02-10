@@ -1,3 +1,15 @@
+
+import sqlite3
+def get_user_status(uid, role):
+    conn = sqlite3.connect('db.sqlite3')
+    conn.row_factory = sqlite3.Row
+    table = "apsokara_student" if role == "Student" else "apsokara_teacher"
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM {table} WHERE id=?", (uid,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
 import streamlit as st
 import base64
 import os
@@ -89,8 +101,44 @@ def login_page():
             submit = st.form_submit_button("LOGIN TO HQ")
             
             if submit:
-                if user == "admin" and pwd == "admin123":
-                    st.session_state.logged_in = True
+                if user == 'admin' and pwd == 'admin123':
+                    
+                u = get_user_status(user, role) # 'user' yahan ID variable hai
+                if u:
+                    status = str(u.get('face_status', 'NOT_SET')).upper()
+                    if status == 'ENROLLED':
+                        st.session_state.pending_user = u
+                        st.session_state.pending_role = role
+                        st.session_state.show_face_gate = True
+                        st.session_state.logged_in = False
+                        st.rerun()
+                    else:
+                        st.session_state.logged_in = True
+                        st.session_state.user_info = u
+                        st.session_state.user_role = role
+                        st.rerun()
+                else:
+                    st.error("User not found in Database!")
+
+                    else:
+                        
+                u = get_user_status(user, role) # 'user' yahan ID variable hai
+                if u:
+                    status = str(u.get('face_status', 'NOT_SET')).upper()
+                    if status == 'ENROLLED':
+                        st.session_state.pending_user = u
+                        st.session_state.pending_role = role
+                        st.session_state.show_face_gate = True
+                        st.session_state.logged_in = False
+                        st.rerun()
+                    else:
+                        st.session_state.logged_in = True
+                        st.session_state.user_info = u
+                        st.session_state.user_role = role
+                        st.rerun()
+                else:
+                    st.error("User not found in Database!")
+
                     st.rerun()
                 else:
                     st.error("Invalid Credentials!")
