@@ -17,7 +17,7 @@ def get_filtered_news():
     try:
         with sqlite3.connect("db.sqlite3", timeout=30) as conn:
             placeholders = ', '.join(['?'] * len(roles_list))
-            query = f"SELECT content FROM apsokara_schoolnews WHERE target_role IN ({placeholders}) AND start_date <= ? AND end_date >= ? ORDER BY created_at DESC"
+            query = f"SELECT content FROM apsokara_schoolnews WHERE target_role IN ({placeholders}, 'Class Teacher', 'Teacher', 'All') AND start_date <= ? AND end_date >= ? ORDER BY created_at DESC"
             return pd.read_sql_query(query, conn, params=tuple(roles_list) + (today, today))
     except:
         return pd.DataFrame(columns=['content'])
