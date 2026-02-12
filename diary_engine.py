@@ -77,7 +77,27 @@ def render_teacher_diary(u):
                                  (teacher_id, teacher_name, str(target['student_class']), str(target['section']), 
                                   str(target['sub_name']), content, full_timestamp, file_p, is_sch, target['wing']))
                     conn.commit()
+                    
+                    
+                    # --- BROADCAST NOTIFICATION (Fixed Columns) ---
+                    
+                    try:
+                        from notification_system import add_notification
+                        import sqlite3
+                        t_conn = sqlite3.connect("db.sqlite3")
+                        cur_notif = t_conn.cursor()
+                        cur_notif.execute("SELECT roll_number FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?", (str(target["student_class"]), str(target["section"]), str(target["wing"])))
+                        for s in cur_notif.fetchall(): add_notification(user_id=str(s[0]), title=f"New Diary: {target['sub_name']}", message=f"Teacher {teacher_name} posted a new task.", category=f"diary_id_{cur.lastrowid}")
+                        t_conn.close()
+                    except Exception as e: print(f"Notif Error: {e}")
+
+                    except Exception as e:
+                        print(f"Notification Error: {e}")
+                    # -----------------------------------------------
                     st.success(f"✅ Published at {time_str}!")
+    
+    
+    
 
     with tab2:
         df_h = pd.read_sql("SELECT * FROM apsokara_dailydiary WHERE teacher_id=? ORDER BY id DESC", conn, params=(teacher_id,))
@@ -109,6 +129,20 @@ def render_teacher_diary(u):
                             st.write(" ")
                             if st.button("🖼️ VIEW FILE", key=f"th_tm_fin_{row['id']}", use_container_width=True):
                                 show_attachment(row['attachment_url'])
+                    
+                st.markdown(f'''
+                    <script>
+                        var target = window.parent.document.getElementById("diary_{row['id']}");
+                        if (target) {{
+                            target.scrollIntoView({{ behavior: "smooth", block: "center" }});
+                        }}
+                    </script>
+                ''', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                        
+                        
+                    
         else:
             st.info("No history found.")
 
@@ -124,8 +158,8 @@ def render_student_diary(u):
     today = date.today()
     
     # Fetch all visible diaries (Today and Past)
-    df = pd.read_sql("SELECT * FROM apsokara_dailydiary WHERE class=? AND section=? AND date_posted <= ? ORDER BY date_posted DESC", 
-                     conn, params=(s_class, s_sec, today.isoformat()))
+    df = pd.read_sql("SELECT * FROM apsokara_dailydiary WHERE class=? AND section=? AND wing=? AND SUBSTR(date_posted, 1, 10) <= ? ORDER BY id DESC", 
+                     conn, params=(s_class, s_sec, s_wing, today.isoformat()))
     conn.close()
 
     # --- INFORMATIVE SMART BANNER ---
@@ -169,6 +203,17 @@ def render_student_diary(u):
         st.markdown(f"**Showing {len(f_df)} results**")
 
         for _, row in f_df.iterrows():
+            is_focus = str(st.session_state.get('focus_diary')) == str(row['id'])
+            if 'is_focus' in locals() and is_focus:
+                st.markdown('<div style="border:2px solid #d4af37; border-radius:10px; padding:5px; background:#fff9e6;">', unsafe_allow_html=True)
+            is_focus = str(st.session_state.get('focus_diary')) == str(row['id'])
+            if 'is_focus' in locals() and is_focus:
+                st.markdown('<div style="border:2px solid #d4af37; border-radius:10px; padding:5px; background:#fff9e6;">', unsafe_allow_html=True)
+            # Navigation Highlight Logic
+            is_focus = str(st.session_state.get('focus_diary')) == str(row['id'])
+            if 'is_focus' in locals() and is_focus:
+                st.markdown('<div style="background:#fff9e6; border:2px solid #d4af37; border-radius:10px; padding:2px; margin-bottom:10px;">', unsafe_allow_html=True)
+            
             with st.container(border=True):
                 main_col, side_col = st.columns([5, 1.5])
                 with main_col:
@@ -180,5 +225,20 @@ def render_student_diary(u):
                         st.write("") # Spacer
                         if st.button("🖼️ VIEW FILE", key=f"sv_{row['id']}", use_container_width=True):
                             show_attachment(row['attachment_url'])
+                    
+            if 'is_focus' in locals() and is_focus:
+                st.markdown(f'''
+                    <script>
+                        var target = window.parent.document.getElementById("diary_{row['id']}");
+                        if (target) {{
+                            target.scrollIntoView({{ behavior: "smooth", block: "center" }});
+                        }}
+                    </script>
+                ''', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                        
+                        
+                    
     else:
         st.info("No active diary entries found for your class.")

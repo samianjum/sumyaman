@@ -1,3 +1,4 @@
+from notification_system import render_notification_ui
 from leave_utils import check_on_leave
 import sys, os; sys.path.append(os.getcwd()); sys.path.append(os.path.join(os.getcwd(), "apsokara/logic"))
 from apsokara.logic.teacher_modules import render_marks_entry
@@ -311,6 +312,15 @@ st.markdown(f'''
 ''', unsafe_allow_html=True)
 
 def show_dashboard():
+    # --- NOTIFICATION DEEP LINKING ---
+    params = st.query_params
+    if "notif_cat" in params:
+        cat = params["notif_cat"]
+        if "diary_id_" in cat:
+            st.session_state['active_tab'] = "📔 Daily Diary"
+            st.session_state['focus_diary'] = cat.replace("diary_id_", "")
+    # ---------------------------------
+
     role = st.session_state.role
     u = st.session_state.user_info
     if role == "Student":
@@ -512,3 +522,6 @@ if not st.session_state.get('logged_in'):
     show_login()
 else:
     show_dashboard()
+
+# Render Notifications Global UI
+render_notification_ui()
