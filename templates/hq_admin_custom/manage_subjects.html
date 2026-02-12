@@ -1,0 +1,76 @@
+{% extends 'hq_admin_custom/dashboard.html' %}
+{% block hq_content %}
+<div class="container-fluid p-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'exam_window' %}">Exams</a></li>
+            <li class="breadcrumb-item active">{{ exam_name }} - Subjects</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white fw-bold">Add New Subject</div>
+                <form method="POST" class="card-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="small fw-bold">Subject Name</label>
+                        <input type="text" name="subject_name" class="form-control" placeholder="e.g. Mathematics" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="small fw-bold">Total Marks</label>
+                            <input type="number" name="total_marks" class="form-control" value="100" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="small fw-bold">Passing Marks</label>
+                            <input type="number" name="passing_marks" class="form-control" value="33" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Save Subject</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                    <span>Configured Subjects for {{ exam_name }}</span>
+                    <span class="badge bg-dark">{{ subjects|length }} Subjects</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Subject Name</th>
+                                    <th>Total Marks</th>
+                                    <th>Passing</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sub in subjects %}
+                                <tr>
+                                    <td class="fw-bold">{{ sub.subject_name }}</td>
+                                    <td>{{ sub.total_marks }}</td>
+                                    <td>{{ sub.passing_marks }}</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No subjects added yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,80 +1,48 @@
 import streamlit as st
+import sqlite3
 import pandas as pd
-from db_bridge import fetch_df, execute, get_active_exam_for_class
+from datetime import date
 
 def render_marks_entry(u):
-    st.title("🎯 Mark Entry Portal")
-    user_id = u.get('id', 1)
-    
-    # 1. Assignment Selection
-    query = """
-        SELECT sa.id, s.name, sa.class_name, sa.section, sa.wing, sa.total_marks, sa.submission_status 
-        FROM apsokara_subjectassignment sa 
-        JOIN apsokara_subject s ON sa.subject_id = s.id 
-        WHERE sa.teacher_id = ?
-    """
-    assignments = fetch_df(query, (user_id,))
-    
-    if assignments.empty:
-        st.warning("No assignments found.")
+    st.subheader('🎯 Marks Entry Portal')
+    conn = sqlite3.connect('db.sqlite3')
+    today = date.today().isoformat()
+    q_exams = 'SELECT DISTINCT e.* FROM exams e JOIN apsokara_subjectassignment sa ON sa.student_class = e.class_group WHERE e.start_date <= ? AND e.end_date >= ? AND sa.teacher_id = ?'
+    active_exams = pd.read_sql_query(q_exams, conn, params=(today, today, u['id']))
+    if active_exams.empty:
+        st.info('📢 No active exams found for your assigned classes.')
+        conn.close()
         return
-
-    options = [f"{r['class_name']}-{r['section']} ({r['name']}) - {r['wing']}" for _, r in assignments.iterrows()]
-    selected_label = st.selectbox("Select Class-Subject", options)
-    
-    # Finding matching assignment
-    asg = assignments.iloc[options.index(selected_label)]
-
-    exam = get_active_exam_for_class(asg['class_name'])
-    if not exam: return st.error("No active exam found.")
-
-    # Check Lock Status
-    lock_check = fetch_df("SELECT is_locked FROM apsokara_classresultstatus WHERE class_name=? AND section=? AND wing=? AND exam_window_id=?", 
-                          (asg['class_name'], asg['section'], asg['wing'], exam['id']))
-    is_locked = not lock_check.empty and lock_check.iloc[0]['is_locked'] == 1
-
-    # Header UI
-    st.info(f"Exam: {exam['title']} | Status: {asg['submission_status']}")
-
-    if is_locked:
-        st.warning("🔒 This result has been published and locked. You can only view it.")
-    
-    # 2. Total Marks Setting
-    t_marks = st.number_input("Set Total Marks", value=asg['total_marks'], disabled=is_locked)
-
-    # 3. Marks Table
-    students = fetch_df("""
-        SELECT s.id, s.roll_no, s.full_name, IFNULL(m.obtained_marks, 0) as marks
-        FROM apsokara_student s
-        LEFT JOIN apsokara_mark m ON s.id = m.student_id AND m.subject_assignment_id = ?
-        WHERE s.student_class=? AND s.student_section=? AND s.wing=?
-    """, (asg['id'], asg['class_name'], asg['section'], asg['wing']))
-
-    # --- FIX START ---
-    # Agar is_locked True hai, to hum poore columns ki list ko 'disabled' parameter mein bhejenge
-    disabled_cols = ["id", "roll_no", "full_name", "marks"] if is_locked else ["id", "roll_no", "full_name"]
-    # --- FIX END ---
-
-    edited_df = st.data_editor(
-        students, 
-        column_config={"id": None}, 
-        disabled=disabled_cols, # Ab list ja rahi hai, error nahi aayega
-        width='stretch', 
-        hide_index=True
-    )
-
-    if not is_locked:
-        c1, c2 = st.columns(2)
-        if c1.button("💾 Save Progress"):
-            for _, row in edited_df.iterrows():
-                execute("""
-                    INSERT INTO apsokara_mark (student_id, subject_assignment_id, obtained_marks, total_marks, exam_type, date_uploaded) 
-                    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP) 
-                    ON CONFLICT(student_id, subject_assignment_id) DO UPDATE SET obtained_marks=excluded.obtained_marks
-                """, (row['id'], asg['id'], row['marks'], t_marks, exam['title']))
-            st.toast("Saved!")
-
-        if c2.button("🚀 SUBMIT SHEET", type="primary"):
-            execute("UPDATE apsokara_subjectassignment SET submission_status='Submitted', total_marks=? WHERE id=?", (t_marks, asg['id']))
-            st.success("Submitted to Class Teacher!")
-            st.rerun()
+    exam_option = st.selectbox('Select Active Exam', active_exams['name'].tolist())
+    sel_exam = active_exams[active_exams['name'] == exam_option].iloc[0]
+    q_assign = 'SELECT sa.id, sa.student_class, sa.section, sa.wing, sub.name as sub_name, sub.id as sub_id FROM apsokara_subjectassignment sa JOIN apsokara_subject sub ON sa.subject_id = sub.id WHERE sa.teacher_id = ? AND sa.student_class = ?'
+    assigns = pd.read_sql_query(q_assign, conn, params=(u['id'], sel_exam['class_group']))
+    if assigns.empty:
+        st.error('No subjects assigned to you for this class group.')
+        return
+    labels = [f"{r['student_class']}-{r['section']} ({r['wing']}) - {r['sub_name']}" for _, r in assigns.iterrows()]
+    target = st.selectbox('Select Class & Subject', labels)
+    target_row = assigns.iloc[labels.index(target)]
+    check_lock = pd.read_sql_query('SELECT is_locked FROM student_marks WHERE exam_id=? AND subject_id=? LIMIT 1', conn, params=(int(sel_exam['id']), int(target_row['sub_id'])))
+    locked = not check_lock.empty and check_lock.iloc[0]['is_locked'] == 1
+    if locked: st.warning('🔒 Result finalized by Class Teacher. Editing disabled.')
+    q_stu = 'SELECT id, full_name, roll_number FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?'
+    students = pd.read_sql_query(q_stu, conn, params=(target_row['student_class'], target_row['section'], target_row['wing']))
+    with st.form('marks_form'):
+        total_m = st.number_input('Total Marks', min_value=1, value=100, disabled=locked)
+        marks_data = []
+        for _, s in students.iterrows():
+            prev = pd.read_sql_query('SELECT obtained_marks, remarks FROM student_marks WHERE exam_id=? AND student_id=? AND subject_id=?', conn, params=(int(sel_exam['id']), s['id'], int(target_row['sub_id'])))
+            val, rem = (prev.iloc[0]['obtained_marks'], prev.iloc[0]['remarks']) if not prev.empty else (0.0, '')
+            c1, c2, c3 = st.columns([2, 1, 2])
+            c1.write(f'**{s["full_name"]}**')
+            obt = c2.number_input('Obt', key=f'm_{s["id"]}', value=float(val), max_value=float(total_m), disabled=locked)
+            rmk = c3.text_input('Remarks', key=f'r_{s["id"]}', value=rem, disabled=locked)
+            marks_data.append((s['id'], obt, rmk))
+        if st.form_submit_button('Submit Marks') and not locked:
+            c = conn.cursor()
+            for sid, m, r in marks_data:
+                c.execute('INSERT OR REPLACE INTO student_marks (exam_id, student_id, subject_id, teacher_id, total_marks, obtained_marks, remarks, is_locked) VALUES (?, ?, ?, ?, ?, ?, ?, 0)', (int(sel_exam['id']), sid, int(target_row['sub_id']), u['id'], total_m, m, r))
+            conn.commit()
+            st.success('✅ Marks Saved!')
+    conn.close()

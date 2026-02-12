@@ -7,11 +7,17 @@ from django.db.models import Count, Q
 
 @login_required
 def hq_dashboard(request):
+    from .models import Attendance
+    total = Student.objects.count()
+    present = Attendance.objects.filter(date=timezone.now().date(), status__iexact='Present').count()
+    perc = round((present / total * 100), 1) if total > 0 else 0
     return render(request, 'hq_admin_custom/dashboard.html', {
-        'total_students': Student.objects.count(),
+        'total': total,
         'boys': Student.objects.filter(wing__iexact='Boys').count(),
         'girls': Student.objects.filter(wing__iexact='Girls').count(),
         'faculty_count': Teacher.objects.count(),
+        'present': present,
+        'perc': perc,
     })
 
 @login_required
@@ -179,3 +185,96 @@ def news_manager_view(request):
 def delete_news(request, news_id):
     get_object_or_404(SchoolNews, id=news_id).delete()
     return redirect('news_manager')
+
+
+import sqlite3
+from django.utils import timezone
+from .models import Student
+
+@login_required
+def exam_window_view(request):
+    conn = sqlite3.connect('db.sqlite3')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    today = timezone.now().date().isoformat()
+    c.execute("SELECT * FROM exams ORDER BY created_at DESC")
+    exams_raw = c.fetchall()
+    exams_list = []
+    for row in exams_raw:
+        exam = dict(row)
+        sd = str(exam.get('start_date', ''))
+        ed = str(exam.get('end_date', ''))
+        if today > ed:
+            exam['status_label'], exam['status_class'] = "EXPIRED", "secondary"
+        elif today < sd:
+            exam['status_label'], exam['status_class'] = "UPCOMING", "warning"
+        else:
+            exam['status_label'], exam['status_class'] = "RUNNING", "success"
+        exams_list.append(exam)
+    distinct_classes = Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class')
+    conn.close()
+    return render(request, 'hq_admin_custom/exam_window.html', {
+        'exams': exams_list,
+        'class_list': distinct_classes,
+        'today': today
+    })
+
+@login_required
+def create_exam_view(request):
+    if request.method == 'POST':
+        name = request.POST.get('exam_name')
+        group = request.POST.get('class_group')
+        s_date = request.POST.get('start_date')
+        e_date = request.POST.get('end_date')
+        if name and group and s_date and e_date:
+            conn = sqlite3.connect('db.sqlite3')
+            c = conn.cursor()
+            c.execute("INSERT INTO exams (name, class_group, start_date, end_date) VALUES (?, ?, ?, ?)", 
+                      (name, group, s_date, e_date))
+            conn.commit()
+            conn.close()
+    return redirect('exam_window')
+
+@login_required
+def delete_exam_view(request, exam_id):
+    import sqlite3
+    conn = sqlite3.connect('db.sqlite3')
+    c = conn.cursor()
+    c.execute("DELETE FROM exams WHERE id = ?", (exam_id,))
+    # Saath hi us exam ke saare marks bhi delete ho jayein (Cleanup)
+    c.execute("DELETE FROM exam_marks WHERE exam_id = ?", (exam_id,))
+    conn.commit()
+    conn.close()
+    return redirect('exam_window')
+
+@login_required
+def toggle_exam_status(request, exam_id):
+    import sqlite3
+    conn = sqlite3.connect('db.sqlite3')
+    c = conn.cursor()
+    # Status flip logic (1 to 0 or 0 to 1)
+    c.execute("UPDATE exams SET is_active = NOT is_active WHERE id = ?", (exam_id,))
+    conn.commit()
+    conn.close()
+    return redirect('exam_window')
+
+@login_required
+def manage_subjects_view(request, exam_id):
+    import sqlite3
+    conn = sqlite3.connect('db.sqlite3')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    if request.method == 'POST':
+        sub_name = request.POST.get('subject_name')
+        t_marks = request.POST.get('total_marks')
+        p_marks = request.POST.get('passing_marks')
+        c.execute("INSERT INTO exam_subjects (exam_id, subject_name, total_marks, passing_marks) VALUES (?, ?, ?, ?)", 
+                  (exam_id, sub_name, t_marks, p_marks))
+        conn.commit()
+    
+    c.execute("SELECT * FROM exam_subjects WHERE exam_id = ?", (exam_id,))
+    subjects = c.fetchall()
+    c.execute("SELECT name FROM exams WHERE id = ?", (exam_id,))
+    exam_name = c.fetchone()[0]
+    conn.close()
+    return render(request, 'hq_admin_custom/manage_subjects.html', {'subjects': subjects, 'exam_id': exam_id, 'exam_name': exam_name})

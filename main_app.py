@@ -357,8 +357,10 @@ def show_dashboard():
     u = st.session_state.get('user_info', {})
     if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT", "🔒 FACE LOCK"]
 
-    elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🔒 FACE LOCK"]
-    else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY", "📝 ATTENDANCE", "🔒 FACE LOCK"]
+    elif role == "Class Teacher": 
+        tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "🎯 MARKS ENTRY", "📤 FINAL UPLOAD", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🔒 FACE LOCK"]
+    else: 
+        tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "🎯 MARKS ENTRY", "📚 TEACHING SCHEDULE", "🔒 FACE LOCK"]
     
     active_tabs = st.tabs(tabs_list)
     for i, tab in enumerate(active_tabs):

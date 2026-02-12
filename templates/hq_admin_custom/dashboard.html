@@ -1,5 +1,6 @@
 {% extends 'hq_admin_custom/base.html' %}
 {% block content %}
+{% if request.resolver_match.url_name == 'hq_dashboard' %}
 <div class="container-fluid p-4">
     
     <div class="row mb-4">
@@ -118,4 +119,8 @@
         </div>
     </div>
 </div>
+{% endif %}
+
+
+{% block hq_content %}{% endblock %}
 {% endblock %}

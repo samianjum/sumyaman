@@ -1,0 +1,80 @@
+{% extends 'hq_admin_custom/dashboard.html' %}
+{% block hq_content %}
+<div class="p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark">Exam Control Center</h3>
+        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createExamModalFix">
+            <i class="fas fa-plus-circle"></i> Launch New Exam
+        </button>
+    </div>
+
+    <div class="row">
+        {% for exam in exams %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                    <span class="badge bg-{{ exam.status_class }}">{{ exam.status_label }}</span>
+                    <div class="dropdown">
+                        <i class="fas fa-ellipsis-v text-muted cursor-pointer" data-bs-toggle="dropdown"></i>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item text-danger" href="{% url 'delete_exam' exam.id %}" onclick="return confirm('Pakka delete karna hai?')">Delete Exam</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="fw-bold mb-1">{{ exam.name }}</h5>
+                    <p class="text-muted small mb-3">Group: <span class="badge bg-light text-dark">{{ exam.class_group }}</span></p>
+                    <div class="d-flex justify-content-between small text-muted mb-2">
+                        <span>Start: {{ exam.start_date }}</span>
+                        <span>End: {{ exam.end_date }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-sm btn-dark">Generate Result Gazette</button>
+                        <button class="btn btn-sm btn-outline-primary">View Submission Status</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 bg-white rounded shadow-sm">
+            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No exams found in database.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="modal fade" id="createExamModalFix" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'create_exam' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header border-0"><h5>New Exam Configuration</h5></div>
+            <div class="modal-body">
+                <label class="small fw-bold">Exam Title</label>
+                <input type="text" name="exam_name" class="form-control mb-3" placeholder="e.g. Annual Exam 2026" required>
+                
+                <label class="small fw-bold">Target Class</label>
+                <select name="class_group" class="form-select mb-3">
+                    <option value="All">All Classes</option>
+                    {% for c in class_list %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                </select>
+                
+                <div class="row">
+                    <div class="col">
+                        <label class="small fw-bold">Start Date</label>
+                        <input type="date" name="start_date" class="form-control" value="{{ today }}" required>
+                    </div>
+                    <div class="col">
+                        <label class="small fw-bold">End Date</label>
+                        <input type="date" name="end_date" class="form-control" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="submit" class="btn btn-success w-100">Deploy Exam to System</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
