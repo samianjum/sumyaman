@@ -1,4 +1,9 @@
-{% extends 'hq_admin_custom/dashboard.html' %}
+import os
+
+file_path = 'templates/hq_admin_custom/exam_window.html'
+
+# We keep your exact Modal IDs and Form Actions from the backup
+new_html = """{% extends 'hq_admin_custom/dashboard.html' %}
 {% block hq_content %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -198,3 +203,8 @@
     });
 </script>
 {% endblock %}
+"""
+
+with open(file_path, 'w') as f:
+    f.write(new_html)
+print("SUCCESS: Design updated with original system preserved.")
