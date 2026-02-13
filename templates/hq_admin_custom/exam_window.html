@@ -1,6 +1,124 @@
 {% extends 'hq_admin_custom/dashboard.html' %}
 {% block hq_content %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    // Universal Search: Grid aur List dono ke liye
+    document.getElementById('examSearch').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        
+        // 1. Grid View Filter
+        let gridItems = document.querySelectorAll('.exam-item');
+        gridItems.forEach(item => {
+            let name = item.getAttribute('data-name') || item.innerText.toLowerCase();
+            item.style.display = name.includes(filter) ? "" : "none";
+        });
+
+        // 2. List View Filter (Table Rows)
+        let listRows = document.querySelectorAll('#examListView tbody tr');
+        listRows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+        });
+    });
+
+
+    
+
+            // 2. List View Table Rows
+            document.querySelectorAll('#examListView tbody tr').forEach(row => {
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(filter) ? "" : "none";
+            });
+        });
+    }
+
+    function universalSearch() {
+        let filter = document.getElementById('examSearch').value.toLowerCase();
+        
+        // Grid Filter
+        document.querySelectorAll('.exam-item').forEach(card => {
+            let text = card.innerText.toLowerCase();
+            card.style.setProperty('display', text.includes(filter) ? '' : 'none', 'important');
+        });
+
+        // List Filter
+        document.querySelectorAll('#examListView tbody tr').forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.setProperty('display', text.includes(filter) ? '' : 'none', 'important');
+        });
+    }
+
+    // Event Listener lagana
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('examSearch');
+        if(searchInput) {
+            searchInput.addEventListener('input', universalSearch);
+        }
+    });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<style>
+    .exam-card { border-radius: 12px; transition: 0.3s; border: 1px solid #edf2f7; background: white; height: 100%; display: flex; flex-direction: column; }
+    .exam-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .view-btn { border-radius: 8px; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; margin-left: 5px; }
+    .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .list-view-container { display: none; background: white; border-radius: 12px; overflow: hidden; border: 1px solid #edf2f7; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    // Universal Search: Grid aur List dono ke liye
+    document.getElementById('examSearch').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        
+        // 1. Grid View Filter
+        let gridItems = document.querySelectorAll('.exam-item');
+        gridItems.forEach(item => {
+            let name = item.getAttribute('data-name') || item.innerText.toLowerCase();
+            item.style.display = name.includes(filter) ? "" : "none";
+        });
+
+        // 2. List View Filter (Table Rows)
+        let listRows = document.querySelectorAll('#examListView tbody tr');
+        listRows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+        });
+    });
+
+
+    
+
+            // 2. List View Table Rows
+            document.querySelectorAll('#examListView tbody tr').forEach(row => {
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(filter) ? "" : "none";
+            });
+        });
+    }
+
+    function universalSearch() {
+        let filter = document.getElementById('examSearch').value.toLowerCase();
+        
+        // Grid Filter
+        document.querySelectorAll('.exam-item').forEach(card => {
+            let text = card.innerText.toLowerCase();
+            card.style.setProperty('display', text.includes(filter) ? '' : 'none', 'important');
+        });
+
+        // List Filter
+        document.querySelectorAll('#examListView tbody tr').forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.setProperty('display', text.includes(filter) ? '' : 'none', 'important');
+        });
+    }
+
+    // Event Listener lagana
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('examSearch');
+        if(searchInput) {
+            searchInput.addEventListener('input', universalSearch);
+        }
+    });
+</script>
 
 <style>
     .hq-banner {
@@ -48,7 +166,37 @@
         </div>
     </div>
 
-    <div id="examGridView" class="row">
+    
+    <div id="examListView" class="list-view-container shadow-sm mb-4">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted small uppercase">
+                <tr>
+                    <th class="ps-4">Exam Details</th>
+                    <th>Target</th>
+                    <th>Status</th>
+                    <th>Timeline</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in exams %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="fw-bold text-dark">{{ exam.name }}</div>
+                        <small class="text-muted">ID: #EX-{{ exam.id }}</small>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{{ exam.class_group }}</span></td>
+                    <td><span class="status-dot bg-{{ exam.status_class }}"></span> {{ exam.status_label }}</td>
+                    <td class="small text-muted">{{ exam.start_date }} - {{ exam.end_date }}</td>
+                    <td class="text-end pe-4">
+                        <a href="{% url 'manage_subjects' exam.id %}" class="btn btn-sm btn-light border"><i class="fas fa-cog"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+<div id="examGridView" class="row">
         {% for exam in exams %}
         <div class="col-md-4 mb-4 exam-item" data-name="{{ exam.name|lower }}" data-class="{{ exam.class_group|lower }}">
             <div class="card shadow-sm exam-card h-100">
@@ -58,8 +206,7 @@
                         <i class="fas fa-ellipsis-v text-muted cursor-pointer" data-bs-toggle="dropdown"></i>
                         <ul class="dropdown-menu shadow border-0">
                             <li><a class="dropdown-item" href="{% url 'manage_subjects' exam.id %}"><i class="fas fa-book me-2"></i>Edit Subjects</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="confirmDelete('{% url 'delete_exam' exam.id %}')"><i class="fas fa-trash me-2"></i>Delete Exam</a></li>
+                            
                         </ul>
                     </div>
                 </div>
@@ -152,49 +299,121 @@
     </div>
 </div>
 
+
 <script>
-    function toggleView(view) {
-        if(view === 'grid') {
-            document.getElementById('examGridView').classList.remove('d-none');
-            document.getElementById('examListView').classList.add('d-none');
+    function toggleView(viewType) {
+        const gridView = document.getElementById('examGridView');
+        const listView = document.getElementById('examListView');
+        const gBtn = document.getElementById('gridBtn');
+        const lBtn = document.getElementById('listBtn');
+
+        if (viewType === 'grid') {
+            // Grid Show, List Hide
+            gridView.style.display = 'flex';
+            listView.style.display = 'none';
+            // Button Colors
+            gBtn.classList.replace('btn-outline-dark', 'btn-dark');
+            lBtn.classList.replace('btn-dark', 'btn-outline-dark');
         } else {
-            document.getElementById('examGridView').classList.add('d-none');
-            document.getElementById('examListView').classList.remove('d-none');
+            // List Show, Grid Hide
+            gridView.style.display = 'none';
+            listView.style.display = 'block';
+            // Button Colors
+            lBtn.classList.replace('btn-outline-dark', 'btn-dark');
+            gBtn.classList.replace('btn-dark', 'btn-outline-dark');
         }
     }
 
+    // Confirmation Logic
     function confirmToggle(url, isActive) {
-        let action = (isActive === 'True') ? 'Deactivate' : 'Activate';
+        let isAct = (isActive === 'True' || isActive === '1');
         Swal.fire({
-            title: action + ' Exam?',
-            text: "This will affect mark entry and attendance access!",
+            title: isAct ? 'Deactivate Exam?' : 'Activate Exam?',
+            text: isAct ? "Teachers won't be able to enter marks!" : "System will be opened for mark entry.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: (isActive === 'True') ? '#d33' : '#28a745',
-            confirmButtonText: 'Yes, ' + action + ' it!'
+            confirmButtonText: 'Yes, proceed!'
         }).then((result) => {
             if (result.isConfirmed) { window.location.href = url; }
         });
     }
 
-    function confirmDelete(url) {
-        Swal.fire({
-            title: 'Pakka delete karna hai?',
-            text: "Sara record (Marks/Subjects) khatam ho jaye ga!",
-            icon: 'error',
-            showCancelButton: true,
-            confirmButtonText: 'Delete Forever'
-        }).then((result) => {
-            if (result.isConfirmed) { window.location.href = url; }
-        });
-    }
-
-    document.getElementById('examSearch').addEventListener('keyup', function() {
-        let filter = this.value.toLowerCase();
-        document.querySelectorAll('.exam-item').forEach(item => {
-            let text = item.innerText.toLowerCase();
-            item.style.display = text.includes(filter) ? '' : 'none';
-        });
+    // Search Logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('examSearch');
+        if(searchInput) {
+            searchInput.addEventListener('input', function() {
+                let val = this.value.toLowerCase();
+                // Grid filter
+                document.querySelectorAll('.exam-item').forEach(el => {
+                    el.style.display = el.innerText.toLowerCase().includes(val) ? '' : 'none';
+                });
+                // List filter
+                document.querySelectorAll('#examListView tbody tr').forEach(el => {
+                    el.style.display = el.innerText.toLowerCase().includes(val) ? '' : 'none';
+                });
+            });
+        }
     });
 </script>
+
+
+
+<script>
+    function toggleView(viewType) {
+        const gridView = document.getElementById('examGridView');
+        const listView = document.getElementById('examListView');
+        const gBtn = document.getElementById('gridBtn');
+        const lBtn = document.getElementById('listBtn');
+
+        if (viewType === 'grid') {
+            // Grid Show, List Hide
+            gridView.style.display = 'flex';
+            listView.style.display = 'none';
+            // Button Colors
+            gBtn.classList.replace('btn-outline-dark', 'btn-dark');
+            lBtn.classList.replace('btn-dark', 'btn-outline-dark');
+        } else {
+            // List Show, Grid Hide
+            gridView.style.display = 'none';
+            listView.style.display = 'block';
+            // Button Colors
+            lBtn.classList.replace('btn-outline-dark', 'btn-dark');
+            gBtn.classList.replace('btn-dark', 'btn-outline-dark');
+        }
+    }
+
+    // Confirmation Logic
+    function confirmToggle(url, isActive) {
+        let isAct = (isActive === 'True' || isActive === '1');
+        Swal.fire({
+            title: isAct ? 'Deactivate Exam?' : 'Activate Exam?',
+            text: isAct ? "Teachers won't be able to enter marks!" : "System will be opened for mark entry.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, proceed!'
+        }).then((result) => {
+            if (result.isConfirmed) { window.location.href = url; }
+        });
+    }
+
+    // Search Logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('examSearch');
+        if(searchInput) {
+            searchInput.addEventListener('input', function() {
+                let val = this.value.toLowerCase();
+                // Grid filter
+                document.querySelectorAll('.exam-item').forEach(el => {
+                    el.style.display = el.innerText.toLowerCase().includes(val) ? '' : 'none';
+                });
+                // List filter
+                document.querySelectorAll('#examListView tbody tr').forEach(el => {
+                    el.style.display = el.innerText.toLowerCase().includes(val) ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>
+
 {% endblock %}

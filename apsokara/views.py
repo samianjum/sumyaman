@@ -193,7 +193,7 @@ from .models import Student
 
 @login_required
 def exam_window_view(request):
-    conn = sqlite3.connect('db.sqlite3')
+    conn = sqlite3.connect('db.sqlite3', timeout=20)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     today = timezone.now().date().isoformat()
@@ -227,7 +227,7 @@ def create_exam_view(request):
         s_date = request.POST.get('start_date')
         e_date = request.POST.get('end_date')
         if name and group and s_date and e_date:
-            conn = sqlite3.connect('db.sqlite3')
+            conn = sqlite3.connect('db.sqlite3', timeout=20)
             c = conn.cursor()
             c.execute("INSERT INTO exams (name, class_group, start_date, end_date) VALUES (?, ?, ?, ?)", 
                       (name, group, s_date, e_date))
@@ -238,7 +238,7 @@ def create_exam_view(request):
 @login_required
 def delete_exam_view(request, exam_id):
     import sqlite3
-    conn = sqlite3.connect('db.sqlite3')
+    conn = sqlite3.connect('db.sqlite3', timeout=20)
     c = conn.cursor()
     c.execute("DELETE FROM exams WHERE id = ?", (exam_id,))
     # Saath hi us exam ke saare marks bhi delete ho jayein (Cleanup)
@@ -250,18 +250,23 @@ def delete_exam_view(request, exam_id):
 @login_required
 def toggle_exam_status(request, exam_id):
     import sqlite3
-    conn = sqlite3.connect('db.sqlite3')
+    # 20 second wait karega agar DB busy ho
+    conn = sqlite3.connect('db.sqlite3', timeout=20)
+    conn.execute('PRAGMA journal_mode=WAL;') # WAL mode concurrency behtar karta hai
     c = conn.cursor()
-    # Status flip logic (1 to 0 or 0 to 1)
-    c.execute("UPDATE exams SET is_active = NOT is_active WHERE id = ?", (exam_id,))
-    conn.commit()
-    conn.close()
+    try:
+        c.execute("UPDATE exams SET is_active = NOT is_active WHERE id = ?", (exam_id,))
+        conn.commit()
+    except Exception as e:
+        print(f"Database Error: {e}")
+    finally:
+        conn.close()
     return redirect('exam_window')
 
 @login_required
 def manage_subjects_view(request, exam_id):
     import sqlite3
-    conn = sqlite3.connect('db.sqlite3')
+    conn = sqlite3.connect('db.sqlite3', timeout=20)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     if request.method == 'POST':
