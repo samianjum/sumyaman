@@ -210,6 +210,14 @@ def exam_window_view(request):
             exam['status_label'], exam['status_class'] = "UPCOMING", "warning"
         else:
             exam['status_label'], exam['status_class'] = "RUNNING", "success"
+                # Analytics Data
+        c.execute("SELECT COUNT(*) FROM exam_subjects WHERE exam_id = ?", (exam['id'],))
+        t_sub = c.fetchone()[0]
+        c.execute("SELECT COUNT(DISTINCT subject_id) FROM student_marks WHERE exam_id = ?", (exam['id'],))
+        u_sub = c.fetchone()[0]
+        exam['progress'] = int((u_sub/t_sub)*100) if t_sub > 0 else 0
+        exam['uploaded_subs'] = u_sub
+        exam['total_subs'] = t_sub
         exams_list.append(exam)
     distinct_classes = Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class')
     conn.close()
@@ -283,3 +291,50 @@ def manage_subjects_view(request, exam_id):
     exam_name = c.fetchone()[0]
     conn.close()
     return render(request, 'hq_admin_custom/manage_subjects.html', {'subjects': subjects, 'exam_id': exam_id, 'exam_name': exam_name})
+
+@login_required
+
+
+@login_required
+def exam_analytics_view(request, exam_id):
+    import sqlite3
+    import os
+    from django.conf import settings
+    
+    db_path = os.path.join(settings.BASE_DIR, 'db.sqlite3')
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    # 1. Get Exam Details (Table name: exams)
+    c.execute("SELECT * FROM exams WHERE id = ?", (exam_id,))
+    exam = c.fetchone()
+
+    # 2. Get Subject-wise Stats (Table names: student_marks, apsokara_subject)
+    # Note: Agar 'apsokara_subject' na chalay to hum isay bhi 'subjects' check kar lenge
+    c.execute("""
+        SELECT s.name as subject_name, 
+               AVG(m.obtained_marks) as avg_m, 
+               MAX(m.obtained_marks) as max_m,
+               COUNT(m.student_id) as total_s
+        FROM student_marks m
+        JOIN apsokara_subject s ON m.subject_id = s.id
+        WHERE m.exam_id = ?
+        GROUP BY s.id
+    """, (exam_id,))
+    stats = c.fetchall()
+
+    # 3. Get Total Unique Students
+    c.execute("SELECT COUNT(DISTINCT student_id) FROM student_marks WHERE exam_id = ?", (exam_id,))
+    total_students = c.fetchone()[0] or 0
+
+    conn.close()
+
+    context = {
+        'exam': exam,
+        'stats': stats,
+        'total_students': total_students,
+    }
+    return render(request, 'hq_admin_custom/exam_analytics.html', context)
+
+

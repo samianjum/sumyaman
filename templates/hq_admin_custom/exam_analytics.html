@@ -1,59 +1,99 @@
-{% extends 'hq_admin_custom/dashboard.html' %}
+{% extends 'hq_admin_custom/base.html' %}
 {% block content %}
-<div class="container-fluid" style="margin-top: 90px; padding: 20px 35px;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold text-dark">Exam Progress Analytics</h3>
-            <p class="text-muted">Live monitoring of marks entry by teachers</p>
-        </div>
-        <a href="{% url 'exam_window' %}" class="btn btn-outline-secondary shadow-sm">
-            <i class="fas fa-arrow-left"></i> Back to Control Center
-        </a>
-    </div>
-
+<div class="container-fluid py-4" style="margin-top: 70px;">
     <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm border-0 bg-dark text-white p-4">
-                <h5 class="mb-0">Total System Entries: <span class="display-6 fw-bold">{{ total_entries }}</span></h5>
+        <div class="col-12">
+            <div class="card border-0 rounded-3 shadow-sm" style="background: var(--hq-primary); color: white;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="fw-bold mb-1"><i class="fas fa-chart-line me-2" style="color: var(--hq-accent);"></i>Exam Analytics</h3>
+                            <p class="mb-0 opacity-75">Detailed Performance Report: <strong>{{ exam.name }}</strong></p>
+                        </div>
+                        <a href="{% url 'exam_window' %}" class="btn btn-sm px-3 rounded-2" style="background: var(--hq-accent); color: white; border: none;">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
-            <h5 class="fw-bold mb-4">Class-wise Reporting Status</h5>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>Class</th>
-                            <th>Marks Entered</th>
-                            <th width="50%">Progress Bar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in progress %}
-                        <tr>
-                            <td class="fw-bold">Class {{ item.student_class }}</td>
-                            <td><span class="badge bg-secondary text-dark">{{ item.entries }} Records</span></td>
-                            <td>
-                                <div class="progress" style="height: 10px; border-radius: 10px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-accent" 
-                                         role="progressbar" 
-                                         style="width: {% if item.entries > 100 %}100{% else %}{{ item.entries }}{% endif %}%">
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center py-4">No progress data available yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 rounded-3 border-start border-4" style="border-color: var(--hq-accent) !important;">
+                <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Class Group</small>
+                <span class="fw-bold h5 mb-0">{{ exam.class_group }}</span>
             </div>
         </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 rounded-3">
+                <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Duration</small>
+                <span class="fw-bold mb-0" style="font-size: 0.9rem;">{{ exam.start_date }} <i class="fas fa-long-arrow-alt-right mx-1 opacity-50"></i> {{ exam.end_date }}</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 rounded-3">
+                <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Students</small>
+                <span class="fw-bold h5 mb-0" style="color: var(--hq-accent);">{{ total_students }}</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 rounded-3">
+                <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Subjects</small>
+                <span class="fw-bold h5 mb-0 text-dark">{{ stats|length }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {% for s in stats %}
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div style="background: #f1f5f9; padding: 10px; border-radius: 8px;">
+                            <i class="fas fa-book" style="color: var(--hq-primary);"></i>
+                        </div>
+                        <span class="badge" style="background: var(--hq-accent); color: white;">Subject</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-3">{{ s.subject_name }}</h6>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1 text-muted">
+                            <span>Average Score</span>
+                            <span class="fw-bold" style="color: var(--hq-primary);">{{ s.avg_m|floatformat:1 }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px; background: #e2e8f0;">
+                            <div class="progress-bar" style="width: {{ s.avg_m }}%; background: var(--hq-primary);"></div>
+                        </div>
+                    </div>
+                    <div class="row border-top pt-3 mt-auto">
+                        <div class="col-6 border-end text-center">
+                            <small class="text-muted d-block">Highest</small>
+                            <span class="fw-bold" style="color: var(--hq-accent);">{{ s.max_m }}</span>
+                        </div>
+                        <div class="col-6 text-center">
+                            <small class="text-muted d-block">Total</small>
+                            <span class="fw-bold text-dark">{{ s.total_s }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="card border-0 shadow-sm p-5 rounded-4 bg-white text-muted">
+                <i class="fas fa-info-circle fa-3x mb-3 opacity-25"></i>
+                <h5>No Subject Data</h5>
+                <p class="small">Enter marks for this exam to see performance cards here.</p>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
-{% endblock content %}
+
+<style>
+    .card { transition: all 0.3s ease; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
+</style>
+{% endblock %}

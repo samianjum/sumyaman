@@ -218,13 +218,23 @@
                         <span><i class="far fa-calendar-check me-1"></i> {{ exam.end_date }}</span>
                     </div>
                     
-                    <div class="d-grid gap-2">
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="fw-bold">Progress</span>
+                            <span>{{ exam.uploaded_subs }}/{{ exam.total_subs }} Subjects</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: {{ exam.progress }}%"></div>
+                        </div>
+                    </div>
+<div class="d-grid gap-2">
                         <a href="javascript:void(0)" 
                            onclick="confirmToggle('{% url 'toggle_exam' exam.id %}', '{{ exam.is_active }}')" 
                            class="btn btn-sm btn-{{ exam.is_active|yesno:'outline-danger,success' }} fw-bold">
                            <i class="fas fa-power-off me-1"></i> {{ exam.is_active|yesno:'Deactivate,Activate' }}
                         </a>
-                        <button class="btn btn-sm btn-dark"><i class="fas fa-chart-bar me-1"></i> Analytics</button>
+                        <a href="{% url 'exam_analytics' exam.id %}" class="btn btn-sm btn-dark"><i class="fas fa-chart-bar me-1"></i> Analytics</a>
                     </div>
                 </div>
             </div>
