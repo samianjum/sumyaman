@@ -1,0 +1,33 @@
+
+<div class="col-md-4 mb-4">
+    <div class="card shadow-sm h-100 border-0" style="border-radius: 15px;">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+            <span class="badge bg-{{ exam.status_class }} px-3 py-2">{{ exam.status_label }}</span>
+            <a href="{% url 'manage_subjects' exam.id %}" class="text-muted"><i class="fas fa-cog"></i></a>
+        </div>
+        <div class="card-body">
+            <h5 class="fw-bold mb-1">{{ exam.name }}</h5>
+            <p class="text-muted small mb-3">Class: <span class="badge bg-light text-dark">{{ exam.class_group }}</span></p>
+            
+            <div class="mb-3">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span>Progress</span>
+                    <span>{{ exam.uploaded_subs }}/{{ exam.total_subs }} Subjects</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-primary" style="width: {{ exam.progress }}%"></div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                {% if show_toggle %}
+                <a href="javascript:void(0)" onclick="confirmToggle('{% url 'toggle_exam' exam.id %}', '{{ exam.is_active }}')" 
+                   class="btn btn-sm btn-{{ exam.is_active|yesno:'outline-danger,success' }} fw-bold">
+                   <i class="fas fa-power-off me-1"></i> {{ exam.is_active|yesno:'Deactivate,Activate' }}
+                </a>
+                {% endif %}
+                <a href="{% url 'exam_analytics' exam.id %}" class="btn btn-sm btn-dark"><i class="fas fa-chart-bar me-1"></i> Analytics</a>
+            </div>
+        </div>
+    </div>
+</div>

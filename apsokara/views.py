@@ -191,26 +191,29 @@ import sqlite3
 from django.utils import timezone
 from .models import Student
 
+
 @login_required
 def exam_window_view(request):
+    import sqlite3
+    from django.utils import timezone
     conn = sqlite3.connect('db.sqlite3', timeout=20)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
+    
     today = timezone.now().date().isoformat()
     c.execute("SELECT * FROM exams ORDER BY created_at DESC")
     exams_raw = c.fetchall()
-    exams_list = []
+    
+    running_exams = []
+    pending_exams = []
+    expired_exams = []
+    
     for row in exams_raw:
         exam = dict(row)
         sd = str(exam.get('start_date', ''))
         ed = str(exam.get('end_date', ''))
-        if today > ed:
-            exam['status_label'], exam['status_class'] = "EXPIRED", "secondary"
-        elif today < sd:
-            exam['status_label'], exam['status_class'] = "UPCOMING", "warning"
-        else:
-            exam['status_label'], exam['status_class'] = "RUNNING", "success"
-                # Analytics Data
+        
+        # Calculate Progress
         c.execute("SELECT COUNT(*) FROM exam_subjects WHERE exam_id = ?", (exam['id'],))
         t_sub = c.fetchone()[0]
         c.execute("SELECT COUNT(DISTINCT subject_id) FROM student_marks WHERE exam_id = ?", (exam['id'],))
@@ -218,14 +221,29 @@ def exam_window_view(request):
         exam['progress'] = int((u_sub/t_sub)*100) if t_sub > 0 else 0
         exam['uploaded_subs'] = u_sub
         exam['total_subs'] = t_sub
-        exams_list.append(exam)
+
+        # Categorization Logic
+        if today > ed:
+            exam['status_label'], exam['status_class'] = "EXPIRED", "secondary"
+            expired_exams.append(exam)
+        elif today < sd:
+            exam['status_label'], exam['status_class'] = "UPCOMING", "warning"
+            pending_exams.append(exam)
+        else:
+            exam['status_label'], exam['status_class'] = "RUNNING", "success"
+            running_exams.append(exam)
+            
     distinct_classes = Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class')
     conn.close()
+    
     return render(request, 'hq_admin_custom/exam_window.html', {
-        'exams': exams_list,
+        'running_exams': running_exams,
+        'pending_exams': pending_exams,
+        'expired_exams': expired_exams,
         'class_list': distinct_classes,
         'today': today
     })
+
 
 @login_required
 def create_exam_view(request):
@@ -255,21 +273,35 @@ def delete_exam_view(request, exam_id):
     conn.close()
     return redirect('exam_window')
 
+
+
 @login_required
 def toggle_exam_status(request, exam_id):
     import sqlite3
-    # 20 second wait karega agar DB busy ho
-    conn = sqlite3.connect('db.sqlite3', timeout=20)
-    conn.execute('PRAGMA journal_mode=WAL;') # WAL mode concurrency behtar karta hai
-    c = conn.cursor()
+    from django.shortcuts import redirect
+    
+    db_path = 'db.sqlite3'
+    conn = sqlite3.connect(db_path, timeout=30)
     try:
-        c.execute("UPDATE exams SET is_active = NOT is_active WHERE id = ?", (exam_id,))
-        conn.commit()
+        conn.execute('PRAGMA journal_mode=WAL;')
+        c = conn.cursor()
+        
+        # Current status check
+        c.execute("SELECT is_active FROM exams WHERE id = ?", (exam_id,))
+        row = c.fetchone()
+        if row:
+            # Toggle logic: 1 to 0, 0 to 1
+            new_status = 0 if row[0] == 1 else 1
+            c.execute("UPDATE exams SET is_active = ? WHERE id = ?", (new_status, exam_id))
+            conn.commit()
+            print(f"--- SUCCESS: Exam {exam_id} set to {new_status} ---")
     except Exception as e:
-        print(f"Database Error: {e}")
+        print(f"--- ERROR: {e} ---")
     finally:
         conn.close()
     return redirect('exam_window')
+
+
 
 @login_required
 def manage_subjects_view(request, exam_id):

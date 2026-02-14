@@ -7,7 +7,7 @@ def render_marks_entry(u):
     conn = sqlite3.connect('db.sqlite3')
     today = date.today().isoformat()
     
-    q_exams = 'SELECT DISTINCT e.* FROM exams e JOIN apsokara_subjectassignment sa ON sa.student_class = e.class_group WHERE e.start_date <= ? AND e.end_date >= ? AND sa.teacher_id = ?'
+    q_exams = 'SELECT DISTINCT e.* FROM exams e JOIN apsokara_subjectassignment sa ON sa.student_class = e.class_group WHERE e.is_active = 1 AND e.start_date <= ? AND e.end_date >= ? AND sa.teacher_id = ?'
     active_exams = pd.read_sql_query(q_exams, conn, params=(today, today, u['id']))
     
     if active_exams.empty:

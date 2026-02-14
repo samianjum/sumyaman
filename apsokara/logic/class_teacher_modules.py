@@ -18,15 +18,21 @@ def render_leave_approvals(u):
                         conn.execute('UPDATE apsokara_studentleave SET status="Approved" WHERE id=?', (r['id'],))
                     st.rerun()
 
+
 def render_final_upload(u):
     conn = sqlite3.connect('db.sqlite3')
-    exam = pd.read_sql_query('SELECT * FROM exams WHERE class_group=? AND is_active=1', conn, params=(u['class'],))
+    today = date.today().isoformat()
+    
+    # Check for exam that is BOTH active AND within date range
+    query = 'SELECT * FROM exams WHERE class_group=? AND is_active=1 AND start_date <= ? AND end_date >= ?'
+    exam = pd.read_sql_query(query, conn, params=(u['class'], today, today))
     
     if exam.empty:
         st.markdown(f'<div style="background:linear-gradient(90deg, #1b4332, #081c15); padding:20px; border-radius:15px; border-bottom:5px solid #d4af37; text-align:center; margin-bottom:25px;"><h2 style="color:white; margin:0;">📤 FINAL RESULT DASHBOARD</h2><p style="color:#d4af37; margin:0;">{u.get("class")} - {u.get("sec")} | {u.get("wing")}</p></div>', unsafe_allow_html=True)
-        st.info('📢 No active exam found for your class group.')
+        st.info('📢 NO LIVE EXAM SESSION FOUND. Deactivated by HQ or Session Expired.')
         conn.close()
         return
+
     
     ex_name = exam.iloc[0]['name']
     ex_id = int(exam.iloc[0]['id'])
@@ -74,12 +80,14 @@ def render_final_upload(u):
         with st.form("final_publish_form"):
             remarks_dict = {}
             for _, s in students.iterrows():
-                marks_q = "SELECT obtained_marks, total_marks FROM student_marks WHERE exam_id=? AND student_id=? AND subject_id > 0"
+                marks_q = "SELECT obtained_marks, total_marks, subject_id FROM student_marks WHERE exam_id=? AND student_id=? AND subject_id > 0"
                 m_df = pd.read_sql_query(marks_q, conn, params=(ex_id, s['id']))
                 total_obt = m_df['obtained_marks'].sum()
                 total_max = m_df['total_marks'].sum()
                 perc = (total_obt / total_max * 100) if total_max > 0 else 0
-                fails = len(m_df[m_df['obtained_marks'] < (m_df['total_marks'] * 0.33)])
+                # Ensure unique subjects for the current exam to avoid duplicate fail counting
+                unique_marks = m_df.drop_duplicates(subset=['subject_id'])
+                fails = len(unique_marks[unique_marks['obtained_marks'] < (unique_marks['total_marks'] * 0.33)])
                 status_color = "#ef4444" if fails > 0 else "#16a34a"
                 
                 st.markdown(f'''
