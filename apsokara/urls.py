@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('exams/analytics/<int:exam_id>/', views.exam_analytics_view, name='exam_analytics'),
+    path('exams/analytics/<int:exam_id>/class/<str:class_name>/', views.exam_class_detail_view, name='exam_class_analytics'),
     # Exam System (Priority)
     path('exams/', views.exam_window_view, name='exam_window'),
     path('exams/create/', views.create_exam_view, name='create_exam'),

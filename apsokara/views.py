@@ -1,3 +1,4 @@
+import json
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -328,45 +329,167 @@ def manage_subjects_view(request, exam_id):
 
 
 @login_required
+
+@login_required
+
+@login_required
+
+@login_required
+
+@login_required
+
+@login_required
+
+@login_required
 def exam_analytics_view(request, exam_id):
+    from django.db.models import Sum, Avg, Max, Count
+    from .models import Student, Teacher
     import sqlite3
+
+    # 1. Fetch Exam (Using raw for the 'exams' table since it's outside standard models)
     import os
     from django.conf import settings
-    
     db_path = os.path.join(settings.BASE_DIR, 'db.sqlite3')
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-
-    # 1. Get Exam Details (Table name: exams)
     c.execute("SELECT * FROM exams WHERE id = ?", (exam_id,))
     exam = c.fetchone()
+    conn.close()
 
-    # 2. Get Subject-wise Stats (Table names: student_marks, apsokara_subject)
-    # Note: Agar 'apsokara_subject' na chalay to hum isay bhi 'subjects' check kar lenge
+    # 2. STRICT TOP 3 - Using Django ORM for safety
+    # We calculate based on student_marks table
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT st.id, st.full_name, st.father_name, st.roll_number, st.student_class, 
+                   st.student_section, st.wing,
+                   SUM(m.obtained_marks) as grand_total
+            FROM apsokara_student st
+            JOIN student_marks m ON st.id = m.student_id
+            WHERE m.exam_id = %s
+            GROUP BY st.id
+            ORDER BY grand_total DESC
+            LIMIT 3
+        """, [exam_id])
+        toppers = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+    # 3. Subject-wise + ALL Faculty Names (Safe check for field names)
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT s.name as subject_name, 
+                   AVG(m.obtained_marks) as avg_m, 
+                   MAX(m.obtained_marks) as max_m
+            FROM student_marks m
+            JOIN apsokara_subject s ON m.subject_id = s.id
+            WHERE m.exam_id = %s
+            GROUP BY s.id
+        """, [exam_id])
+        stats_raw = cursor.fetchall()
+        
+        stats = []
+        for row in stats_raw:
+            sub_name = row[0]
+            # Get all teachers for this subject - Safe filtering
+            teachers = Teacher.objects.filter(Q(assignments__subject__name__icontains=sub_name) | Q(assigned_class__icontains=exam['class_group'] if exam else ""))
+            teacher_list = ", ".join([t.full_name for t in teachers])
+            stats.append({
+                'subject_name': sub_name,
+                'avg_m': row[1],
+                'max_m': row[2],
+                'teacher_names': teacher_list if teacher_list else "No Faculty Assigned"
+            })
+
+    # 4. Deep Class/Section/Wing Breakdown
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT st.student_class, st.student_section, st.wing,
+                   COUNT(DISTINCT st.id) as total_students,
+                   AVG(m.obtained_marks) as class_avg
+            FROM apsokara_student st
+            JOIN student_marks m ON st.id = m.student_id
+            WHERE m.exam_id = %s
+            GROUP BY st.student_class, st.student_section, st.wing
+        """, [exam_id])
+        class_breakdown = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+    
+    # --- PRO ANALYTICS START ---
+    radar_labels = []
+    radar_scores = []
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT s.name, AVG(m.obtained_marks) 
+            FROM student_marks m 
+            JOIN apsokara_subject s ON m.subject_id = s.id 
+            WHERE m.exam_id = %s GROUP BY s.id
+        """, [exam_id])
+        for row in cursor.fetchall():
+            radar_labels.append(row[0])
+            radar_scores.append(float(row[1]))
+
+    # Grade Distribution (Simplified for SQLite)
+    grade_data = []
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT st.student_class,
+                SUM(CASE WHEN m.obtained_marks >= 80 THEN 1 ELSE 0 END) as A,
+                SUM(CASE WHEN m.obtained_marks BETWEEN 50 AND 79 THEN 1 ELSE 0 END) as B,
+                SUM(CASE WHEN m.obtained_marks < 50 THEN 1 ELSE 0 END) as F
+            FROM student_marks m
+            JOIN apsokara_student st ON m.student_id = st.id
+            WHERE m.exam_id = %s
+            GROUP BY st.student_class
+        """, [exam_id])
+        grade_data = [dict(zip(['class_name', 'A', 'B', 'F'], r)) for r in cursor.fetchall()]
+    # --- PRO ANALYTICS END ---
+
+    context = {         'exam': exam, 'toppers': toppers, 'stats': stats, 'class_breakdown': class_breakdown,         'radar_labels': json.dumps(radar_labels), 'radar_scores': json.dumps(radar_scores),         'grade_data': json.dumps(grade_data)     }
+    return render(request, 'hq_admin_custom/exam_analytics.html', context)
+
+
+
+
+
+
+
+
+
+@login_required
+def exam_class_detail_view(request, exam_id, class_name):
+    import sqlite3
+    conn = sqlite3.connect('db.sqlite3')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    
+    # Class-wise subjects stats
     c.execute("""
-        SELECT s.name as subject_name, 
+        SELECT s.name as subject_name, s.id as subject_id,
                AVG(m.obtained_marks) as avg_m, 
                MAX(m.obtained_marks) as max_m,
                COUNT(m.student_id) as total_s
         FROM student_marks m
         JOIN apsokara_subject s ON m.subject_id = s.id
-        WHERE m.exam_id = ?
+        JOIN apsokara_student st ON m.student_id = st.id
+        WHERE m.exam_id = ? AND st.student_class = ?
         GROUP BY s.id
-    """, (exam_id,))
-    stats = c.fetchall()
-
-    # 3. Get Total Unique Students
-    c.execute("SELECT COUNT(DISTINCT student_id) FROM student_marks WHERE exam_id = ?", (exam_id,))
-    total_students = c.fetchone()[0] or 0
-
+    """, (exam_id, class_name))
+    subject_stats = c.fetchall()
+    
+    # Student List for this class in this exam
+    c.execute("""
+        SELECT st.id, st.full_name, st.roll_number, 
+               SUM(m.obtained_marks) as total_obtained,
+               COUNT(m.subject_id) as subs_count
+        FROM apsokara_student st
+        LEFT JOIN student_marks m ON st.id = m.student_id AND m.exam_id = ?
+        WHERE st.student_class = ?
+        GROUP BY st.id
+    """, (exam_id, class_name))
+    students = c.fetchall()
+    
     conn.close()
-
-    context = {
-        'exam': exam,
-        'stats': stats,
-        'total_students': total_students,
-    }
-    return render(request, 'hq_admin_custom/exam_analytics.html', context)
-
-
+    return render(request, 'hq_admin_custom/exam_class_detail.html', {
+        'exam_id': exam_id, 'class_name': class_name, 
+        'subject_stats': subject_stats, 'students': students
+    })

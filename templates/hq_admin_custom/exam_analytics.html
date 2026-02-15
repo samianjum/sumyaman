@@ -1,99 +1,137 @@
 {% extends 'hq_admin_custom/base.html' %}
 {% block content %}
-<div class="container-fluid py-4" style="margin-top: 70px;">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 rounded-3 shadow-sm" style="background: var(--hq-primary); color: white;">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="fw-bold mb-1"><i class="fas fa-chart-line me-2" style="color: var(--hq-accent);"></i>Exam Analytics</h3>
-                            <p class="mb-0 opacity-75">Detailed Performance Report: <strong>{{ exam.name }}</strong></p>
-                        </div>
-                        <a href="{% url 'exam_window' %}" class="btn btn-sm px-3 rounded-2" style="background: var(--hq-accent); color: white; border: none;">
-                            <i class="fas fa-arrow-left me-1"></i> Back
-                        </a>
-                    </div>
-                </div>
-            </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h4 class="fw-bold text-dark mb-0 text-uppercase tracking-wider">{{ exam.name }}</h4>
+            <small class="text-muted">Intelligence Report: {{ exam.class_group }} | Generated: {% now "Y-m-d H:i" %}</small>
         </div>
+        <button class="btn btn-outline-dark btn-sm shadow-sm" onclick="window.print()">
+            <i class="fas fa-print"></i> Export PDF
+        </button>
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-3 rounded-3 border-start border-4" style="border-color: var(--hq-accent) !important;">
-                <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Class Group</small>
-                <span class="fw-bold h5 mb-0">{{ exam.class_group }}</span>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-3 rounded-3">
-                <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Duration</small>
-                <span class="fw-bold mb-0" style="font-size: 0.9rem;">{{ exam.start_date }} <i class="fas fa-long-arrow-alt-right mx-1 opacity-50"></i> {{ exam.end_date }}</span>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-3 rounded-3">
-                <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Students</small>
-                <span class="fw-bold h5 mb-0" style="color: var(--hq-accent);">{{ total_students }}</span>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-3 rounded-3">
-                <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Subjects</small>
-                <span class="fw-bold h5 mb-0 text-dark">{{ stats|length }}</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3">
-        {% for s in stats %}
-        <div class="col-md-4 col-lg-3">
-            <div class="card border-0 shadow-sm rounded-3 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div style="background: #f1f5f9; padding: 10px; border-radius: 8px;">
-                            <i class="fas fa-book" style="color: var(--hq-primary);"></i>
-                        </div>
-                        <span class="badge" style="background: var(--hq-accent); color: white;">Subject</span>
-                    </div>
-                    <h6 class="fw-bold text-dark mb-3">{{ s.subject_name }}</h6>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between small mb-1 text-muted">
-                            <span>Average Score</span>
-                            <span class="fw-bold" style="color: var(--hq-primary);">{{ s.avg_m|floatformat:1 }}</span>
-                        </div>
-                        <div class="progress" style="height: 6px; background: #e2e8f0;">
-                            <div class="progress-bar" style="width: {{ s.avg_m }}%; background: var(--hq-primary);"></div>
-                        </div>
-                    </div>
-                    <div class="row border-top pt-3 mt-auto">
-                        <div class="col-6 border-end text-center">
-                            <small class="text-muted d-block">Highest</small>
-                            <span class="fw-bold" style="color: var(--hq-accent);">{{ s.max_m }}</span>
-                        </div>
-                        <div class="col-6 text-center">
-                            <small class="text-muted d-block">Total</small>
-                            <span class="fw-bold text-dark">{{ s.total_s }}</span>
-                        </div>
-                    </div>
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-3">
+                    <p class="text-muted small text-uppercase mb-1">Topper Score</p>
+                    <h3 class="fw-bold mb-0">{% if toppers %}{{ toppers.0.grand_total }}{% else %}0{% endif %}</h3>
                 </div>
             </div>
         </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <div class="card border-0 shadow-sm p-5 rounded-4 bg-white text-muted">
-                <i class="fas fa-info-circle fa-3x mb-3 opacity-25"></i>
-                <h5>No Subject Data</h5>
-                <p class="small">Enter marks for this exam to see performance cards here.</p>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-primary">
+                <div class="card-body p-3">
+                    <p class="text-muted small text-uppercase mb-1">Total Subjects</p>
+                    <h3 class="fw-bold mb-0">{{ stats|length }}</h3>
+                </div>
             </div>
         </div>
-        {% endfor %}
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-3">
+                    <p class="text-muted small text-uppercase mb-1">Sections Analyzed</p>
+                    <h3 class="fw-bold mb-0">{{ class_breakdown|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-5">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0 font-weight-bold">SUBJECT STRENGTH MATRIX</div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="subjectRadar" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0 font-weight-bold">GRADE DISTRIBUTION (SECTION-WISE)</div>
+                <div class="card-body">
+                    <canvas id="gradeBarChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0">
+            <h6 class="mb-0 fw-bold">FACULTY PERFORMANCE & SUBJECT ANALYTICS</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">SUBJECT NAME</th>
+                        <th>ASSIGNED FACULTY</th>
+                        <th class="text-center">AVG %</th>
+                        <th class="text-end pe-4">PEAK SCORE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in stats %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-dark">{{ s.subject_name }}</td>
+                        <td class="text-muted small">{{ s.teacher_names }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border">{{ s.avg_m|floatformat:1 }}%</span>
+                        </td>
+                        <td class="text-end pe-4 fw-bold text-primary">{{ s.max_m }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<style>
-    .card { transition: all 0.3s ease; }
-    .card:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important; }
-</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // System Config
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
+    };
+
+    // Radar Chart
+    new Chart(document.getElementById('subjectRadar'), {
+        type: 'radar',
+        data: {
+            labels: {{ radar_labels|safe }},
+            datasets: [{
+                data: {{ radar_scores|safe }},
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                borderColor: '#007bff',
+                borderWidth: 2,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            scales: { r: { beginAtZero: true, max: 100 } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Bar Chart
+    const gradeData = {{ grade_data|safe }};
+    new Chart(document.getElementById('gradeBarChart'), {
+        type: 'bar',
+        data: {
+            labels: gradeData.map(d => d.class_name),
+            datasets: [
+                { label: 'A (80+)', data: gradeData.map(d => d.A), backgroundColor: '#28a745' },
+                { label: 'B (50-79)', data: gradeData.map(d => d.B), backgroundColor: '#ffc107' },
+                { label: 'F (<50)', data: gradeData.map(d => d.F), backgroundColor: '#dc3545' }
+            ]
+        },
+        options: {
+            scales: { y: { stacked: true }, x: { stacked: true } },
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+        }
+    });
+</script>
 {% endblock %}

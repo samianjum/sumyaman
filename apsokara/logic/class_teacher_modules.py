@@ -24,7 +24,7 @@ def render_final_upload(u):
     today = date.today().isoformat()
     
     # Check for exam that is BOTH active AND within date range
-    query = 'SELECT * FROM exams WHERE class_group=? AND is_active=1 AND start_date <= ? AND end_date >= ?'
+    query = 'SELECT * FROM exams WHERE class_group=? AND is_active=1 AND start_date <= ? AND end_date >= ? ORDER BY id DESC LIMIT 1'
     exam = pd.read_sql_query(query, conn, params=(u['class'], today, today))
     
     if exam.empty:
@@ -71,39 +71,32 @@ def render_final_upload(u):
         cols[i % 3].markdown(f'<div style="background:{bg}; border:1px solid {border}; padding:10px; border-radius:8px; margin-bottom:10px;"><div style="font-size:10px; font-weight:bold; color:{border};">{"● SUBMITTED" if done else "○ PENDING"}</div><div style="font-size:13px; font-weight:700; color:#1b4332;">{row["Subject"]}</div><div style="font-size:10px; color:#64748b;">{row["Teacher"]}</div></div>', unsafe_allow_html=True)
 
     is_ready = (status_df['entries'] > 0).all() if not status_df.empty else False
-    
+
     if is_ready:
         st.markdown('---')
         st.markdown('### 📊 Class Performance & Remarks')
         students = pd.read_sql_query('SELECT id, full_name, father_name, roll_number FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?', conn, params=(u['class'], u['sec'], u['wing']))
         
-        with st.form("final_publish_form"):
+        all_marks_q = 'SELECT id, student_id, obtained_marks, total_marks, subject_id FROM student_marks WHERE exam_id=? AND subject_id > 0'
+        all_marks_df = pd.read_sql_query(all_marks_q, conn, params=(ex_id,))
+
+        with st.form(key=f'final_publish_form_{ex_id}'):
             remarks_dict = {}
             for _, s in students.iterrows():
-                marks_q = "SELECT obtained_marks, total_marks, subject_id FROM student_marks WHERE exam_id=? AND student_id=? AND subject_id > 0"
-                m_df = pd.read_sql_query(marks_q, conn, params=(ex_id, s['id']))
-                total_obt = m_df['obtained_marks'].sum()
-                total_max = m_df['total_marks'].sum()
-                perc = (total_obt / total_max * 100) if total_max > 0 else 0
-                # Ensure unique subjects for the current exam to avoid duplicate fail counting
-                unique_marks = m_df.drop_duplicates(subset=['subject_id'])
-                fails = len(unique_marks[unique_marks['obtained_marks'] < (unique_marks['total_marks'] * 0.33)])
-                status_color = "#ef4444" if fails > 0 else "#16a34a"
+                m_df = all_marks_df[all_marks_df['student_id'] == s['id']].copy()
+                m_df = m_df.sort_values('id', ascending=False).drop_duplicates('subject_id')
                 
-                st.markdown(f'''
-                    <div style="background:white; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:5px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <b style="color:#1b4332;">{s["full_name"]}</b> <small>s/o {s["father_name"]}</small>
-                            </div>
-                            <div style="text-align:right;">
-                                <span style="font-size:14px; font-weight:bold; color:{status_color};">{perc:.1f}% ({fails} Fails)</span>
-                            </div>
-                        </div>
-                    </div>
-                ''', unsafe_allow_html=True)
+                if not m_df.empty:
+                    t_obt = float(m_df['obtained_marks'].sum())
+                    t_max = float(m_df['total_marks'].sum())
+                    perc = round((t_obt / t_max * 100), 1) if t_max > 0 else 0.0
+                    fails = int(len(m_df[m_df['obtained_marks'] < (m_df['total_marks'] * 0.33)]))
+                else:
+                    t_obt, t_max, perc, fails = 0.0, 0.0, 0.0, 0
+
+                status_color = '#ef4444' if fails > 0 else '#16a34a'
+                st.markdown(f'''<div style="background:white; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:5px;"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b style="color:#1b4332;">{s['full_name']}</b> <small>s/o {s['father_name']}</small></div><div style="text-align:right;"><span style="font-size:14px; font-weight:bold; color:{status_color};">{perc:.1f}% ({fails} Fails)</span></div></div></div>''', unsafe_allow_html=True)
                 remarks_dict[s['id']] = st.text_area('Remark', key=f"rem_{s['id']}", height=60, label_visibility='collapsed', placeholder=f'Summary for {s["full_name"]}...')
-            
             if st.form_submit_button('🚀 PUBLISH & LOCK RESULT'):
                 cursor = conn.cursor()
                 for sid, rmk in remarks_dict.items():

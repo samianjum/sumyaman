@@ -9,7 +9,12 @@
             <h5 class="fw-bold mb-1">{{ exam.name }}</h5>
             <p class="text-muted small mb-3">Class: <span class="badge bg-light text-dark">{{ exam.class_group }}</span></p>
             
-            <div class="mb-3">
+            
+            <div class="d-flex justify-content-between small text-muted mb-2 border-top pt-2">
+                <span><b>Start:</b> {{ exam.start_date }}</span>
+                <span><b>End:</b> {{ exam.end_date }}</span>
+            </div>
+<div class="mb-3">
                 <div class="d-flex justify-content-between small mb-1">
                     <span>Progress</span>
                     <span>{{ exam.uploaded_subs }}/{{ exam.total_subs }} Subjects</span>
