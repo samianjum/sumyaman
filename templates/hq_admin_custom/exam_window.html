@@ -11,7 +11,51 @@
         </button>
     </div>
 
-    <h4 class="fw-bold mb-3 text-success"><i class="fas fa-play-circle me-2"></i>Running Exams</h4>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 shadow-sm" style="border-radius: 12px;">
+        <div class="d-flex gap-3 align-items-center">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-dark active" id="gridViewBtn" onclick="switchView('grid')">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button type="button" class="btn btn-outline-dark" id="listViewBtn" onclick="switchView('list')">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+            <input type="text" id="examSearch" class="form-control form-control-sm" placeholder="Search exams..." style="width: 250px;">
+        </div>
+        <div class="text-muted small">
+            Total Exams: {{ running_exams|length|add:pending_exams|length|add:expired_exams|length }}
+        </div>
+    </div>
+
+    <div id="examListView" class="d-none">
+        <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Exam Name</th>
+                            <th>Class</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Progress</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="examTableBody">
+                        {% for exam in running_exams %}{% include 'hq_admin_custom/exam_list_row_partial.html' %}{% endfor %}
+                        {% for exam in pending_exams %}{% include 'hq_admin_custom/exam_list_row_partial.html' %}{% endfor %}
+                        {% for exam in expired_exams %}{% include 'hq_admin_custom/exam_list_row_partial.html' %}{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="examGridView">
+<h4 class="fw-bold mb-3 text-success"><i class="fas fa-play-circle me-2"></i>Running Exams</h4>
     <div class="row mb-5">
         {% for exam in running_exams %}
             {% include 'hq_admin_custom/exam_card_partial.html' with show_toggle=True %}
@@ -87,5 +131,34 @@
             if (result.isConfirmed) { window.location.href = url; }
         });
     }
+</script>
+</div>
+
+<script>
+    function switchView(view) {
+        if (view === 'grid') {
+            document.getElementById('examGridView').classList.remove('d-none');
+            document.getElementById('examListView').classList.add('d-none');
+            document.getElementById('gridViewBtn').classList.add('active');
+            document.getElementById('listViewBtn').classList.remove('active');
+        } else {
+            document.getElementById('examGridView').classList.add('d-none');
+            document.getElementById('examListView').classList.remove('d-none');
+            document.getElementById('gridViewBtn').classList.remove('active');
+            document.getElementById('listViewBtn').classList.add('active');
+        }
+    }
+
+    document.getElementById('examSearch').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        // Grid Search
+        document.querySelectorAll('#examGridView .col-md-4').forEach(card => {
+            card.style.display = card.innerText.toLowerCase().includes(value) ? '' : 'none';
+        });
+        // List Search
+        document.querySelectorAll('#examTableBody tr').forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+        });
+    });
 </script>
 {% endblock %}

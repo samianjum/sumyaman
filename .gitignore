@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 # Agar aap chahte hain ke local database upload na ho to:
 # school_database.db 
+*.zip
+*.db
+*.sqlite3

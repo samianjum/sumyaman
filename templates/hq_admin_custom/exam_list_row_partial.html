@@ -1,0 +1,18 @@
+
+<tr>
+    <td><strong class="text-dark">{{ exam.name }}</strong></td>
+    <td><span class="badge bg-light text-dark">{{ exam.class_group }}</span></td>
+    <td><span class="badge bg-{{ exam.status_class }}">{{ exam.status_label }}</span></td>
+    <td class="small">{{ exam.start_date }}</td>
+    <td class="small">{{ exam.end_date }}</td>
+    <td style="width: 150px;">
+        <div class="progress" style="height: 5px;">
+            <div class="progress-bar bg-primary" style="width: {{ exam.progress }}%"></div>
+        </div>
+        <small class="text-muted">{{ exam.progress }}%</small>
+    </td>
+    <td class="text-end">
+        <a href="{% url 'exam_analytics' exam.id %}" class="btn btn-sm btn-light border"><i class="fas fa-chart-bar"></i></a>
+        <a href="{% url 'manage_subjects' exam.id %}" class="btn btn-sm btn-light border"><i class="fas fa-cog"></i></a>
+    </td>
+</tr>
