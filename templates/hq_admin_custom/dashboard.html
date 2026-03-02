@@ -1,0 +1,126 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+{% if request.resolver_match.url_name == 'hq_dashboard' %}
+<div class="container-fluid p-4">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-5 text-white shadow-lg d-flex align-items-center justify-content-between" 
+                 style="background: linear-gradient(135deg, var(--hq-primary) 0%, var(--hq-accent) 100%); border-radius: 20px;">
+                <div>
+                    <h1 class="display-5 fw-bold mb-2">APS OKARA | HQ</h1>
+                    <p class="lead opacity-75 mb-0">System Command Center - Operational Dashboard</p>
+                </div>
+                <div class="d-none d-md-block">
+                    <i class="fas fa-shield-alt fa-6x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 text-center h-100" style="border-radius: 15px;">
+                <h6 class="text-muted fw-bold small">TOTAL STUDENTS</h6>
+                <h2 class="fw-bold mb-0 text-dark">{{ total }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 text-center h-100" style="border-radius: 15px;">
+                <h6 class="text-muted fw-bold small">STAFF / FACULTY</h6>
+                <h2 class="fw-bold mb-0 text-dark">{{ faculty_count }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 text-center h-100" style="border-radius: 15px;">
+                <h6 class="text-muted fw-bold small">PRESENT TODAY</h6>
+                <h2 class="fw-bold mb-0 text-success">{{ present }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 text-center h-100" style="border-radius: 15px;">
+                <h6 class="text-muted fw-bold small">OPERATIONAL %</h6>
+                <h2 class="fw-bold mb-0 text-primary">{{ perc }}%</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 15px;">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0" style="color: var(--hq-primary);">RECENT SYSTEM ACTIVITY</h5>
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr class="small text-muted">
+                                    <th>STUDENT</th>
+                                    <th>CLASS</th>
+                                    <th>STATUS</th>
+                                    <th>DATE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in recent_activity %}
+                                <tr>
+                                    <td class="fw-bold">{{ activity.student.full_name }}</td>
+                                    <td>{{ activity.student.student_class }}-{{ activity.student.student_section }}</td>
+                                    <td>
+                                        {% if activity.status|upper == 'PRESENT' %}
+                                            <span class="badge bg-success-subtle text-success px-3">P</span>
+                                        {% else %}
+                                            <span class="badge bg-danger-subtle text-danger px-3">A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small text-muted">{{ activity.date }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-4 text-muted">No recent activity found.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-4 h-100 text-white" style="background: var(--hq-primary); border-radius: 15px;">
+                <h5 class="fw-bold mb-4">WING DISTRIBUTION</h5>
+                
+                <div class="mb-4 p-3 rounded" style="background: rgba(255,255,255,0.05);">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small fw-bold">BOYS WING</span>
+                        <span class="badge bg-accent">{{ boys }}</span>
+                    </div>
+                    <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                        <div class="progress-bar bg-warning" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-4 p-3 rounded" style="background: rgba(255,255,255,0.05);">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small fw-bold">GIRLS WING</span>
+                        <span class="badge bg-accent">{{ girls }}</span>
+                    </div>
+                    <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                        <div class="progress-bar bg-info" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="mt-auto d-grid">
+                    <a href="{% url 'hq_attendance' %}" class="btn btn-warning fw-bold py-2 shadow-sm">
+                        GO TO ATTENDANCE PORTAL
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+{% block hq_content %}{% endblock %}
+{% endblock %}

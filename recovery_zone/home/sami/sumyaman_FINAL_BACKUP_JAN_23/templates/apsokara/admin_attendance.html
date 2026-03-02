@@ -1,0 +1,156 @@
+{% extends 'apsokara/base_admin.html' %}
+
+{% block content %}
+<style>
+    .banner-section {
+        background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+        color: white; padding: 30px 40px; border-radius: 15px; margin-bottom: 20px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    
+    .analytics-control-bar {
+        background: #fff; padding: 15px 25px; border-radius: 12px;
+        margin-bottom: 20px; border: 1px solid #eee;
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+
+    .filter-group .btn {
+        border-radius: 20px; padding: 5px 18px; font-size: 13px; font-weight: 600;
+        border: 1px solid #ddd; color: #555; background: white; margin-right: 5px;
+        transition: 0.3s; text-decoration: none; display: inline-block;
+    }
+    .filter-group .btn:hover, .filter-group .btn.active {
+        background: #d9534f; color: white; border-color: #d9534f;
+    }
+
+    /* Professional Status Text */
+    .viewing-status {
+        font-size: 14px; color: #d9534f; font-weight: 700;
+        background: rgba(217, 83, 79, 0.08); padding: 5px 15px;
+        border-radius: 20px; border: 1px dashed #d9534f;
+    }
+
+    .date-picker-custom {
+        max-width: 160px; border-radius: 20px; font-size: 13px; border: 1px solid #ddd;
+    }
+
+    /* Cards Styling */
+    .stat-card {
+        background: white; border-radius: 15px; padding: 20px;
+        border-left: 5px solid #eee; transition: 0.3s; margin-bottom: 20px;
+    }
+    .stat-total { border-left-color: #17a2b8; }
+    .stat-present { border-left-color: #28a745; }
+    .stat-absent { border-left-color: #dc3545; }
+    .stat-leave { border-left-color: #ffc107; }
+
+    /* Wing Boxes Detailed */
+    .wing-box {
+        background: white; border-radius: 20px; padding: 40px 30px;
+        text-align: center; cursor: pointer; transition: 0.4s;
+        border: 1px solid #eee; text-decoration: none; display: block;
+        position: relative; overflow: hidden;
+    }
+    .wing-box:hover { border-color: #d9534f; transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+    .wing-box .btn-enter {
+        background: #1a252f; color: white; border-radius: 25px; padding: 8px 30px;
+        font-size: 14px; font-weight: 600; transition: 0.3s;
+    }
+    .wing-box:hover .btn-enter { background: #d9534f; }
+</style>
+
+<div class="container-fluid">
+    <div class="banner-section">
+        <h2 class="fw-bold m-0">Attendance Command Center</h2>
+        <p class="opacity-75 m-0">Monitoring school-wide presence and student status.</p>
+    </div>
+
+    <div class="analytics-control-bar shadow-sm">
+        <div class="filter-group">
+            <a href="?range=today" class="btn {% if range == 'today' or not range %}active{% endif %}">Today</a>
+            <a href="?range=weekly" class="btn {% if range == 'weekly' %}active{% endif %}">Weekly</a>
+            <a href="?range=monthly" class="btn {% if range == 'monthly' %}active{% endif %}">Monthly</a>
+        </div>
+
+        <div class="viewing-status">
+            <i class="fas fa-eye me-2"></i>Viewing: 
+            {% if request.GET.date %}
+                {{ request.GET.date }}
+            {% elif range == 'weekly' %}
+                Last 7 Days
+            {% elif range == 'monthly' %}
+                Last 30 Days
+            {% else %}
+                {{ today|date:"d M Y" }} (Today)
+            {% endif %}
+        </div>
+
+        <div class="d-flex align-items-center">
+            <span class="text-muted small fw-bold me-2 text-uppercase">Jump to:</span>
+            <input type="date" class="form-control date-picker-custom" id="dateSelector" value="{{ display_date|default:today|date:'Y-m-d' }}">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card stat-total shadow-sm">
+                <small class="text-muted fw-bold">TOTAL STRENGTH</small>
+                <h2 class="fw-bold m-0 text-dark">{{ stats.total }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-present shadow-sm">
+                <small class="text-muted fw-bold">PRESENT</small>
+                <h2 class="fw-bold m-0 text-success">{{ stats.present }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-absent shadow-sm">
+                <small class="text-muted fw-bold">ABSENT</small>
+                <h2 class="fw-bold m-0 text-danger">{{ stats.absent }}</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-leave shadow-sm">
+                <small class="text-muted fw-bold">LEAVE</small>
+                <h2 class="fw-bold m-0 text-warning">{{ stats.leave }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12 mb-3">
+            <h5 class="fw-bold text-dark text-uppercase" style="letter-spacing: 1px;">Wing Wise Operations</h5>
+        </div>
+        <div class="col-md-6">
+            <a href="/gatekeeper-v3-okara-786/attendance/boys/" class="wing-box shadow-sm mb-4 text-decoration-none">
+                <div class="mb-3">
+                    <i class="fas fa-user-tie fa-4x text-dark opacity-25"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">BOYS WING</h3>
+                <p class="text-muted mb-4 px-md-5">Detailed attendance logs, class-wise reports, and disciplinary records for the Boys section.</p>
+                <div class="btn-enter">Enter Command Center <i class="fas fa-arrow-right ms-2"></i></div>
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="/gatekeeper-v3-okara-786/attendance/girls/" class="wing-box shadow-sm mb-4 text-decoration-none">
+                <div class="mb-3">
+                    <i class="fas fa-user-graduate fa-4x text-dark opacity-25"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">GIRLS WING</h3>
+                <p class="text-muted mb-4 px-md-5">Comprehensive female student management, including attendance, leave, and grade tracking.</p>
+                <div class="btn-enter">Enter Command Center <i class="fas fa-arrow-right ms-2"></i></div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('dateSelector').addEventListener('change', function() {
+        if(this.value) {
+            window.location.href = "?date=" + this.value;
+        }
+    });
+</script>
+{% endblock %}

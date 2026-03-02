@@ -1,0 +1,78 @@
+{% extends 'apsokara/base_admin.html' %}
+
+{% block content %}
+<style>
+    .banner-wing {
+        background: linear-gradient(135deg, {% if wing_name == 'Boys' %}#1e3a8a{% else %}#be185d{% endif %} 0%, #1a252f 100%);
+        color: white; padding: 30px 40px; border-radius: 15px; margin-bottom: 20px;
+    }
+    .viewing-status {
+        font-size: 13px; color: #d9534f; font-weight: 700; background: #fff;
+        padding: 5px 15px; border-radius: 20px; border: 1px solid #eee;
+    }
+    .class-box {
+        background: white; border-radius: 12px; border: 1px solid #eee;
+        transition: 0.3s; text-decoration: none; color: inherit; display: block;
+        padding: 20px; text-align: center; height: 100%;
+    }
+    .class-box:hover { border-color: #d9534f; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .class-title { font-size: 18px; font-weight: 800; color: #1a252f; margin-bottom: 5px; }
+    .class-strength { font-size: 12px; font-weight: 600; color: #666; background: #f8f9fa; padding: 3px 10px; border-radius: 10px; }
+    
+    .search-section { max-width: 500px; margin: 30px auto; position: relative; }
+    .search-section input { border-radius: 30px; padding: 12px 25px 12px 50px; border: 1px solid #ddd; }
+    .search-section i { position: absolute; left: 20px; top: 15px; color: #aaa; }
+</style>
+
+<div class="container-fluid">
+    <div class="banner-wing d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold m-0"><i class="fas {% if wing_name == 'Boys' %}fa-male{% else %}fa-female{% endif %} me-2"></i>{{ wing_name|upper }} WING</h2>
+            <p class="opacity-75 m-0">Class-wise attendance management and analytics.</p>
+        </div>
+        <a href="/gatekeeper-v3-okara-786/attendance/" class="btn btn-sm btn-light rounded-pill px-3">
+            <i class="fas fa-arrow-left me-1"></i> Back to Main
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        {% for label, val, color in stats_items %}
+        {% endfor %}
+        <div class="col-md-3"><div class="card p-3 border-0 shadow-sm border-start border-info border-5">
+            <small class="text-muted fw-bold">TOTAL {{ wing_name|upper }}</small><h3>{{ stats.total }}</h3>
+        </div></div>
+        <div class="col-md-3"><div class="card p-3 border-0 shadow-sm border-start border-success border-5">
+            <small class="text-muted fw-bold">PRESENT</small><h3>{{ stats.present }}</h3>
+        </div></div>
+        <div class="col-md-3"><div class="card p-3 border-0 shadow-sm border-start border-danger border-5">
+            <small class="text-muted fw-bold">ABSENT</small><h3>{{ stats.absent }}</h3>
+        </div></div>
+        <div class="col-md-3"><div class="card p-3 border-0 shadow-sm border-start border-warning border-5">
+            <small class="text-muted fw-bold">LEAVE</small><h3>{{ stats.leave }}</h3>
+        </div></div>
+    </div>
+
+    <div class="search-section">
+        <i class="fas fa-search"></i>
+        <form method="GET">
+            <input type="text" name="q" class="form-control shadow-sm" placeholder="Search Class or Section (e.g. 10-A)..." value="{{ search_q }}">
+            <input type="hidden" name="range" value="{{ range }}">
+        </form>
+    </div>
+
+    <div class="row g-3">
+        {% for item in class_list %}
+        <div class="col-md-2 col-sm-4 col-6">
+            <a href="/gatekeeper-v3-okara-786/attendance/classroom/{{ item.student_class }}/{{ item.student_section }}/" class="class-box shadow-sm">
+                <div class="class-title">{{ item.student_class }}-{{ item.student_section }}</div>
+                <span class="class-strength">Strength: {{ item.total }}</span>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted">No classes found for this criteria.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

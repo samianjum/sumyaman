@@ -1,0 +1,241 @@
+{% extends 'hq_admin_custom/dashboard.html' %}
+{% block hq_content %}
+<style>
+    :root { --hq-primary: #2F3E46; --hq-accent: #52796F; --hq-border: #e2e8f0; }
+    .hq-card { border: 1px solid var(--hq-border); border-radius: 4px; background: white; margin-bottom: 20px; }
+    .compact-banner { background: var(--hq-primary); color: white; padding: 25px 30px; margin-bottom: 25px; border-radius: 4px; border-left: 10px solid var(--hq-accent); }
+    .table-hq thead { background: #f8fafc; color: var(--hq-primary); font-weight: 700; text-transform: uppercase; font-size: 0.7rem; border-bottom: 2px solid var(--hq-border); }
+    .search-bar-hq { border: 1px solid var(--hq-border); border-radius: 4px; padding: 8px 15px; width: 100%; max-width: 300px; }
+    .teacher-row-item:hover { background: #f0fdf4 !important; cursor: pointer; }
+    .teacher-row-active { background: #e6fcf5 !important; border-left: 4px solid var(--hq-accent) !important; }
+    .fw-black { font-weight: 900; }
+    .filter-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; background: #e2e8f0; color: #475569; font-weight: bold; }
+</style>
+
+<div class="container-fluid p-0">
+    <div class="compact-banner shadow-sm">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <h1 style="font-size: 2.2rem; font-weight: 900; margin: 0; text-transform: uppercase;">{{ ex_name }}</h1>
+                <div style="font-size: 1.1rem; opacity: 0.8; font-weight: 600;">{{ sub_name }} | {{ class_group }}</div>
+            </div>
+            <div class="col-md-5 text-md-end">
+                <div class="d-inline-block text-center border-start ps-4">
+                    <span class="d-block h3 fw-bold mb-0">{{ all_students|length }}</span>
+                    <small class="text-uppercase opacity-75 fw-bold" style="font-size: 0.6rem;">Total Candidates</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        {% for t in toppers %}
+        <div class="col-md-4">
+            <div class="hq-card shadow-sm h-100" style="border-top: 5px solid {% if forloop.first %}#52796F{% else %}#2F3E46{% endif %};">
+                <div class="p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <span class="fw-bold text-uppercase text-muted" style="font-size: 0.65rem;">Position 0{{ forloop.counter }}</span>
+                        <span class="badge" style="background: var(--hq-accent);">TOPPER</span>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <div>
+                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.55rem; display: block;">Student Name</small>
+                            <span class="fw-bold text-dark" style="font-size: 0.95rem;">{{ t.name|upper }}</span>
+                        </div>
+                        <div class="row g-0">
+                            <div class="col-6">
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.55rem; display: block;">Father Name</small>
+                                <span class="small fw-bold text-dark text-truncate d-block">{{ t.father|default:"---"|upper }}</span>
+                            </div>
+                            <div class="col-6 border-start ps-2">
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.55rem; display: block;">B-Form / ID</small>
+                                <span class="small fw-bold text-dark">{{ t.b_form|default:"---" }}</span>
+                            </div>
+                        </div>
+                        <div class="border-top pt-2">
+                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.55rem; display: block;">Class - Section (Wing)</small>
+                            <span class="small fw-bold text-dark">{{ t.class }}-{{ t.section }} ({{ t.wing|default:"GENERAL"|upper }})</span>
+                        </div>
+                        <div class="mt-2 p-2 rounded" style="background: #f8fafc; border: 1px solid var(--hq-border);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted text-uppercase fw-bold" style="font-size: 0.55rem; display: block;">Marks Obtained</small>
+                                    <span class="fw-bold text-primary">{{ t.marks|floatformat:0 }} <span class="text-muted" style="font-size: 0.7rem;">/ {{ t.total|floatformat:0 }}</span></span>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted text-uppercase fw-bold" style="font-size: 0.55rem; display: block;">Total %</small>
+                                    <span class="h6 fw-black mb-0 text-success">{{ t.perc|floatformat:1 }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="hq-card shadow-sm mb-4">
+        <div class="p-2 px-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-uppercase" style="font-size: 0.7rem; color: var(--hq-primary); letter-spacing: 1px;">
+                <i class="fas fa-chalkboard-teacher me-2"></i>Subject Teachers Analytics
+            </span>
+            <button onclick="resetAllFilters()" class="btn btn-sm fw-bold text-muted border-0" style="font-size: 0.65rem;">
+                <i class="fas fa-undo me-1"></i> RESET FILTERS
+            </button>
+        </div>
+        <div class="table-responsive" style="max-height: 250px;">
+            <table class="table table-sm table-hover mb-0" style="font-size: 0.85rem;">
+                <thead class="bg-white text-muted" style="font-size: 0.65rem; text-transform: uppercase;">
+                    <tr>
+                        <th class="ps-3">Teacher Name</th>
+                        <th>Father Name</th>
+                        <th>CNIC / ID</th>
+                        <th>Assigned Unit</th>
+                        <th>P/F</th>
+                        <th class="text-center">Avg Score</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in performance %}
+                    <tr class="teacher-row-item" ondblclick="filterByUnit('{{ p.class_name }}', '{{ p.teacher|upper }}', this)" title="Double click to filter students">
+                        <td class="ps-3 fw-bold text-dark">{{ p.teacher|upper }}</td>
+                        <td class="text-muted small">{{ p.father|default:"---"|upper }}</td>
+                        <td class="text-muted small">{{ p.cnic|default:"---" }}</td>
+                        <td><span class="text-muted small">{{ p.class_name }}</span></td>
+                        <td><span class="badge bg-success">{{ p.pass_count }}</span> <span class="badge bg-danger">{{ p.fail_count }}</span></td>
+                        <td class="text-center fw-black text-primary">{{ p.avg }}%</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill bg-{{ p.color }}" style="font-size: 0.6rem; padding: 3px 10px;">{{ p.status }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="hq-card shadow-sm">
+        <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <span class="fw-bold small text-uppercase">Result Ledger</span>
+                <span id="activeFilterLabel" class="ms-2"></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="text" id="hqSearch" class="search-bar-hq" placeholder="Search Name or Roll..." onkeyup="applyAllFilters()">
+                <button onclick="resetAllFilters()" class="btn btn-sm btn-outline-secondary fw-bold" style="font-size: 0.6rem; white-space: nowrap;">
+                    <i class="fas fa-sync-alt"></i> RESET
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-2 bg-white border-bottom d-flex gap-2 align-items-center flex-wrap">
+            <select id="wingFilter" class="form-select form-select-sm w-auto" onchange="applyAllFilters()">
+                <option value="">All Wings</option>
+                <option value="BOYS">Boys</option>
+                <option value="GIRLS">Girls</option>
+            </select>
+            <select id="sectionFilter" class="form-select form-select-sm w-auto" onchange="applyAllFilters()">
+                <option value="">All Sections</option>
+                {% for p in performance %}<option value="{{ p.class_name }}">{{ p.class_name }}</option>{% endfor %}
+            </select>
+        </div>
+
+        <div class="table-responsive" style="max-height: 500px;">
+            <table class="table table-sm table-hover mb-0 table-hq" id="hqTable">
+                <thead class="sticky-top bg-white">
+                    <tr>
+                        <th class="ps-3">Roll</th>
+                        <th>Student Name</th>
+                        <th>Father Name</th>
+                        <th>B-Form</th>
+                        <th>Class-Sec (Wing)</th>
+                        <th>Obtained</th>
+                        <th>%</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in all_students %}
+                    <tr data-unit="{{ s.class }}-{{ s.section }} ({{ s.wing|upper }})">
+                        <td class="ps-3 text-muted small">{{ s.roll }}</td>
+                        <td class="fw-bold">{{ s.name|upper }}</td>
+                        <td class="small text-muted">{{ s.father|upper }}</td>
+                        <td class="small text-muted">{{ s.b_form }}</td>
+                        <td class="small fw-bold text-muted">{{ s.class }}-{{ s.section }} ({{ s.wing|upper }})</td>
+                        <td class="fw-bold text-primary">{{ s.marks|floatformat:0 }}</td>
+                        <td class="fw-bold {% if s.perc < 40 %}text-danger{% else %}text-success{% endif %}">{{ s.perc|floatformat:1 }}%</td>
+                        <td class="text-center"><a href="{% url 'view_student_result' s.student_id exam_id sub_id %}" class="btn btn-sm py-0 fw-bold" style="font-size: 10px; border: 1px solid #ddd; text-decoration: none; color: inherit;">VIEW</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterByUnit(unitName, teacherName, element) {
+    // 1. UI Feedback: Highlight selected teacher
+    document.querySelectorAll('.teacher-row-item').forEach(r => r.classList.remove('teacher-row-active'));
+    if(element) element.classList.add('teacher-row-active');
+    
+    // 2. Sync with Section Dropdown
+    // Teacher table sends '10-A', Ledger might have '10-A (BOYS)'
+    // We set the dropdown to the teacher's unit name
+    let sectionFilter = document.getElementById('sectionFilter');
+    sectionFilter.value = unitName;
+    
+    // 3. Visual Indicator
+    document.getElementById('activeFilterLabel').innerHTML = ` | <span class="badge bg-dark text-white">Teacher: ${teacherName}</span>`;
+    
+    applyAllFilters();
+    
+    // 4. Smooth Scroll to Ledger
+    document.getElementById('hqTable').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetAllFilters() {
+    document.getElementById('hqSearch').value = "";
+    document.getElementById('wingFilter').value = "";
+    document.getElementById('sectionFilter').value = "";
+    document.getElementById('activeFilterLabel').innerText = "";
+    document.querySelectorAll('.teacher-row-item').forEach(r => r.classList.remove('teacher-row-active'));
+    applyAllFilters();
+}
+
+function applyAllFilters() {
+    let searchInput = document.getElementById('hqSearch').value.toUpperCase().trim();
+    let wingVal = document.getElementById('wingFilter').value.toUpperCase().trim();
+    let sectionVal = document.getElementById('sectionFilter').value.toUpperCase().trim();
+
+    let rows = document.querySelectorAll("#hqTable tbody tr");
+    
+    rows.forEach(row => {
+        let name = row.cells[1] ? row.cells[1].textContent.toUpperCase() : "";
+        let roll = row.cells[0] ? row.cells[0].textContent.toUpperCase() : "";
+        let rowUnitText = (row.getAttribute('data-unit') || "").toUpperCase();
+        
+        // Match Search (Name or Roll)
+        let matchesSearch = !searchInput || (name.includes(searchInput) || roll.includes(searchInput));
+        
+        // Match Wing (BOYS/GIRLS) inside the unit string
+        let matchesWing = !wingVal || rowUnitText.includes(wingVal);
+        
+        // Match Section/Unit (Flexible match)
+        // Checks if '10-A' is part of '10-A (BOYS)'
+        let matchesSection = !sectionVal || rowUnitText.includes(sectionVal);
+        
+        if (matchesSearch && matchesWing && matchesSection) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+
+// Add event listener for search bar
+document.getElementById('hqSearch').addEventListener('keyup', applyAllFilters);
+</script>
+{% endblock %}

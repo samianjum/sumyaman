@@ -1,0 +1,28 @@
+<script>
+    let currentStatus = 'all';
+    const searchInput = document.getElementById('smartFilter');
+
+    function runMasterEngine() {
+        const q = searchInput.value.toLowerCase();
+        document.querySelectorAll('#attTable tbody tr').forEach(row => {
+            const rowText = row.innerText.toLowerCase();
+            const statusLabel = row.querySelector('.status-pill').innerText.trim().toUpperCase();
+            
+            const matchSearch = rowText.includes(q);
+            const matchStatus = (currentStatus === 'all' || statusLabel === currentStatus);
+            
+            row.style.display = (matchSearch && matchStatus) ? '' : 'none';
+        });
+    }
+
+    function setFilter(status, btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStatus = status.toUpperCase();
+        runMasterEngine();
+    }
+
+    if(searchInput) {
+        searchInput.addEventListener('input', runMasterEngine);
+    }
+</script>

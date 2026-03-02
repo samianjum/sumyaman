@@ -1,0 +1,7 @@
+streamlit
+streamlit-javascript
+opencv-python-headless
+face-recognition
+numpy
+Pillow
+pytz

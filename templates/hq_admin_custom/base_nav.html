@@ -1,0 +1,56 @@
+<div class="sidebar shadow">
+    <div class="sidebar-header">
+        <div class="sidebar-logo-main shadow-sm"></div>
+        <h5 class="fw-bold mb-0 text-white" style="letter-spacing: 1px;">APS OKARA ADMIN</h5>
+        <div class="online-indicator mt-2">
+            <span class="dot"></span> <small class="text-uppercase" style="font-size: 0.65rem; color: #CAD2C5; letter-spacing: 1px;">System Active</small>
+        </div>
+    </div>
+    
+    <div class="nav flex-column mt-4 px-2" style="gap: 5px;">
+        <a href="/hq-portal/" class="nav-btn {% if request.path == '/hq-portal/' %}active{% endif %}">
+            <i class="fas fa-th-large"></i> <span>Dashboard</span>
+        </a>
+        
+        <a href="/hq-portal/attendance/" class="nav-btn {% if 'attendance' in request.path %}active{% endif %}">
+            <i class="fas fa-calendar-check"></i> <span>Attendance HQ</span>
+        </a>
+
+        <a href="/hq-portal/students/" class="nav-btn {% if 'students' in request.path %}active{% endif %}">
+            <i class="fas fa-user-graduate"></i> <span>Students List</span>
+        </a>
+
+        <a href="/hq-portal/teachers/" class="nav-btn {% if 'teachers' in request.path %}active{% endif %}">
+            <i class="fas fa-chalkboard-teacher"></i> <span>Teachers List</span>
+        </a>
+
+        <a href="/hq-portal/exams/" class="nav-btn {% if 'exams' in request.path %}active{% endif %}">
+            <i class="fas fa-file-invoice"></i> <span>Exams Portal</span>
+        </a>
+ 
+        <a href="/hq-portal/news-manager/" class="nav-btn {% if 'news' in request.path %}active{% endif %}">
+            <i class="fas fa-bullhorn"></i> <span>News Updates</span>
+        </a>
+
+        <div class="sidebar-label mt-4 mb-2">System Config</div>
+        
+        <a href="/admin/" class="nav-btn" target="_blank">
+            <i class="fas fa-cog text-warning"></i> <span>System Admin</span>
+        </a>
+        
+        <a href="/logout/" class="nav-btn text-danger mt-auto">
+            <i class="fas fa-power-off"></i> <span>Sign Out</span>
+        </a>
+    </div>
+</div>
+
+<style>
+    /* Professional Sidebar Styling */
+    .sidebar { width: 260px; height: 100vh; background: var(--hq-primary); position: fixed; z-index: 1000; transition: 0.3s; }
+    .sidebar-label { color: rgba(255,255,255,0.3); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; padding-left: 15px; letter-spacing: 1px; }
+    .nav-btn { display: flex; align-items: center; padding: 12px 18px; color: #CAD2C5; text-decoration: none; border-radius: 10px; transition: all 0.25s ease; font-size: 0.95rem; font-weight: 500; margin-bottom: 2px; }
+    .nav-btn i { width: 28px; font-size: 1.1rem; transition: 0.3s; }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.08); color: white; transform: translateX(5px); }
+    .nav-btn.active { background: var(--hq-accent) !important; color: white !important; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    .online-indicator .dot { height: 8px; width: 8px; background-color: #2ecc71; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #2ecc71; }
+</style>

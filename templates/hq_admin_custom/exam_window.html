@@ -1,0 +1,164 @@
+{% extends 'hq_admin_custom/dashboard.html' %}
+{% block hq_content %}
+<div class="p-4">
+    <div class="hq-banner shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 15px; color: white; padding: 30px;">
+        <div>
+            <h2 class="fw-bold mb-1">Exam Control Center</h2>
+            <p class="mb-0 opacity-75">Today is: {{ today }}</p>
+        </div>
+        <button class="btn btn-light fw-bold" style="border-radius: 10px;" data-bs-toggle="modal" data-bs-target="#createExamModalFix">
+            <i class="fas fa-plus-circle me-1"></i> Launch New Exam
+        </button>
+    </div>
+
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 shadow-sm" style="border-radius: 12px;">
+        <div class="d-flex gap-3 align-items-center">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-dark active" id="gridViewBtn" onclick="switchView('grid')">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/></svg>
+                </button>
+                <button type="button" class="btn btn-outline-dark" id="listViewBtn" onclick="switchView('list')">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg>
+                </button>
+            </div>
+            <input type="text" id="examSearch" class="form-control form-control-sm" placeholder="Search exams..." style="width: 250px;">
+        </div>
+        <div class="text-muted small">
+            Total Exams: {{ running_exams|length|add:pending_exams|length|add:expired_exams|length }}
+        </div>
+    </div>
+
+    <div id="examListView" class="d-none">
+        <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Exam Name</th>
+                            <th>Class</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Progress</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="examTableBody">
+                        {% for exam in running_exams %}{% include 'hq_admin_custom/exam_list_row_partial.html' %}{% endfor %}
+                        {% for exam in pending_exams %}{% include 'hq_admin_custom/exam_list_row_partial.html' %}{% endfor %}
+                        {% for exam in expired_exams %}{% include 'hq_admin_custom/exam_list_row_partial.html' %}{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="examGridView">
+<h4 class="fw-bold mb-3 text-success"><i class="fas fa-play-circle me-2"></i>Running Exams</h4>
+    <div class="row mb-5">
+        {% for exam in running_exams %}
+            {% include 'hq_admin_custom/exam_card_partial.html' with show_toggle=True %}
+        {% empty %}
+            <div class="col-12"><p class="text-muted">No exams are currently active.</p></div>
+        {% endfor %}
+    </div>
+
+    <h4 class="fw-bold mb-3 text-warning"><i class="fas fa-clock me-2"></i>Upcoming / Pending</h4>
+    <div class="row mb-5">
+        {% for exam in pending_exams %}
+            {% include 'hq_admin_custom/exam_card_partial.html' with show_toggle=True %}
+        {% empty %}
+            <div class="col-12"><p class="text-muted">No upcoming exams.</p></div>
+        {% endfor %}
+    </div>
+
+    <h4 class="fw-bold mb-3 text-secondary"><i class="fas fa-history me-2"></i>Expired / Completed</h4>
+    <div class="row mb-5">
+        {% for exam in expired_exams %}
+            {% include 'hq_admin_custom/exam_card_partial.html' with show_toggle=False %}
+        {% empty %}
+            <div class="col-12"><p class="text-muted">No expired records.</p></div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="modal fade" id="createExamModalFix" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{% url 'create_exam' %}" class="modal-content shadow-lg border-0" style="border-radius:20px;">
+            {% csrf_token %}
+            <div class="modal-header border-0 pt-4 px-4">
+                <h5 class="fw-bold">New Exam Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4">
+                <label class="small fw-bold text-muted mb-2">EXAM TITLE</label>
+                <input type="text" name="exam_name" class="form-control mb-3 p-3 bg-light border-0" required style="border-radius:12px;">
+                <label class="small fw-bold text-muted mb-2">TARGET CLASS</label>
+                <select name="class_group" class="form-select mb-3 p-3 bg-light border-0" style="border-radius:12px;">
+                    {% for c in class_list %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                </select>
+                <div class="row">
+                    <div class="col">
+                        <label class="small fw-bold text-muted mb-2">START DATE</label>
+                        <input type="date" name="start_date" class="form-control p-3 bg-light border-0" value="{{ today }}" required style="border-radius:12px;">
+                    </div>
+                    <div class="col">
+                        <label class="small fw-bold text-muted mb-2">END DATE</label>
+                        <input type="date" name="end_date" class="form-control p-3 bg-light border-0" required style="border-radius:12px;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4">
+                <button type="submit" class="btn btn-success w-100 py-3 fw-bold" style="border-radius:15px;">Deploy Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmToggle(url, isActive) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will change the exam's status!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, do it!'
+        }).then((result) => {
+            if (result.isConfirmed) { window.location.href = url; }
+        });
+    }
+</script>
+</div>
+
+<script>
+    function switchView(view) {
+        if (view === 'grid') {
+            document.getElementById('examGridView').classList.remove('d-none');
+            document.getElementById('examListView').classList.add('d-none');
+            document.getElementById('gridViewBtn').classList.add('active');
+            document.getElementById('listViewBtn').classList.remove('active');
+        } else {
+            document.getElementById('examGridView').classList.add('d-none');
+            document.getElementById('examListView').classList.remove('d-none');
+            document.getElementById('gridViewBtn').classList.remove('active');
+            document.getElementById('listViewBtn').classList.add('active');
+        }
+    }
+
+    document.getElementById('examSearch').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        // Grid Search
+        document.querySelectorAll('#examGridView .col-md-4').forEach(card => {
+            card.style.display = card.innerText.toLowerCase().includes(value) ? '' : 'none';
+        });
+        // List Search
+        document.querySelectorAll('#examTableBody tr').forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

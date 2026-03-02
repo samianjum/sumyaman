@@ -1,0 +1,49 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="background:#fff; padding:20px; border:1px solid #ddd; border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1a237e; padding-bottom:15px;">
+        <h2 style="color:#1a237e; margin:0;">Student Profile: {{ student.full_name }}</h2>
+        <span style="background:#1a237e; color:white; padding:5px 15px; border-radius:20px;">ID: {{ student.identity_number }}</span>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:30px; margin-top:20px;">
+        <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
+            <h4 style="border-bottom:1px solid #ccc;">Basic Information</h4>
+            <p><strong>Father:</strong> {{ student.father_name }}</p>
+            <p><strong>Wing:</strong> {{ student.wing }}</p>
+            <p><strong>Class:</strong> {{ student.student_class }} ({{ student.student_section }})</p>
+            <p><strong>Address:</strong> {{ student.address|default:"Not Provided" }}</p>
+            <p><strong>Phone:</strong> {{ student.phone_number|default:"N/A" }}</p>
+        </div>
+
+        <div>
+            <h4 style="border-bottom:1px solid #ccc;">Academic Exam History</h4>
+            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                <thead>
+                    <tr style="background:#eee; text-align:left;">
+                        <th style="padding:10px; border:1px solid #ddd;">Exam Title</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Year/Date</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ex in exams %}
+                    <tr>
+                        <td style="padding:10px; border:1px solid #ddd;">{{ ex.title }}</td>
+                        <td style="padding:10px; border:1px solid #ddd;">{{ ex.start_date|date:"Y" }}</td>
+                        <td style="padding:10px; border:1px solid #ddd;">
+                            <a href="/admin/apsokara/examwindow/student-result/{{ student.id }}/{{ ex.id }}/" 
+                               style="background:#28a745; color:white; padding:5px 10px; text-decoration:none; border-radius:3px; font-size:12px;">
+                               View Full Result Card
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" style="padding:20px; text-align:center;">No Exam Records Found for this student.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

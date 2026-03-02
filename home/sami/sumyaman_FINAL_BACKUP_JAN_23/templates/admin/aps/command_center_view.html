@@ -1,0 +1,49 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<style>
+    .status-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+    .stat-val { font-size: 24px; font-weight: bold; color: #1a237e; }
+    .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+    .class-card { padding: 15px; border-radius: 10px; color: white; position: relative; overflow: hidden; }
+    .progress-bar { position: absolute; bottom: 0; left: 0; height: 5px; background: rgba(255,255,255,0.5); }
+    .bg-complete { background: #2e7d32; } /* Green */
+    .bg-partial { background: #f9a825; }  /* Yellow/Orange */
+    .bg-empty { background: #c62828; }    /* Red */
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>🚀 Exam Command Center: <span style="color: #0d47a1;">{{ exam.title }}</span></h1>
+    <div style="background: #e8f0fe; padding: 10px 20px; border-radius: 30px; font-weight: bold;">
+        Status: {% if exam.is_active %}🟢 LIVE ENTRY{% else %}🔴 LOCKED{% endif %}
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+    <div class="status-card"><div class="stat-val">{{ total_students }}</div><div>Total Students</div></div>
+    <div class="status-card"><div class="stat-val">{{ pending_marks }}</div><div>Pending Subjects</div></div>
+    <div class="status-card"><div class="stat-val">{{ exam.start_date }}</div><div>Started On</div></div>
+    <div class="status-card">
+        <a href="/admin/apsokara/mark/" class="button" style="background: #1a237e; color:white;">👁️ View Raw Marks</a>
+    </div>
+</div>
+
+<h2 style="margin-top: 30px;">📊 Real-Time Marks Entry Heatmap</h2>
+<div class="grid-container">
+    {% for c in heatmap %}
+    <div class="class-card {% if c.percent == 100 %}bg-complete{% elif c.percent > 0 %}bg-partial{% else %}bg-empty{% endif %}">
+        <div style="font-size: 18px; font-weight: bold;">Class {{ c.class }}</div>
+        <div style="font-size: 12px; margin-top: 5px;">{{ c.done }} / {{ c.total }} Subjects Done</div>
+        <div style="font-size: 22px; font-weight: bold; margin-top: 10px;">{{ c.percent }}%</div>
+        <div class="progress-bar" style="width: {{ c.percent }}%;"></div>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-left: 5px solid #1a237e; border-radius: 5px;">
+    <h3>🧠 Intelligence & Search</h3>
+    <form action="{% url 'admin:global_student_search' %}" method="get" style="display: flex; gap: 10px;">
+        <input type="text" name="q" placeholder="Enter Student Name or Identity Number for Life-Cycle Analysis..." style="flex: 1; padding: 12px; border-radius: 5px; border: 1px solid #ddd;">
+        <button type="submit" class="button" style="background: #1a237e; color: white; padding: 10px 30px;">Search</button>
+    </form>
+</div>
+{% endblock %}

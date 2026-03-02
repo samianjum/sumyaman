@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="padding:20px;">
+    <h3>Search Results for: "{{ query }}"</h3>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:15px; margin-top:20px;">
+        {% for s in results %}
+        <div style="background:white; border:1px solid #1a237e; padding:15px; border-radius:8px; border-left:5px solid #1a237e;">
+            <h4 style="margin:0 0 10px 0;">{{ s.full_name }}</h4>
+            <p style="font-size:12px; margin:5px 0;"><strong>ID:</strong> {{ s.identity_number }}</p>
+            <p style="font-size:12px; margin:5px 0;"><strong>Class:</strong> {{ s.student_class }}-{{ s.student_section }} ({{ s.wing }})</p>
+            <a href="/admin/apsokara/examwindow/student-profile/{{ s.id }}/" 
+               style="display:block; text-align:center; background:#1a237e; color:white; padding:8px; text-decoration:none; margin-top:10px; border-radius:4px;">
+               View Full Profile & Exams
+            </a>
+        </div>
+        {% empty %}
+        <p>No students found matching your search.</p>
+        {% endfor %}
+    </div>
+    <br><a href="/admin/apsokara/examwindow/" style="color:#1a237e;">← Back to Command Center</a>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<style>
+    :root { --primary: #1a237e; --accent: #ffd700; --bg: #f4f7f6; }
+    .dashboard-grid { display: grid; grid-template-columns: 250px 1fr; gap: 20px; font-family: 'Segoe UI', sans-serif; }
+    .sidebar { background: white; padding: 20px; border-radius: 15px; border: 1px solid #ddd; height: fit-content; }
+    .main-panel { background: white; padding: 25px; border-radius: 15px; border: 1px solid #ddd; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+    .stat-card { padding: 20px; border-radius: 12px; text-align: center; color: white; }
+    .card-total { background: #444; } .card-present { background: #2e7d32; } .card-absent { background: #c62828; } .card-leave { background: #ef6c00; }
+    .stat-val { font-size: 2rem; font-weight: 800; display: block; }
+    .filter-btn { display: block; width: 100%; padding: 10px; margin: 5px 0; border: none; background: #eee; border-radius: 8px; text-align: left; cursor: pointer; text-decoration: none; color: #333; }
+    .filter-btn:hover, .active-filter { background: var(--primary); color: white; }
+    .progress-container { background: #eee; border-radius: 10px; height: 10px; margin-top: 10px; }
+    .progress-bar { background: var(--accent); height: 100%; border-radius: 10px; transition: 0.5s; }
+</style>
+
+<div class="dashboard-grid">
+    <div class="sidebar">
+        <h3>🔍 Filters</h3>
+        <hr>
+        <b>Wings</b>
+        {% for w in wings %}
+            <a href="?wing={{ w }}" class="filter-btn {% if selected_wing == w %}active-filter{% endif %}">{{ w }} Wing</a>
+        {% endfor %}
+        <br>
+        <b>Classes</b>
+        <div style="max-height: 400px; overflow-y: auto;">
+            {% for c in classes %}
+                <a href="?class={{ c }}{% if selected_wing %}&wing={{ selected_wing }}{% endif %}" class="filter-btn {% if selected_class == c %}active-filter{% endif %}">Class {{ c }}</a>
+            {% endfor %}
+        </div>
+        <a href="?" class="filter-btn" style="text-align:center; margin-top:10px; background:#ffebee; color:#c62828;">❌ Clear All</a>
+    </div>
+
+    <div class="main-panel">
+        <div class="stats-row">
+            <div class="stat-card card-total"><span class="stat-val">{{ stats.total }}</span>Total Strength</div>
+            <div class="stat-card card-present"><span class="stat-val">{{ stats.present }}</span>Present Today</div>
+            <div class="stat-card card-absent"><span class="stat-val">{{ stats.absent }}</span>Absent Today</div>
+            <div class="stat-card card-leave"><span class="stat-val">{{ stats.on_leave }}</span>On Approved Leave</div>
+        </div>
+
+        <div style="background: #1a237e; color: white; padding: 20px; border-radius: 12px;">
+            <h3>📈 Overall Submission Progress: {{ stats.completion }}%</h3>
+            <div class="progress-container"><div class="progress-bar" style="width: {{ stats.completion }}%"></div></div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <h4>📋 Detailed View</h4>
+            <p>Select a class from the sidebar to see individual student analysis and attendance patterns.</p>
+            {% if not selected_class %}
+                <div style="text-align: center; padding: 50px; color: #888;">
+                    <i style="font-size: 3rem;">📡</i><br>Waiting for class selection...
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

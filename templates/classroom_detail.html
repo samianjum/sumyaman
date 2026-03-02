@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Professional Banner Style */
+    .class-banner { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 30px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .stat-card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-top: 4px solid #3b82f6; }
+    .nav-tabs .nav-link { color: #4b5563; font-weight: 600; border: none; padding: 12px 25px; }
+    .nav-tabs .nav-link.active { color: #1e3a8a; border-bottom: 3px solid #1e3a8a; background: transparent; }
+    
+    /* Search Bar & Filter Styling */
+    .filter-box { background: #f9fafb; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #e5e7eb; }
+
+    /* Print Specific Styling */
+    @media print {
+        body * { visibility: hidden; }
+        #printableAttendance, #printableAttendance * { visibility: visible; }
+        #printableAttendance { position: absolute; left: 0; top: 0; width: 100%; }
+        .no-print { display: none !important; }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="class-banner d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-5 fw-bold">Class {{ class_name }} - {{ section }}</h1>
+            <p class="mb-0"><i class="fas fa-school"></i> {{ wing_name }} Wing | Gatekeeper V3 Professional Panel</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-light text-primary px-3 py-2 fs-6">{{ today }}</span>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3"><div class="stat-card"><h5>Total Students</h5><h3>{{ stats.total }}</h3></div></div>
+        <div class="col-md-3"><div class="stat-card" style="border-color: #10b981;"><h5>Present</h5><h3>{{ stats.present_today }}</h3></div></div>
+        <div class="col-md-3"><div class="stat-card" style="border-color: #ef4444;"><h5>Absent</h5><h3>{{ stats.absent_today }}</h3></div></div>
+        <div class="col-md-3"><div class="stat-card" style="border-color: #f59e0b;"><h5>On Leave</h5><h3>{{ stats.leave_today }}</h3></div></div>
+    </div>
+
+    <ul class="nav nav-tabs no-print" id="classroomTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button">Attendance History</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="leaves-tab" data-bs-toggle="tab" data-bs-target="#leaves" type="button">Leaves Management</button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-4" id="classroomTabsContent">
+        <div class="tab-pane fade show active" id="history" role="tabpanel">
+            <div class="filter-box no-print d-flex gap-3 flex-wrap">
+                <input type="text" id="studentSearch" class="form-control w-25" placeholder="Search Student/ID...">
+                <input type="date" class="form-control w-auto" value="{{ today|date:'Y-m-d' }}">
+                <select class="form-select w-auto">
+                    <option>All Status</option><option>Present</option><option>Absent</option><option>Leave</option>
+                </select>
+                <button onclick="window.print()" class="btn btn-dark"><i class="fas fa-print"></i> Print Sheet</button>
+            </div>
+            
+            <div id="printableAttendance">
+                <h4 class="d-none d-print-block">Attendance Sheet: Class {{ class_name }}-{{ section }} ({{ today }})</h4>
+                <table class="table table-hover border">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID Number</th><th>Student Name</th><th>Father Name</th><th>Status</th><th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceBody">
+                        {% for record in attendance_history %}
+                        <tr>
+                            <td>{{ record.student.cnic }}</td>
+                            <td>{{ record.student.full_name }}</td>
+                            <td>{{ record.student.father_full_name }}</td>
+                            <td>
+                                <span class="badge {% if record.status == 'Present' %}bg-success{% elif record.status == 'Absent' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                    {{ record.status }}
+                                </span>
+                            </td>
+                            <td>{{ record.time|time:"H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center">No records found for this selection.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="leaves" role="tabpanel">
+            <div class="filter-box d-flex gap-3">
+                <input type="text" class="form-control w-25" placeholder="Search Leaves...">
+                <select class="form-select w-auto">
+                    <option>All Status</option><option>Pending</option><option>Approved</option><option>Rejected</option>
+                </select>
+            </div>
+            <table class="table border">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th><th>Dates</th><th>Reason</th><th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for leave in leaves %}
+                    <tr>
+                        <td>{{ leave.full_name }}</td>
+                        <td>{{ leave.from_date }} to {{ leave.to_date }}</td>
+                        <td>{{ leave.reason|truncatechars:30 }}</td>
+                        <td>
+                            <span class="badge {% if leave.status == 'Approved' %}bg-success{% elif leave.status == 'Pending' %}bg-primary{% else %}bg-danger{% endif %}">
+                                {{ leave.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simple Filter Wiring
+    document.getElementById('studentSearch').addEventListener('keyup', function() {
+        let val = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#attendanceBody tr');
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'hq_admin_custom/dashboard.html' %}
+{% block content %}
+<div class="container mt-4" style="font-family: 'Inter', sans-serif; color: #333;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 style="font-weight: 800; color: #1a202c;">Announcement Manager</h3>
+        <span class="badge badge-success p-2 px-3" style="border-radius: 50px;">Portal Active</span>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-5" style="border-radius: 12px; background: #ffffff; border-top: 5px solid #800000;">
+        <div class="card-body p-4">
+            <h5 id="form-title" class="mb-4" style="font-weight: 700; color: #800000;">
+                <i class="fas fa-bullhorn mr-2"></i>Create New Announcement
+            </h5>
+            <form method="POST" id="mainForm">
+                {% csrf_token %}
+                <input type="hidden" name="news_id" id="news_id">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="small font-weight-bold text-muted text-uppercase">Message Content</label>
+                        <textarea name="content" id="content" class="form-control" rows="2" placeholder="Write news details..." required style="border-radius: 8px; border: 1px solid #ddd;"></textarea>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="small font-weight-bold text-muted text-uppercase">Target Audience</label>
+                        <select name="target_role" id="target_role" class="form-control" style="border-radius: 8px; font-weight: 600;">
+                            <option value="All">📢 Everyone</option>
+                            <option value="Student">🎓 Students</option>
+                            <option value="Class Teacher">👨‍🏫 Class Teachers</option>
+                            <option value="Subject Teacher">📖 Subject Teachers</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="small font-weight-bold text-muted text-uppercase">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" class="form-control" required value="{{ today }}" style="border-radius: 8px;">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="small font-weight-bold text-muted text-uppercase">End Date</label>
+                        <input type="date" name="end_date" id="end_date" class="form-control" required style="border-radius: 8px;">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-block text-white shadow" style="background: #800000; border-radius: 8px; font-weight: 700; height: 38px;">
+                            SAVE & PUBLISH
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <h5 class="mb-4" style="font-weight: 700; color: #2d3748;">
+        <i class="fas fa-broadcast-tower text-success mr-2"></i>Live Announcements
+    </h5>
+    <div class="row">
+        {% for n in active_news %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px; border-bottom: 4px solid #edf2f7 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <div style="width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; margin-right: 8px;"></div>
+                            <span class="small font-weight-bold text-uppercase text-muted">Audience: </span>
+                            <span class="badge badge-pill badge-primary ml-2 px-3 py-1" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                                {{ n.target_role|upper }}
+                            </span>
+                        </div>
+                        <div class="btn-group">
+                            <button onclick="fillEdit('{{n.id}}','{{n.target_role}}','{{n.start_date|date:'Y-m-d'}}','{{n.end_date|date:'Y-m-d'}}','{{n.content|escapejs}}')" 
+                                    class="btn btn-sm btn-outline-secondary border-0 mr-1" title="Edit">✏️</button>
+                            <a href="{% url 'delete_news' n.id %}" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Delete this?')">🗑️</a>
+                        </div>
+                    </div>
+                    
+                    <p class="card-text mb-4" style="font-size: 1.1rem; font-weight: 500; color: #1a202c; line-height: 1.4;">
+                        {{ n.content }}
+                    </p>
+                    
+                    <div class="bg-light p-2 px-3 d-flex justify-content-between align-items-center" style="border-radius: 8px; font-size: 0.85rem;">
+                        <span class="text-muted"><i class="far fa-calendar-check mr-1"></i> {{ n.start_date }}</span>
+                        <span class="font-weight-bold text-danger">Until: {{ n.end_date }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80" class="mb-3" style="opacity: 0.3;">
+            <p class="text-muted">No active announcements for any audience.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-5 d-flex justify-content-between align-items-end mb-3">
+        <h5 style="font-weight: 700; color: #718096;"><i class="fas fa-history mr-2"></i>Past History</h5>
+        <input type="text" id="hSearch" class="form-control form-control-sm w-25 shadow-sm" placeholder="Search archive..." onkeyup="sHist()" style="border-radius: 20px;">
+    </div>
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+        <table class="table table-hover mb-0" id="hTable">
+            <thead class="bg-light">
+                <tr class="small text-muted text-uppercase">
+                    <th class="px-4">Audience</th>
+                    <th>Message</th>
+                    <th class="text-right px-4">Expired Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n in expired_news %}
+                <tr class="text-muted">
+                    <td class="px-4 align-middle font-weight-bold">FOR: {{ n.target_role|upper }}</td>
+                    <td class="align-middle">{{ n.content }}</td>
+                    <td class="text-right px-4 align-middle">{{ n.end_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function fillEdit(id, role, s, e, c) {
+    document.getElementById('news_id').value = id;
+    document.getElementById('target_role').value = role;
+    document.getElementById('start_date').value = s;
+    document.getElementById('end_date').value = e;
+    document.getElementById('content').value = c;
+    document.getElementById('form-title').innerHTML = "<i class='fas fa-edit mr-2'></i> Edit Announcement Settings";
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+function sHist() {
+    let input = document.getElementById('hSearch').value.toUpperCase();
+    let rows = document.getElementById('hTable').getElementsByTagName('tr');
+    for (let i = 1; i < rows.length; i++) {
+        rows[i].style.display = rows[i].innerText.toUpperCase().includes(input) ? "" : "none";
+    }
+}
+</script>
+{% endblock %}

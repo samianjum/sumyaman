@@ -1,0 +1,59 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<style>
+    body { background-color: #0a0a0c; color: #e0e0e0; }
+    .aoig-container { padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .mission-bar { background: #161b22; border: 1px solid #30363d; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .grid-sector { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .wing-title { color: #58a6ff; font-size: 1.5rem; border-bottom: 2px solid #30363d; padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;}
+    .heatmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+    .class-node { background: #0d1117; border: 1px solid #30363d; padding: 15px; border-radius: 6px; transition: 0.3s; cursor: pointer; }
+    .class-node:hover { border-color: #58a6ff; transform: translateY(-3px); }
+    .progress-track { height: 4px; background: #21262d; margin-top: 10px; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; transition: width 1s ease-in-out; }
+    .val-high { color: #3fb950; } .bg-high { background: #238636; }
+    .val-mid { color: #d29922; } .bg-mid { background: #9e6a03; }
+    .val-low { color: #f85149; } .bg-low { background: #da3633; }
+    .intel-search { width: 100%; background: #0d1117; border: 1px solid #30363d; color: white; padding: 15px; border-radius: 8px; font-size: 1.1rem; }
+</style>
+
+<div class="aoig-container">
+    <div class="mission-bar">
+        <div>
+            <h1 style="margin:0; color:#fff;">🛡️ AOIG: <span style="color:#58a6ff;">{{ exam.title }}</span></h1>
+            <p style="margin:5px 0 0 0; color:#8b949e;">Academic Operations & Intelligence Grid | Session 2025-26</p>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 0.8rem; color:#8b949e;">SYSTEM STATE</div>
+            <div style="color:#3fb950; font-weight:bold;">● LIVE ORCHESTRATION</div>
+        </div>
+    </div>
+
+    <input type="text" class="intel-search" placeholder="🔍 Query Intelligence: Search Student Genome, Teacher Latency, or Subject Anomaly...">
+
+    {% for wing, classes in grid_data.items %}
+    <div class="grid-sector">
+        <div class="wing-title">
+            <span>🏛️</span> {{ wing|upper }} WING 
+            <span style="font-size:0.9rem; color:#8b949e; margin-left:10px;">{{ classes|length }} Dimensions Active</span>
+        </div>
+        <div class="heatmap">
+            {% for c in classes %}
+            <div class="class-node">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight:bold; font-size:1.1rem;">Class {{ c.class }}</span>
+                    <span class="{% if c.percent == 100 %}val-high{% elif c.percent > 40 %}val-mid{% else %}val-low{% endif %}">
+                        {{ c.percent }}%
+                    </span>
+                </div>
+                <div style="font-size:0.8rem; color:#8b949e; margin-top:5px;">{{ c.done }}/{{ c.total }} Subjects Injected</div>
+                <div class="progress-track">
+                    <div class="progress-fill {% if c.percent == 100 %}bg-high{% elif c.percent > 40 %}bg-mid{% else %}bg-low{% endif %}" style="width: {{ c.percent }}%;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

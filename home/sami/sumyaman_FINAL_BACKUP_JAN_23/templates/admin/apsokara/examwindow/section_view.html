@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="background:#fff; padding:20px; border-radius:10px; border:1px solid #ddd;">
+    <h2 style="color:#1a237e; border-bottom:2px solid #1a237e; padding-bottom:10px;">
+        Archive: Wing {{ wing }} | Class {{ cls }} - Section {{ sec }}
+    </h2>
+
+    <table style="width:100%; border-collapse:collapse; margin-top:20px;">
+        <thead>
+            <tr style="background:#1a237e; color:white; text-align:left;">
+                <th style="padding:12px; border:1px solid #ddd;">Roll No / ID</th>
+                <th style="padding:12px; border:1px solid #ddd;">Student Name</th>
+                <th style="padding:12px; border:1px solid #ddd;">Father Name</th>
+                <th style="padding:12px; border:1px solid #ddd;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in students %}
+            <tr style="border-bottom:1px solid #eee;">
+                <td style="padding:12px;">{{ s.identity_number }}</td>
+                <td style="padding:12px;"><strong>{{ s.full_name }}</strong></td>
+                <td style="padding:12px;">{{ s.father_name }}</td>
+                <td style="padding:12px;">
+                    <a href="/admin/apsokara/examwindow/student-profile/{{ s.id }}/" 
+                       style="background:#1a237e; color:white; padding:5px 12px; text-decoration:none; border-radius:4px; font-size:12px;">
+                       View Profile & History
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="padding:30px; text-align:center; color:red;">No students found in this section database.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="/admin/apsokara/examwindow/" style="color:#1a237e; font-weight:bold;">← Back to Command Center</a>
+</div>
+{% endblock %}
