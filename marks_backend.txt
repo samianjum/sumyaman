@@ -1,0 +1,61 @@
+                        (d['status'], d['id'], u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing')))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+
+
+# --- MARKS PORTAL BACKEND START ---
+@app.route('/api/teacher/students_v2/<int:eid>/<int:sid>')
+@login_required
+def students_v2_new(eid, sid):
+    u = session['user']
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    # Humne DISTINCT aur GROUP BY laga diya hai taake duplicates ka sawal hi paida na ho
+    query = '''
+        SELECT DISTINCT 
+            s.id, 
+            s.full_name, 
+            s.roll_number, 
+            m.obtained_marks, 
+            m.remarks
+        FROM apsokara_student s
+        LEFT JOIN (
+            SELECT student_id, exam_id, sub_id, obtained_marks, remarks 
+            FROM apsokara_marks 
+            WHERE exam_id = ? AND sub_id = ?
+            GROUP BY student_id
+        ) m ON s.id = m.student_id
+        WHERE s.student_class = ? AND s.student_section = ? AND s.wing = ?
+        GROUP BY s.id
+        ORDER BY CAST(s.roll_number AS INTEGER) ASC
+    '''
+    students = conn.execute(query, (eid, sid, u['assigned_class'], u['assigned_section'], u['wing'])).fetchall()
+    conn.close()
+    return jsonify({'students': [dict(s) for s in students]})
+
+@app.route('/api/teacher/save_marks', methods=['POST'])
+@login_required
+def save_marks_v2():
+    data = request.json
+    eid = data['exam_id']
+    sid = data['sub_id']
+    total_m = data['total_marks']
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        cur = conn.cursor()
+        for m in data['marks']:
+            cur.execute('''
+                INSERT INTO apsokara_marks (exam_id, sub_id, student_id, total_marks, obtained_marks, remarks)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(exam_id, sub_id, student_id) 
+                DO UPDATE SET obtained_marks=excluded.obtained_marks, remarks=excluded.remarks
+            ''', (eid, sid, m['sid'], total_m, m['obt'], m['rem']))
+        conn.commit()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'status': 'error', 'message': str(e)})
+    finally:

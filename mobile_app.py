@@ -1,3 +1,4 @@
+from finalize_module import init_finalize_routes
 from flask import Flask, render_template_string, request, jsonify, session
 import os, sqlite3, datetime, pytz
 from functools import wraps
@@ -16,6 +17,9 @@ def login_required(f):
             return '<script>window.location.href="/";</script>'
         return f(*args, **kwargs)
     return decorated_function
+from teacher_api import init_teacher_routes
+init_finalize_routes(app, DB_PATH)
+init_teacher_routes(app, login_required)
 
 # --- UI TEMPLATE ---
 HTML_TEMPLATE = '''
@@ -42,6 +46,7 @@ HTML_TEMPLATE = '''
         .btn-sync { background: #1B4332; color: white; width: 100%; padding: 15px; border-radius: 15px; font-weight: 800; margin-top: 20px; }
         
         .status-pill { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; }
+.shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
         {% if user.role == 'Student' %}
         .teacher-only { display: none !important; }
         {% endif %}
@@ -137,6 +142,33 @@ HTML_TEMPLATE = '''
         }
         setInterval(updateClock, 1000);
         updateClock();
+
+        async function loadFinalizeStatus() {
+            const area = document.getElementById('finalize-content-area');
+            if(!area) return;
+            area.innerHTML = '<div class="p-8 text-center"><div class="animate-spin text-2xl mb-2">🔄</div><p class="text-[10px] font-black uppercase text-gray-400">Loading Status...</p></div>';
+            try {
+                const r = await fetch('/api/class-finalize-status');
+                const d = await r.json();
+                if(!d.success) { area.innerHTML = `<p class="text-rose-500 font-bold">${d.error}</p>`; return; }
+                let html = `<div class="glass-card mb-4 border-l-4 border-orange-500 bg-orange-50/50"><h4 class="text-[10px] font-black text-orange-600 uppercase">${d.exam_name}</h4><p class="text-sm font-black text-slate-800">CLASS READINESS</p></div>`;
+                d.status.forEach(s => {
+                    html += `<div class="glass-card flex items-center justify-between py-2 px-3 mb-2"><div><p class="text-[10px] font-black uppercase">${s.subject}</p><p class="text-[8px] text-gray-400">${s.teacher}</p></div><span class="${s.submitted ? 'text-emerald-600' : 'text-rose-600'} font-black text-[9px]">${s.submitted ? '✓ READY' : '× PENDING'}</span></div>`;
+                });
+                if(d.is_ready) html += `<button onclick="publishResult(${d.exam_id})" class="w-full bg-[#1B4332] text-white py-3 rounded-xl font-black text-xs mt-2">🚀 PUBLISH RESULT</button>`;
+                area.innerHTML = html;
+            } catch(e) { area.innerHTML = "Error!"; }
+        }
+        async function publishResult(id) {
+            if(!confirm("Lock all marks?")) return;
+            const r = await fetch('/api/publish-final-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({exam_id:id})});
+            if((await r.json()).success) { alert("Published!"); loadFinalizeStatus(); }
+        }
+        function showTab(t) {
+            document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
+            const target = document.getElementById('page-' + t);
+            if(target) { target.classList.remove('hidden'); if(t === 'final-upload') loadFinalizeStatus(); }
+        }
         </script>
 
 
@@ -191,9 +223,61 @@ HTML_TEMPLATE = '''
                     <p class="text-[8px] opacity-60 font-bold mt-1">View Progress</p>
                 </div>
                 {% endif %}
+
+                {% if user.role == 'Student' %}
+                <div onclick="showTab('results')" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-emerald-500 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mb-3 drop-shadow-md">🏆</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">My Result</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Official Record</p>
+                </div>
+                {% endif %}
+                {% if user.role == 'Teacher' %}
+                <div onclick="navToMarks()" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-indigo-600 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mb-3 drop-shadow-md">🎯</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">Marks Entry</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Grading Portal</p>
+                </div>
+                {% endif %}
+                {% if user.role == 'Teacher' and user.is_class_teacher %}
+                <div onclick="showTab('final-upload'); loadFinalizeStatus();" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-orange-500 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mb-3 drop-shadow-md">📤</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">Finalize</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Submit Class</p>
+                </div>
+                {% endif %}
             </div>
 
             
+
+    <div id='page-results' class='hidden space-y-4 max-w-md mx-auto'>
+        <div class='flex items-center justify-between mb-2'>
+            <h3 class='font-black text-xl text-[#1B4332] uppercase tracking-tighter'>Academic Results</h3>
+            <button onclick="showTab('home')" class='bg-gray-100 px-3 py-1 rounded-lg text-[10px] font-black text-gray-500'>BACK</button>
+        </div>
+        <div class='glass-card p-8 text-center border-l-8 border-emerald-500'>
+            <p class='text-sm font-bold text-gray-400'>Marksheet Table Coming Soon...</p>
+        </div>
+    </div>
+    <div id='page-marks-entry' class='hidden space-y-4 max-w-md mx-auto'>
+        <div class='flex items-center justify-between mb-4'>
+            <h3 class='font-black text-xl text-[#1B4332] uppercase tracking-tighter'>Marks Portal</h3>
+            <button onclick="showTab('home')" class='bg-gray-100 px-3 py-1 rounded-lg text-[10px] font-black text-gray-500'>BACK</button>
+        </div>
+        <div class='glass-card mb-4 border-l-8 border-indigo-600'>
+            <label class='text-[9px] font-black text-gray-400 uppercase mb-2 block'>Select Exam Session</label>
+            <select id='exam-selector' class='w-full p-3 rounded-xl bg-gray-50 border-none text-xs font-bold outline-none' onchange='loadTeacherAssignments()'></select>
+        </div>
+        <div id='teacher-assign-list' class='space-y-3 pb-24'></div>
+    </div>
+    <div id='page-final-upload' class='hidden space-y-4 max-w-md mx-auto'>
+        <div class='flex items-center justify-between mb-2'>
+            <h3 class='font-black text-xl text-[#1B4332] uppercase tracking-tighter'>Final Upload</h3>
+            <button onclick="showTab('home')" class='bg-gray-100 px-3 py-1 rounded-lg text-[10px] font-black text-gray-500'>BACK</button>
+        </div>
+        <div id='finalize-main-container' class='w-full space-y-4'>
+            <div id="finalize-content-area" class="space-y-4"></div>
+        </div>
+    </div>
             
     <div id="page-leave" class="hidden animate-slide-up pb-24">
         <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
@@ -273,10 +357,15 @@ HTML_TEMPLATE = '''
                 </div>
             </div>
 
+            
             <div id="page-marking-view" class="hidden space-y-4">
+                <button onclick="showTab('marks-entry')" class="text-[10px] font-black text-gray-400 uppercase tracking-widest">← Back</button>
+                <div id="marking-area-v2" class="space-y-3"></div>
+            </div>
+            <div id="page-attendance-view" class="hidden space-y-4">
                 <button onclick="showTab('mark')" class="text-[10px] font-black text-gray-400 uppercase tracking-widest">← Back</button>
                 <div id="lock-banner"></div>
-                <div id="marking-list" class="space-y-3"></div>
+                <div id="marking-area" class="space-y-3"></div>
                 <div id="marking-footer"></div>
             </div>
 
@@ -525,7 +614,7 @@ HTML_TEMPLATE = '''
                 document.getElementById('v-auth-id').value = ''; 
             }
 
-            const pages = ['home', 'diary', 'mark', 'profile', 'marking-view', 'archive-view', 'intel-view', 'leave'];
+            const pages = ['home', 'diary', 'mark', 'results', 'marks-entry', 'final-upload', 'profile', 'marking-view', 'attendance-view', 'archive-view', 'intel-view', 'leave', 'marks-portal'];
             pages.forEach(p => {
                 const el = document.getElementById('page-' + p);
                 if (el) el.classList.add('hidden');
@@ -540,7 +629,7 @@ HTML_TEMPLATE = '''
 
             // --- HEADER VISIBILITY LOGIC ---
             const header = document.getElementById('main-header');
-            const fullScreenPages = ['marking-view', 'archive-view', 'intel-view'];
+            const fullScreenPages = ['marking-view', 'attendance-view', 'archive-view', 'intel-view'];
             if (fullScreenPages.includes(t)) {
                 header.classList.add('hidden');
             } else {
@@ -568,7 +657,7 @@ HTML_TEMPLATE = '''
         async function openAttendanceTab(type) {
             if(type === 'marking') {
                 await checkLockStatus();
-                showTab('marking-view');
+                showTab('attendance-view');
                 loadMarkingInterface();
             } else {
                 showTab(type + '-view');
@@ -578,7 +667,7 @@ HTML_TEMPLATE = '''
         }
 
         async function loadMarkingInterface() {
-            const list = document.getElementById('marking-list');
+            const list = document.getElementById('marking-area');
             const banner = document.getElementById('lock-banner');
             const footer = document.getElementById('marking-footer');
             
@@ -1268,7 +1357,128 @@ window.askUser = function(message) {
 };
 
 </script>
+<script src="/static/finalize.js"></script>
 </body>
+
+<script>
+async function navToMarks() {
+    showTab('marks-entry');
+    const sel = document.getElementById('exam-selector');
+    if(!sel) return;
+    sel.innerHTML = '<option>Loading...</option>';
+    try {
+        const res = await fetch('/api/teacher/init_marks');
+        const data = await res.json();
+        if (data.exams && data.exams.length > 0) {
+            sel.innerHTML = data.exams.map(e => `<option value="${e.id}">${e.name.toUpperCase()}</option>`).join('');
+            loadTeacherAssignments();
+        } else { sel.innerHTML = '<option>No Active Exams</option>'; }
+    } catch(e) { sel.innerHTML = '<option>Error</option>'; }
+}
+
+
+async function loadTeacherAssignments() {
+    const eid = document.getElementById('exam-selector').value;
+    const list = document.getElementById('teacher-assign-list');
+    list.innerHTML = '<div class="p-10 text-center text-gray-400 font-bold">FETCHING...</div>';
+    const res = await fetch(`/api/teacher/assignments_v2/${eid}`);
+    const data = await res.json();
+    list.innerHTML = data.map(a => `
+        <div onclick="openMarkingSheet(${eid}, ${a.sub_id}, '${a.sub_name}')" class="glass-card flex items-center justify-between border-l-8 border-indigo-600 active:scale-95 transition-all">
+            <div>
+                <span class="bg-indigo-100 text-indigo-700 text-[8px] font-black px-2 py-0.5 rounded uppercase">${a.sub_name}</span>
+                <h4 class="font-black text-gray-800 text-sm mt-1 uppercase">CLASS ${a.student_class}-${a.section} (${a.wing.toUpperCase()})</h4>
+            </div>
+            <button onclick="openMarkingSheet(${eid}, ${a.sub_id}, '${a.sub_name}')" class="bg-indigo-600 text-white p-2 rounded-lg shadow-lg">✍️</button>
+        </div>`).join('');
+}
+
+
+async function openMarkingSheet(eid, sid, sname) {
+    showTab('marking-view');
+    const area = document.getElementById('marking-area-v2');
+    area.innerHTML = '<div class="p-10 text-center text-indigo-600 font-bold">Syncing with Database...</div>';
+    
+    const res = await fetch(`/api/teacher/students_v2/${eid}/${sid}`);
+    const data = await res.json();
+    
+    let html = `<div class="mb-4 bg-indigo-900 text-white p-4 rounded-2xl shadow-lg">
+        <h2 class="font-black uppercase text-lg">${sname}</h2>
+        <p class="text-[10px] opacity-70">RECORDS LOADED FROM DATABASE</p>
+        <input type="number" id="total_m" value="100" class="w-full mt-2 p-2 rounded-lg text-black font-bold text-center" placeholder="Max Marks">
+    </div>`;
+
+    if (data.students && data.students.length > 0) {
+        data.students.forEach(s => {
+            // Agar obtained_marks NULL hain to 0 dikhao, warna saved value
+            const savedMarks = (s.obtained_marks !== null) ? s.obtained_marks : "";
+            const savedRemarks = (s.remarks !== null) ? s.remarks : "";
+            
+            html += `<div class="glass-card mb-3 p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-black text-xs text-gray-800 uppercase">${s.full_name}</span>
+                    <span class="text-[9px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">ROLL: ${s.roll_number}</span>
+                </div>
+                <div class="flex gap-2">
+                    <input type="number" class="obt-input w-20 p-2 bg-indigo-50 border border-indigo-100 rounded-lg text-sm font-black text-indigo-700" 
+                           data-sid="${s.id}" value="${savedMarks}" placeholder="0">
+                    <input type="text" class="rem-input flex-1 p-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold" 
+                           data-sid="${s.id}" value="${savedRemarks}" placeholder="Remarks">
+                </div>
+            </div>`;
+        });
+    } else {
+        html += '<div class="p-10 text-center text-red-500 font-bold">No Students Found!</div>';
+    }
+
+    html += `<button onclick="commitMarks(${eid}, ${sid})" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-black mt-4 shadow-xl mb-20">SAVE & LOCK DATA</button>`;
+    area.innerHTML = html;
+}
+
+
+async function commitMarks(eid, sid) {
+    const obtInputs = document.querySelectorAll('.obt-input');
+    const remInputs = document.querySelectorAll('.rem-input');
+    const total_m = document.getElementById('total_m').value;
+    
+    let marks = [];
+    for(let i=0; i<obtInputs.length; i++) {
+        marks.push({
+            sid: obtInputs[i].dataset.sid,
+            obt: obtInputs[i].value,
+            rem: remInputs[i].value
+        });
+    }
+
+    const res = await fetch('/api/teacher/save_marks_v2', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({exam_id: eid, sub_id: sid, total_marks: total_m, marks: marks})
+    });
+    const result = await res.json();
+    if(result.status === 'success') { alert('DATA SAVED!'); showTab('marks-entry'); }
+}
+
+async function _old_load() {
+    const eid = document.getElementById('exam-selector').value;
+    const list = document.getElementById('teacher-assign-list');
+    if(!eid || eid.includes('No')) return;
+    list.innerHTML = '<div class="p-10 text-center text-gray-400 font-bold text-[10px]">FETCHING...</div>';
+    try {
+        const res = await fetch(`/api/teacher/assignments_v2/${eid}`);
+        const data = await res.json();
+        list.innerHTML = data.map(a => `
+            <div class="glass-card flex items-center justify-between border-l-8 border-indigo-600 active:scale-95 transition-all">
+                <div>
+                    <span class="bg-indigo-100 text-indigo-700 text-[8px] font-black px-2 py-0.5 rounded uppercase">${a.sub_name}</span>
+                    <h4 class="font-black text-gray-800 text-sm mt-1 uppercase">CLASS ${a.student_class}-${a.section} (${a.wing.toUpperCase()})</h4>
+                </div>
+                <button class="bg-indigo-600 text-white p-2 rounded-lg shadow-lg">➔</button>
+            </div>`).join('') || '<div class="p-10 text-center text-gray-400 text-[10px]">NO DATA</div>';
+    } catch(e) { list.innerHTML = '<div class="text-center text-red-500 font-bold">ERROR</div>'; }
+}
+</script>
+
 </html>
 '''
 
@@ -1291,6 +1501,7 @@ def index():
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.json
+    print(f'SAVE ATTEMPT -> EID: {data.get("eid")}, SID: {data.get("sid")}')
     uid, dob, role = str(data.get('uid', '')).strip(), str(data.get('dob', '')).strip(), data.get('role', 'Student')
     uid_int = int(uid) if uid.isdigit() else -1
     conn = sqlite3.connect(DB_PATH)
@@ -1388,39 +1599,33 @@ def students_marking():
 @app.route('/api/sync-attendance', methods=['POST'])
 @login_required
 def sync_attendance():
-    u = session['user']
-    today = datetime.datetime.now(PK_TZ).date().isoformat()
-    data = request.json.get('attendance', [])
-    
-    conn = sqlite3.connect(DB_PATH)
     try:
-        # Get current edit count
-        res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a 
-                            JOIN apsokara_student s ON a.student_id = s.id 
-                            WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
-                            (today, u['assigned_class'], u['assigned_section'], u['wing'])).fetchone()
-        count = (res[0] if res[0] is not None else 0)
+        data = request.json
+        attendance_list = data.get('attendance', [])
+        u = session['user']
+        today = datetime.datetime.now(PK_TZ).date().isoformat()
         
-        if count >= 2:
-            return jsonify({"success": False, "error": "Record is Locked!"})
-
-        cur = conn.cursor()
-        cur.execute("BEGIN IMMEDIATE TRANSACTION;")
-        # Delete old entries for today
-        cur.execute("""DELETE FROM apsokara_attendance WHERE date=? AND student_id IN 
-                     (SELECT id FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?)""", 
-                     (today, u['assigned_class'], u['assigned_section'], u['wing']))
+        conn = sqlite3.connect(DB_PATH)
+        for item in attendance_list:
+            # Check if record already exists
+            existing = conn.execute("SELECT id, edit_count FROM apsokara_attendance WHERE student_id=? AND date=?", 
+                                 (item['id'], today)).fetchone()
+            
+            if existing:
+                new_count = (existing[1] or 0) + 1
+                conn.execute("UPDATE apsokara_attendance SET status=?, edit_count=? WHERE student_id=? AND date=?",
+                            (item['status'], new_count, item['id'], today))
+            else:
+                conn.execute("INSERT INTO apsokara_attendance (date, status, student_id, marked_by, edit_count) VALUES (?, ?, ?, ?, ?)",
+                            (today, item['status'], item['id'], u['full_name'], 0))
         
-        # Insert new entries with incremented count
-        final_data = [(s['id'], s['status'], today, count+1, u['full_name']) for s in data]
-        cur.executemany("INSERT INTO apsokara_attendance (student_id, status, date, edit_count, marked_by) VALUES (?,?,?,?,?)", final_data)
         conn.commit()
+        conn.close()
         return jsonify({"success": True})
     except Exception as e:
-        conn.rollback()
+        print(f"❌ Attendance Error: {str(e)}")
         return jsonify({"success": False, "error": str(e)})
-    finally:
-        conn.close()
+
 
 @app.route('/api/archive')
 @login_required
@@ -1467,6 +1672,7 @@ def api_archive():
 @login_required
 def unlock_vault():
     data = request.json
+    print(f'SAVE ATTEMPT -> EID: {data.get("eid")}, SID: {data.get("sid")}')
     u = session['user']
     auth_id, dob = str(data.get('auth_id')).strip(), str(data.get('dob')).strip()
     # Check role to compare against correct column
@@ -1753,5 +1959,60 @@ def get_pending_leave_count():
     except:
         return jsonify({'count': 0})
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+@app.route('/api/teacher/students_v2/<int:eid>/<int:sid>')
+@login_required
+def students_v2_api(eid, sid):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        # Get class/section details for this assignment
+        assign = conn.execute('SELECT student_class, section, wing FROM apsokara_subjectassignment WHERE subject_id = ?', (sid,)).fetchone()
+        if not assign: return jsonify({'students': []})
+
+        # Fetch students and join with existing marks if any
+        query = '''
+            SELECT s.id, s.full_name, s.roll_number, m.obtained_marks, m.remarks
+            FROM apsokara_student s
+            LEFT JOIN student_marks m ON s.id = m.student_id AND m.exam_id = ? AND m.subject_id = ?
+            WHERE s.student_class = ? AND s.student_section = ? AND s.wing = ?
+            ORDER BY CAST(s.roll_number AS INTEGER)
+        '''
+        students = conn.execute(query, (eid, sid, assign['student_class'], assign['section'], assign['wing'])).fetchall()
+        return jsonify({'students': [dict(s) for s in students]})
+    except Exception as e:
+        print(f'❌ API ERROR: {str(e)}')
+        return jsonify({'error': str(e)})
+    finally:
+        conn.close()
+
+@app.route('/api/teacher/save_marks_v2', methods=['POST'])
+@login_required
+def save_marks_v2_api():
+    data = request.json
+    print(f'SAVE ATTEMPT -> EID: {data.get("eid")}, SID: {data.get("sid")}')
+    eid, sid, total = data.get('exam_id'), data.get('sub_id'), data.get('total_marks')
+    marks_list = data.get('marks')
+    tid = session['user']['id']
+    
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        for m in marks_list:
+            # INSERT or UPDATE logic
+            conn.execute('''
+                INSERT INTO student_marks (exam_id, student_id, subject_id, teacher_id, total_marks, obtained_marks, remarks)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(exam_id, student_id, subject_id) DO UPDATE SET
+                obtained_marks=excluded.obtained_marks, remarks=excluded.remarks
+            ''', (eid, m['sid'], sid, tid, total, m['obt'], m['rem']))
+        conn.commit()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+    finally:
+        conn.close()
+
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)

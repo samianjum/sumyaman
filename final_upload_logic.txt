@@ -1,0 +1,204 @@
+6:from apsokara.logic.class_teacher_modules import render_final_upload
+7-from apsokara.logic.teacher_modules import render_marks_entry
+8-from apsokara.logic.student_modules import render_my_result
+9-from news_utility import render_news_ticker
+10-import streamlit as st
+11-
+12-# --- FACE GATE REDIRECTOR ---
+13-if st.session_state.get('show_face_gate', False):
+14-    from face_lock import show_face_verification_gate
+15-    show_face_verification_gate()
+16-    st.stop()
+17-from news_utility import render_news_ticker
+18-import base64
+19-import datetime
+20-import base64
+21-import sqlite3
+22-import pandas as pd
+23-import plotly.graph_objects as go # Donut chart ke liye
+24-
+25-
+26-# 1. Page Config
+27-st.set_page_config(page_title="APS OKARA PORTAL", page_icon="/home/sami/Downloads/sami.png", layout="wide", initial_sidebar_state="expanded")
+28-
+29-# --- PWA MOBILE INSTALLER INJECTION ---
+30-st.markdown('''
+31-    <link rel='manifest' href='./static/app_assets/manifest_v3.json'>
+32-    <script>
+33-    if ('serviceWorker' in navigator) {
+34-      window.addEventListener('load', function() {
+35-        navigator.serviceWorker.register('./static/app_assets/sw.js').then(function(reg) {
+36-          console.log('PWA ServiceWorker registered');
+37-        });
+38-      });
+39-    }
+40-    </script>
+41-''', unsafe_allow_html=True)
+42-
+43-st.markdown('''
+44-<style>
+45-    /* Sidebar styling */
+46-    [data-testid="stSidebar"] { background-color: #1b4332 !important; }
+47-    [data-testid="stSidebar"] * { color: white !important; }
+48-    
+49-    /* Global Button and Tab Overrides */
+50-    .stButton>button { border: 2px solid #d4af37 !important; transition: 0.3s !important; }
+51-    .stButton>button:hover { background-color: #ffffff !important; color: #1b4332 !important; border: 2px solid #1b4332 !important; }
+52-    
+53-    /* Header and Text Gold touches */
+54-    h1, h2, h3 { color: #1b4332 !important; }
+55-    .stTabs [aria-selected="true"] { border-top: 5px solid #d4af37 !important; }
+56-</style>
+57-''', unsafe_allow_html=True)
+58-render_news_ticker()
+59-
+60-# --- LEAVE SYSTEM HELPER FUNCTIONS ---
+61-def check_on_leave(student_id):
+62-    try:
+63-        import sqlite3
+64-        import datetime
+65-        conn = sqlite3.connect('db.sqlite3')
+66-        today = datetime.date.today().isoformat()
+67-        cur = conn.cursor()
+68-        # Naye table 'apsokara_studentleave' se check karna
+69-        query = "SELECT id FROM apsokara_studentleave WHERE student_id=? AND status='Approved' AND ? BETWEEN from_date AND to_date"
+70-        cur.execute(query, (student_id, today))
+71-        res = cur.fetchone()
+72-        conn.close()
+73-        return True if res else False
+74-    except Exception as e:
+75-        return False
+76-
+77-def get_pending_count(u):
+78-    try:
+79-        conn = sqlite3.connect('db.sqlite3')
+80-        cur = conn.cursor()
+81-        cur.execute("SELECT COUNT(*) FROM apsokara_leaverequests WHERE student_class=? AND student_section=? AND wing=? AND status='Pending'", (u.get('class'), u.get('sec'), u.get('wing')))
+82-        count = cur.fetchone()[0]
+83-        conn.close()
+84-        return f" ({count})" if count > 0 else ""
+85-    except: return ""
+86-
+87-# --- PROFESSIONAL NOTIFICATION SYSTEM (INJECTED) ---
+88-def display_notifications():
+89-    try:
+90-        conn = sqlite3.connect("db.sqlite3", timeout=30)
+91-        cur = conn.cursor()
+92-        cur.execute("SELECT title, content, date_posted FROM apsokara_schoolnotice WHERE is_active=1 ORDER BY date_posted DESC LIMIT 8")
+93-        notices = cur.fetchall()
+94-        conn.close()
+95-        count = len(notices)
+96-        badge_val = f"{count}" if count <= 9 else "9+"
+97-        notices_html = ""
+98-        for n in notices:
+99-            notices_html += f"""
+100-            <div style="padding:12px; border-bottom:1px solid #f0f0f0; transition: background 0.3s;">
+101-                <div style="font-weight:700; color:#1b4332; font-size:14px; margin-bottom:3px;">{n[0]}</div>
+102-                <div style="color:#444; font-size:13px; line-height:1.4;">{n[1]}</div>
+103-                <div style="color:#999; font-size:10px; margin-top:5px; text-align:right;">{n[2]}</div>
+104-            </div>
+105-            """
+106-        if not notices:
+--
+382:                from apsokara.logic.class_teacher_modules import render_final_upload
+383:                render_final_upload(u)
+384-            elif "ATTENDANCE SYSTEM" in t_full_name or "ATTENDANCE" in t_full_name:
+385-                from attendance_system import render_attendance_system
+386-                render_attendance_system(u)
+387-            elif "LEAVE" in t_full_name:
+388-                from apsokara.logic.student_modules import render_apply_leave
+389-                render_apply_leave(u)
+390-            elif "DAILY DIARY" in t_full_name:
+391-                from diary_engine import render_student_diary
+392-                render_student_diary(u)
+393-            elif "POST DIARY" in t_full_name:
+394-                from diary_engine import render_teacher_diary
+395-                render_teacher_diary(u)
+396-            elif "FACE LOCK" in t_full_name:
+397-                from face_lock import render_face_lock_setup
+398-                render_face_lock_setup(u, role)
+399-                st.markdown(f"## 🏛️ Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!")
+400-                c1, c2, c3 = st.columns(3)
+401-                with c2: st.success("✅ System Status: Active")
+402-                with c3: st.warning("🔔 New Notices: Check Notifications")
+403-                st.divider()
+404-                st.write(f'## Welcome, {st.session_state.user_info.get('full_name', st.session_state.user_info.get('full_name', 'User'))}!')
+405-def show_login():
+406-    st.markdown(f'''<div style="text-align:center; padding-top:0px;"><img src="data:image/png;base64,{img_base64}" width="100"><h1 style="color:#000000; font-weight:800;">ARMY PUBLIC SCHOOL & COLLAGE SYSTEM PORTAL</h1></div>''', unsafe_allow_html=True)
+407-    t1, t2= st.tabs(["🎓 STUDENT LOGIN", "👨‍🏫 STAFF LOGIN"])
+408-    with t1:
+409-        id_s = st.text_input("B-Form Number", key="s_login")
+410-        if st.session_state.get('bio_toggle'):
+411-            st.markdown('''<div style='border:4px solid #1b4332; border-radius:50%; width:220px; height:220px; overflow:hidden; margin:10px auto; position:relative;'><div style='position:absolute; top:0; left:0; width:100%; height:5px; background:#00ff00; box-shadow:0 0 20px #00ff00; animation:scanLine 1.5s infinite alternate;'></div><style>@keyframes scanLine { from {top:0%} to {top:100%} }</style>''', unsafe_allow_html=True)
+412-            st.camera_input('FaceID', key='login_cam', label_visibility='hidden')
+413-            st.markdown('</div>', unsafe_allow_html=True)
+414-        if st.session_state.get('bio_toggle'):
+415-            st.markdown('''<div style='border:2px solid #d4af37; padding:10px; border-radius:15px; background:#000; position:relative; overflow:hidden;'><div style='position:absolute; top:0; left:0; width:100%; height:3px; background:#00ff00; box-shadow:0 0 15px #00ff00; animation:scan 2s infinite;'></div><style>@keyframes scan { 0% {top:0%} 100% {top:100%} }</style></div>''', unsafe_allow_html=True)
+416-            st.camera_input('Scan to Authenticate', key='login_cam')
+417-        dob_s = st.date_input("Birth Date", value=datetime.date(2010,1,1), key="s_dob")
+418-        if st.button("ENTER STUDENT PORTAL", key="s_btn"):
+419-            d = fetch_user_data(id_s, str(dob_s), "Student")
+420-            if d:
+421-                
+422-                status = str(d.get('face_status', 'NOT_SET')).upper()
+423-                if status == 'ENROLLED':
+424-                    st.session_state.pending_user, st.session_state.pending_role = d, 'Student'
+425-                    st.session_state.show_face_gate = True
+426-                    st.rerun()
+427-                else:
+428-                    status = str(d.get('face_status', 'NOT_SET')).upper()
+429-                    if status == 'ENROLLED':
+430-                        st.session_state.pending_user, st.session_state.pending_role = d, 'Student'
+431-                        st.session_state.show_face_gate = True
+432-                        st.rerun()
+433-                    else:
+434-                        st.session_state.user_info, st.session_state.role, st.session_state.logged_in = d, 'Student', True
+435-                        st.rerun()
+436-                st.rerun()
+437-    with t2:
+438-        id_t = st.text_input("CNIC Number", key="t_login")
+439-        dob_t = st.date_input("Birth Date ", value=datetime.date(1990,1,1), key="t_dob")
+440-        if st.button("ENTER STAFF PORTAL", key="t_btn"):
+441-            d = fetch_user_data(id_t, str(dob_t), "Teacher")
+442-            if d:
+443-                
+444-                status = str(d.get('face_status', 'NOT_SET')).upper()
+445-                if status == 'ENROLLED':
+446-                    st.session_state.pending_user, st.session_state.pending_role = d, d.get('role_db', 'Teacher')
+447-                    st.session_state.show_face_gate = True
+448-                    st.rerun()
+449-                else:
+450-                    status = str(d.get('face_status', 'NOT_SET')).upper()
+451-                    if status == 'ENROLLED':
+452-                        st.session_state.pending_user, st.session_state.pending_role = d, d.get('role_db', 'Teacher')
+453-                        st.session_state.show_face_gate = True
+454-                        st.rerun()
+455-                    else:
+456-                        st.session_state.user_info, st.session_state.role, st.session_state.user_role, st.session_state.logged_in = d, d.get('role_db', 'Teacher'), d.get('role_db', 'Teacher'), True
+457-                        st.rerun()
+458-                st.rerun()
+459-
+460-
+461-# --- MOBILE & SECURITY GUARD ---
+462-import streamlit_javascript as st_js
+463-
+464-width = st_js.st_javascript("window.innerWidth")
+465-
+466-if st.session_state.get('logged_in'):
+467-    # A. Mobile View Check
+468-    if width is not None and width < 700:
+469-        # mobile view removed
+470-        st.stop()
+471-    
+472-    # B. Face ID Check
+473-
+474-# --- FINAL ROUTING ---
+475-
+476-
+477-# --- FINAL ROUTING ENGINE ---
+478-if st.session_state.get('show_face_gate'):
+479-    from face_engine import show_verification_screen
+480-    from face_handler import verify_face
+481-    
+482-    u = st.session_state.pending_user
+483-    role = st.session_state.pending_role

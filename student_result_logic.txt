@@ -1,0 +1,121 @@
+36:def render_my_result(u):
+37-    conn = sqlite3.connect('db.sqlite3')
+38-    logo_b64 = get_base64_image("/home/sami/Downloads/sami.png")
+39-    
+40-    st.markdown("""
+41-        <style>
+42-        .exam-card {
+43-            background: white; border-radius: 18px; padding: 25px;
+44-            border: 1px solid #f0f0f0; border-top: 6px solid #1b4332;
+45-            margin-bottom: 20px; transition: all 0.4s ease;
+46-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+47-        }
+48-        .exam-card:hover {
+49-            transform: translateY(-8px);
+50-            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+51-            border-top: 6px solid #d4af37;
+52-        }
+53-        .modal-overlay {
+54-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+55-            background: rgba(0,0,0,0.85); z-index: 9999;
+56-            display: flex; justify-content: center; align-items: flex-start;
+57-            overflow-y: auto; padding: 40px 15px;
+58-        }
+59-        .modal-content {
+60-            background: white; padding: 45px; border-radius: 8px;
+61-            width: 100%; max-width: 850px; position: relative; color: black;
+62-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+63-        }
+64-        /* Classy X Button */
+65-        .stButton > button[kind="primary"] {
+66-            position: fixed !important; top: 70px !important; right: 310px !important;
+67-            z-index: 10000 !important; border-radius: 50% !important;
+68-            width: 45px !important; height: 45px !important; border: none !important;
+69-            background: #cc0000 !important; color: white !important;
+70-        }
+71-        </style>
+72-    """, unsafe_allow_html=True)
+73-
+74-    q_exams = "SELECT DISTINCT e.id, e.name, e.end_date, e.class_group FROM exams e JOIN student_marks sm ON e.id = sm.exam_id WHERE sm.student_id = ? AND sm.subject_id = 0"
+75-    exams_df = pd.read_sql_query(q_exams, conn, params=(u['id'],))
+76-
+77-    if exams_df.empty:
+78-        st.info("No published academic results found at this time.")
+79-        conn.close()
+80-        return
+81-
+82-    # --- CLASSY FILTER SECTION ---
+83-    st.markdown("<h3 style='color: #1b4332;'>🔍 Academic Records</h3>", unsafe_allow_html=True)
+84-    f_col1, f_col2 = st.columns([3, 1])
+85-    search = f_col1.text_input("", placeholder="Type exam name to search...")
+86-    sort_order = f_col2.selectbox("", ["Latest First", "Oldest First"])
+87-    
+88-    if search:
+89-        exams_df = exams_df[exams_df['name'].str.contains(search, case=False)]
+90-    
+91-    exams_df['end_date'] = pd.to_datetime(exams_df['end_date'])
+92-    # Logic for Oldest/Latest as requested
+93-    exams_df = exams_df.sort_values(by='end_date', ascending=(sort_order == "Oldest First"))
+94-
+95-    st.markdown("<br>", unsafe_allow_html=True)
+96-    
+97-    cols = st.columns(2)
+98-    for i, (_, ex) in enumerate(exams_df.iterrows()):
+99-        with cols[i % 2]:
+100-            st.markdown(f'''
+101-                <div class="exam-card">
+102-                    <div style="font-size:10px; color:#d4af37; font-weight:700; letter-spacing:2px; margin-bottom:8px;">OFFICIAL REPORT CARD</div>
+103-                    <div style="font-size:22px; font-weight:800; color:#1b4332; margin-bottom:5px;">{ex['name'].upper()}</div>
+104-                    <div style="font-size:14px; color:#888;">Exam Date: {ex['end_date'].strftime('%B %d, %Y')}</div>
+105-                    <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+106-                        <span style="color:#1b4332; font-weight:600; font-size:13px;">Status: Published</span>
+107-                    </div>
+108-                </div>
+109-            ''', unsafe_allow_html=True)
+110-            if st.button(f"VIEW REPORT DETAILS", key=f"btn_{ex['id']}", use_container_width=True):
+111-                st.session_state['active_report'] = ex['id']
+112-                st.rerun()
+113-
+114-    if 'active_report' in st.session_state:
+115-        # Invisible background closer
+116-        if st.button(" ", key="overlay_close"):
+117-            del st.session_state['active_report']
+118-            st.rerun()
+119-
+120-        # The X button
+121-        if st.button("✖", type="primary"):
+122-            del st.session_state['active_report']
+123-            st.rerun()
+124-
+125-        rid = st.session_state['active_report']
+126-        r_info = exams_df[exams_df['id']==rid].iloc[0]
+127-
+128-        q_marks = """SELECT s.name as Subject, sm.total_marks as Total, sm.obtained_marks as Obtained, sm.remarks as Remarks
+129-                    FROM student_marks sm JOIN apsokara_subject s ON sm.subject_id = s.id
+130-                    WHERE sm.id IN (SELECT MAX(id) FROM student_marks WHERE exam_id=? AND student_id=? AND subject_id > 0 GROUP BY subject_id)"""
+131-        marks = pd.read_sql_query(q_marks, conn, params=(int(rid), u['id']))
+132-        ct_remark = conn.execute("SELECT remarks FROM student_marks WHERE exam_id=? AND student_id=? AND subject_id=0", (int(rid), u['id'])).fetchone()
+133-
+134-        rows = ""
+135-        t_obt, t_max = 0, 0
+136-        for _, r in marks.iterrows():
+137-            t_obt += r['Obtained']; t_max += r['Total']
+138-            rows += f'<tr><td style="border:1px solid #000;padding:12px;">{r["Subject"]}</td><td style="border:1px solid #000;padding:12px;text-align:center;">{int(r["Total"])}</td><td style="border:1px solid #000;padding:12px;text-align:center;">{int(r["Obtained"])}</td><td style="border:1px solid #000;padding:12px;">{r["Remarks"]}</td></tr>'
+139-        
+140-        perc = (t_obt/t_max*100) if t_max > 0 else 0
+141-        
+142-        st.markdown(f'''
+143-        <div class="modal-overlay">
+144-            <div class="modal-content">
+145-                <div style="text-align:center; border-bottom:4px solid #1b4332; padding-bottom:15px; margin-bottom:25px;">
+146-                    <img src="data:image/png;base64,{logo_b64}" width="120">
+147-                    <h1 style="margin:10px 0; color:#1b4332; font-size:26px; font-weight:900;">ARMY PUBLIC SCHOOL OKARA CANTONMENT</h1>
+148-                    <p style="margin:0; font-weight:bold; letter-spacing:1px; color:#555;">{r_info['name']} - PROGRESS REPORT</p>
+149-                </div>
+150-                <div style="display:grid; grid-template-columns:1fr 1fr; margin-bottom:25px; font-size:15px; border:1px solid #000; padding:20px;">
+151-                    <div><b>Student Name:</b> {u['full_name']}<br><b>Father Name:</b> {u.get('father_name','-')}<br><b>Roll Number:</b> {u.get('roll_number','-')}</div>
+152-                    <div><b>Class:</b> {u['class']}-{u.get('sec','')}<br><b>Wing:</b> {u.get('wing','-').upper()}<br><b>Issue Date:</b> {date.today()}</div>
+153-                </div>
+154-                <table style="width:100%; border-collapse:collapse; margin-bottom:25px; font-size:14px;">
+155-                    <tr style="background:#f2f2f2;">
+156-                        <th style="border:1px solid #000;padding:12px;text-align:left;">SUBJECT</th>
