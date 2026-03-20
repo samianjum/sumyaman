@@ -5,3 +5,4 @@ face-recognition
 numpy
 Pillow
 pytz
+gunicorn

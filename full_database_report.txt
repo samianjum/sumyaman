@@ -1,0 +1,106 @@
+=== FULL DATABASE EXTRACTION REPORT ===
+
+
+****************************************
+DATABASE NAME: apsokara.db
+****************************************
+TABLES FOUND: 
+----------------------------------------
+
+
+****************************************
+DATABASE NAME: database.db
+****************************************
+TABLES FOUND: apsokara_diary
+----------------------------------------
+TABLE: apsokara_diary
+0|id|INTEGER|0||1
+1|teacher_id|INTEGER|0||0
+2|teacher_name|TEXT|0||0
+3|student_class|TEXT|0||0
+4|section|TEXT|0||0
+5|wing|TEXT|0||0
+6|subject|TEXT|0||0
+7|content|TEXT|0||0
+8|date_posted|TEXT|0||0
+9|is_scheduled|INTEGER|0|0|0
+10|attachments|TEXT|0||0
+---
+
+
+****************************************
+DATABASE NAME: portal.db
+****************************************
+TABLES FOUND: 
+----------------------------------------
+
+
+****************************************
+DATABASE NAME: school_database.db
+****************************************
+TABLES FOUND: exams          marks_entry    notifications
+----------------------------------------
+TABLE: exams
+0|id|INTEGER|0||1
+1|name|TEXT|0||0
+---
+TABLE: marks_entry
+0|id|INTEGER|0||1
+1|exam_id|INTEGER|0||0
+2|sub_id|INTEGER|0||0
+3|student_id|INTEGER|0||0
+4|total_marks|INTEGER|0||0
+5|obtained_marks|REAL|0||0
+6|remarks|TEXT|0||0
+---
+TABLE: notifications
+0|id|INTEGER|0||1
+1|user_id|TEXT|1||0
+2|title|TEXT|1||0
+3|message|TEXT|1||0
+4|category|TEXT|0|'general'|0
+5|is_read|INTEGER|0|0|0
+6|created_at|TIMESTAMP|0|CURRENT_TIMESTAMP|0
+---
+
+
+****************************************
+DATABASE NAME: school.db
+****************************************
+TABLES FOUND: apsokara_leaves
+----------------------------------------
+TABLE: apsokara_leaves
+0|id|INTEGER|0||1
+1|student_id|INTEGER|1||0
+2|class|TEXT|1||0
+3|section|TEXT|1||0
+4|wing|TEXT|1||0
+5|start_date|TEXT|1||0
+6|end_date|TEXT|1||0
+7|reason|TEXT|1||0
+8|attachment_url|TEXT|0||0
+9|status|TEXT|0|'Pending'|0
+10|applied_on|TIMESTAMP|0|CURRENT_TIMESTAMP|0
+11|teacher_remarks|TEXT|0||0
+---
+
+
+****************************************
+DATABASE NAME: school_management.db
+****************************************
+TABLES FOUND: 
+----------------------------------------
+
+
+****************************************
+DATABASE NAME: sqlit3.db
+****************************************
+TABLES FOUND: 
+----------------------------------------
+
+
+****************************************
+DATABASE NAME: sumyaman.db
+****************************************
+TABLES FOUND: 
+----------------------------------------
