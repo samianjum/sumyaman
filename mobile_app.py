@@ -1163,7 +1163,7 @@ window.renderLeaveHistory = async function(filterMode = 'All') {
                 <p class="text-[11px] leading-relaxed text-slate-600 italic">"${l.reason}"</p>
             </div>
             <div class="flex items-center justify-between text-[10px] font-bold text-gray-500">
-                <span>📅 ${l.start_date} → ${l.end_date}</span>
+                <span>📅 ${l.from_date} → ${l.to_date}</span>
                 <div class="flex gap-3">
                     ${l.attachment ? `<button onclick="viewLeaveFile('${l.attachment}')" class="text-blue-600 font-black">📎 VIEW</button>` : ''}
                     ${"{{user.role}}"==='Teacher' && l.status==='Pending' ? `
@@ -1492,7 +1492,7 @@ def students_marking():
         (SELECT COUNT(*) FROM apsokara_studentleave l 
          WHERE l.student_id = s.id 
          AND l.status = 'Approved' 
-         AND ? BETWEEN l.start_date AND l.end_date) as on_leave
+         AND ? BETWEEN l.from_date AND l.to_date) as on_leave
         FROM apsokara_student s 
         LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=?
         WHERE s.student_class=? AND s.student_section=? AND s.wing=? 

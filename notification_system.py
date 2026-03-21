@@ -4,7 +4,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def get_db_connection():
-    return sqlite3.connect('school_database.db', check_same_thread=False)
+    return sqlite3.connect('db.sqlite3', check_same_thread=False)
 
 def add_notification(user_id, title, message, category='general'):
     try:

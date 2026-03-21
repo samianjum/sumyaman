@@ -2,14 +2,14 @@
 
 
 ****************************************
-DATABASE NAME: apsokara.db
+DATABASE NAME: db.sqlite3
 ****************************************
 TABLES FOUND: 
 ----------------------------------------
 
 
 ****************************************
-DATABASE NAME: database.db
+DATABASE NAME: db.sqlite3
 ****************************************
 TABLES FOUND: apsokara_diary
 ----------------------------------------
@@ -29,14 +29,14 @@ TABLE: apsokara_diary
 
 
 ****************************************
-DATABASE NAME: portal.db
+DATABASE NAME: db.sqlite3
 ****************************************
 TABLES FOUND: 
 ----------------------------------------
 
 
 ****************************************
-DATABASE NAME: school_database.db
+DATABASE NAME: db.sqlite3
 ****************************************
 TABLES FOUND: exams          marks_entry    notifications
 ----------------------------------------
@@ -65,7 +65,7 @@ TABLE: notifications
 
 
 ****************************************
-DATABASE NAME: school.db
+DATABASE NAME: db.sqlite3
 ****************************************
 TABLES FOUND: apsokara_leaves
 ----------------------------------------
@@ -86,21 +86,21 @@ TABLE: apsokara_leaves
 
 
 ****************************************
-DATABASE NAME: school_management.db
+DATABASE NAME: db.sqlite3
 ****************************************
 TABLES FOUND: 
 ----------------------------------------
 
 
 ****************************************
-DATABASE NAME: sqlit3.db
+DATABASE NAME: db.sqlite3
 ****************************************
 TABLES FOUND: 
 ----------------------------------------
 
 
 ****************************************
-DATABASE NAME: sumyaman.db
+DATABASE NAME: db.sqlite3
 ****************************************
 TABLES FOUND: 
 ----------------------------------------
