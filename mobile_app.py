@@ -561,35 +561,51 @@ HTML_TEMPLATE = '''
         }
     }
 
+    
     async function loadStudentDiary() {
         const list = document.getElementById('diary-display-list');
-        list.innerHTML = '<p class="text-center text-xs font-bold text-gray-400 py-10">Fetching your diary...</p>';
-        const res = await fetch('/api/diary/fetch');
-        const diaries = await res.json();
+        list.innerHTML = '<p class="text-center text-xs font-bold text-gray-400 py-10">Fetching...</p>';
         
-        if(diaries.length === 0) {
-            list.innerHTML = '<div class="text-center py-10 opacity-40"><div class="text-5xl mb-2">📭</div><p class="font-black text-xs">No diary entries found</p></div>';
-            return;
-        }
+        let u = JSON.parse(localStorage.getItem('user') || '{}');
+        let role = u.role || 'Student';
 
-        list.innerHTML = diaries.map(d => `
-            <div class="glass-card p-4 border-l-4 border-amber-500 animate-fade-in">
-                <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-black text-sm text-[#1B4332]">${d.subject}</h4>
-                    <span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">${d.date_posted.split('|')[0]}</span>
-                </div>
-                <p class="text-xs text-gray-600 leading-relaxed mb-3">${d.content}</p>
-                <div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
-                    <span class="text-[8px] font-bold text-gray-400">BY: ${d.teacher_name}</span>
-                    <div class="flex space-x-2">
-                        ${d.attachment_url ? d.attachment_url.split(',').map((url, idx) => `
-                            <button onclick="viewMedia('${d.attachment_url}', ${idx})" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">👁️ View ${idx+1}</button>
-                        `).join('') : ''}
+        try {
+            const res = await fetch('/api/diary/fetch');
+            const diaries = await res.json();
+            
+            if(!diaries || diaries.length === 0) {
+                list.innerHTML = '<div class="text-center py-10 opacity-40"><div class="text-5xl mb-2">📭</div><p class="font-black text-xs">No diary entries found</p></div>';
+                return;
+            }
+
+            list.innerHTML = diaries.map(d => {
+                // Teacher kelye Class-Section, Student kelye Teacher ka naam
+                const metaInfo = (role === "Teacher") ? `FOR: ${d.class}-${d.section} (${d.wing})` : `BY: ${d.teacher_name}`;
+                const datePart = d.date_posted ? d.date_posted.split('|')[0] : '---';
+                
+                return `
+                <div class="glass-card p-4 border-l-4 border-amber-500 mb-3 animate-fade-in">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-black text-sm text-[#1B4332]">${d.subject}</h4>
+                        <span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">${datePart}</span>
                     </div>
-                </div>
-            </div>
-        `).join('');
+                    <p class="text-xs text-gray-600 leading-relaxed mb-3">${d.content}</p>
+                    <div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
+                        <span class="text-[8px] font-bold text-gray-400 uppercase">${metaInfo}</span>
+                        <div class="flex space-x-2">
+                            ${d.attachments ? d.attachments.split(',').filter(x=>x).map((url, idx) => `
+                                <button onclick="viewMedia('${url}', ${idx})" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">👁️ View ${idx+1}</button>
+                            `).join('') : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            console.error(e);
+            list.innerHTML = '<p class="text-center text-red-500 text-xs py-10">Error loading diary.</p>';
+        }
     }
+
 
     async function loadDiaryHistory() {
         document.getElementById('teacher-diary-controls').classList.add('hidden');
@@ -1163,7 +1179,7 @@ window.renderLeaveHistory = async function(filterMode = 'All') {
                 <p class="text-[11px] leading-relaxed text-slate-600 italic">"${l.reason}"</p>
             </div>
             <div class="flex items-center justify-between text-[10px] font-bold text-gray-500">
-                <span>📅 ${l.from_date} → ${l.to_date}</span>
+                <span>📅 ${l.start_date} → ${l.end_date}</span>
                 <div class="flex gap-3">
                     ${l.attachment ? `<button onclick="viewLeaveFile('${l.attachment}')" class="text-blue-600 font-black">📎 VIEW</button>` : ''}
                     ${"{{user.role}}"==='Teacher' && l.status==='Pending' ? `
@@ -1492,7 +1508,7 @@ def students_marking():
         (SELECT COUNT(*) FROM apsokara_studentleave l 
          WHERE l.student_id = s.id 
          AND l.status = 'Approved' 
-         AND ? BETWEEN l.from_date AND l.to_date) as on_leave
+         AND ? BETWEEN l.start_date AND l.end_date) as on_leave
         FROM apsokara_student s 
         LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=?
         WHERE s.student_class=? AND s.student_section=? AND s.wing=? 
@@ -1682,19 +1698,22 @@ def diary_post_new():
         target_class = data.get('class')
         target_section = data.get('section')
         target_wing = data.get('wing')
-        subject_name = data.get('subject')
+        # Wing Normalization for Student Sync
+        if target_wing and target_wing.lower().startswith('g'): target_wing = 'Girls'
+        if target_wing and target_wing.lower().startswith('b'): target_wing = 'Boys'
+        subject = data.get('subject')
         
         is_scheduled = 1 if data.get('schedule_date') else 0
         post_date = data.get('schedule_date') if is_scheduled else datetime.datetime.now().strftime("%Y-%m-%d")
         time_str = datetime.datetime.now().strftime("%I:%M %p")
-        full_timestamp = f"{post_date} | {time_str}"
+        full_timestamp = f"{post_date} {time_str}"
 
         conn = sqlite3.connect(DB_PATH)
         conn.execute("""
             INSERT INTO apsokara_dailydiary 
-            (teacher_id, teacher_name, class, section, subject, content, attachment_url, is_scheduled, wing, date_posted) 
+            (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (u['id'], u['full_name'], target_class, target_section, subject_name, content_text, 
+        """, (u['id'], u['full_name'], target_class, target_section, subject, content_text, 
                 ",".join(file_paths), is_scheduled, target_wing, full_timestamp))
         conn.commit()
         conn.close()
@@ -1714,11 +1733,11 @@ def diary_fetch_list():
         # Student sirf apni class ki diaries dekhega jo schedule date tak pohanch chuki hain
         query = """
             SELECT * FROM apsokara_dailydiary 
-            WHERE class=? AND section=? AND wing=? 
-            AND SUBSTR(date_posted, 1, 10) <= ? 
+            WHERE class=? AND section=? 
+            AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')
             ORDER BY id DESC
         """
-        rows = conn.execute(query, (u['student_class'], u['student_section'], u['wing'], today)).fetchall()
+        rows = conn.execute(query, (u.get('student_class', u.get('assigned_class')), u.get('student_section', u.get('assigned_section')), u['wing'], u['wing'])).fetchall()
     else:
         # Teacher apni saari history dekhega
         query = "SELECT * FROM apsokara_dailydiary WHERE teacher_id=? ORDER BY id DESC"
@@ -1740,7 +1759,7 @@ def diary_unread_status():
     last_seen = request.args.get('last_seen', 0, type=int)
     conn = sqlite3.connect(DB_PATH)
     s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
-    row = conn.execute("SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND wing=? AND id > ?", (s_class, s_sec, s_wing, last_seen)).fetchone()
+    row = conn.execute("SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?", (s_class, s_sec, s_wing, last_seen)).fetchone()
     conn.close()
     return jsonify({'count': row[0] or 0, 'latest_id': row[1] or 0})
 
@@ -1752,7 +1771,7 @@ def diary_unread_status():
     s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
     
     # Sirf wo diaries count karo jo last_seen se bari hain
-    query = "SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND wing=? AND id > ?"
+    query = "SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?"
     row = conn.execute(query, (s_class, s_sec, s_wing, last_seen)).fetchone()
     conn.close()
     
@@ -1763,7 +1782,7 @@ def diary_unread_status():
 
     conn = sqlite3.connect(DB_PATH)
     s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
-    row = conn.execute("SELECT MAX(id), COUNT(*) FROM apsokara_dailydiary WHERE class=? AND section=? AND wing=?", (s_class, s_sec, s_wing)).fetchone()
+    row = conn.execute("SELECT MAX(id), COUNT(*) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')", (s_class, s_sec, s_wing)).fetchone()
     conn.close()
     return jsonify({'latest_id': row[0] or 0, 'total': row[1] or 0})
 
@@ -1825,7 +1844,7 @@ def list_leaves_v2():
         # Teacher sirf apni assigned class ki leaves dekhega
         # Hum is_class_teacher ka check pehle hi UI me laga chuke honge
         res = conn.execute("""SELECT * FROM apsokara_studentleave 
-                            WHERE class=? AND section=? AND wing=? 
+                            WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') 
                             ORDER BY status DESC, id DESC""",
                             (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'))).fetchall()
     
@@ -1860,7 +1879,7 @@ def get_pending_leave_count():
     try:
         conn = sqlite3.connect(DB_PATH)
         count = conn.execute("""SELECT COUNT(*) FROM apsokara_studentleave 
-                             WHERE class=? AND section=? AND wing=? AND status='Pending'""",
+                             WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND status='Pending'""",
                              (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'))).fetchone()[0]
         conn.close()
         return jsonify({'count': count})
