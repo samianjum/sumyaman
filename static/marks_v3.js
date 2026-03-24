@@ -64,7 +64,7 @@ async function updateAssignments() {
     const assigns = await res.json();
     
     document.getElementById('assignment-tags').innerHTML = assigns.map(a => `
-        <div onclick="loadMarkingSheet(${eid}, ${a.sub_id}, '${a.class}', '${a.sec}', '${a.wing}', '${a.sub_name}')" 
+        <div onclick="loadMarkingSheet(${eid}, ${a.subject_id}, '${a.class}', '${a.sec}', '${a.wing}', '${a.sub_name}')" 
              class="p-4 rounded-2xl bg-white border-2 flex justify-between items-center active:scale-95 transition-all cursor-pointer hover:border-indigo-600 shadow-sm ${a.is_locked?'opacity-50 grayscale':''}">
             <div>
                 <p class="text-[8px] font-black text-gray-400 uppercase">${a.class}-${a.sec} | ${a.wing}</p>
@@ -75,7 +75,7 @@ async function updateAssignments() {
 }
 
 async function loadMarkingSheet(eid, sid, cls, sec, wing, subName) {
-    currentSheetData = { eid, sid, cls, sec, wing, subName };
+    currentSheetData = { eid, subject_id: sid, cls, sec, wing, subName };
     const selectionView = document.getElementById('m-selection-view');
     const container = document.getElementById('marking-sheet-container');
     
@@ -190,10 +190,9 @@ async function performSave() {
     const res = await fetch('/api/marks/save', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({...currentSheetData, total, marks})
+        body: JSON.stringify({eid: currentSheetData.eid, subject_id: currentSheetData.subject_id, total: total, marks: marks})
     });
     
-    if((await res.json()).status === 'success') {
-        navToMarks();
+    const result = await res.json(); if(result.status === 'success') {
+        navToMarks(); } else { alert('SERVER ERROR: ' + result.message); }
     }
-}

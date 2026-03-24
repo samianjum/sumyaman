@@ -1,3 +1,4 @@
+from student_result import init_student_routes
 from finalize_module import init_finalize_routes
 from flask import Flask, render_template_string, request, jsonify, session
 import os, sqlite3, datetime, pytz
@@ -22,6 +23,7 @@ from marks_engine import init_marks_routes
 init_finalize_routes(app, DB_PATH)
 init_teacher_routes(app, login_required)
 init_marks_routes(app, login_required)
+init_student_routes(app, DB_PATH)
 
 # --- UI TEMPLATE ---
 HTML_TEMPLATE = '''
@@ -69,6 +71,7 @@ HTML_TEMPLATE = '''
         .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
     </style>
+<script src="/static/student_view.js"></script>
 </head>
 <body>
     <div id="custom-confirm" class="hidden fixed inset-0 z-[200000] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
@@ -227,7 +230,7 @@ HTML_TEMPLATE = '''
                 {% endif %}
 
                 {% if user.role == 'Student' %}
-                <div onclick="showTab('results')" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-emerald-500 active:scale-95 transition-all cursor-pointer">
+                <div onclick="showTab('results'); loadStudentResults();" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-emerald-500 active:scale-95 transition-all cursor-pointer">
                     <div class="text-4xl mb-3 drop-shadow-md">🏆</div>
                     <h4 class="font-black text-[11px] uppercase tracking-tighter">My Result</h4>
                     <p class="text-[8px] opacity-60 font-bold mt-1">Official Record</p>
@@ -251,14 +254,9 @@ HTML_TEMPLATE = '''
 
             
 
-    <div id='page-results' class='hidden space-y-4 max-w-md mx-auto'>
-        <div class='flex items-center justify-between mb-2'>
-            <h3 class='font-black text-xl text-[#1B4332] uppercase tracking-tighter'>Academic Results</h3>
-            <button onclick="showTab('home')" class='bg-gray-100 px-3 py-1 rounded-lg text-[10px] font-black text-gray-500'>BACK</button>
-        </div>
-        <div class='glass-card p-8 text-center border-l-8 border-emerald-500'>
-            <p class='text-sm font-bold text-gray-400'>Marksheet Table Coming Soon...</p>
-        </div>
+    <div id='page-results' class='hidden animate-slide-up pb-24'>
+        
+        <div id='student-result-container' class='space-y-4'></div>
     </div>
     <div id='page-marks-entry' class='hidden space-y-4 max-w-md mx-auto'><div id='teacher-assign-list'></div></div>
     <div id='page-final-upload' class='hidden space-y-4 max-w-md mx-auto'>
@@ -626,6 +624,7 @@ HTML_TEMPLATE = '''
             pages.forEach(p => {
                 const el = document.getElementById('page-' + p);
                 if (el) el.classList.add('hidden');
+                if (t === 'results') loadStudentResults();
             });
 
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-nav'));
@@ -1263,7 +1262,7 @@ window.viewLeaveFile = function(url) {
     if(document.getElementById('v-prev')) document.getElementById('v-prev').style.display = 'none';
     if(document.getElementById('v-next')) document.getElementById('v-next').style.display = 'none';
 
-    const isImg = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+    const isImg = url.match(/\\.(jpg|jpeg|png|gif|webp)$/i);
     const path = url.startsWith('/') ? url : '/' + url;
     
     if(isImg) {
@@ -1417,6 +1416,12 @@ def get_app_logo():
     if os.path.exists(path):
         return send_file(path, mimetype='image/png')
     return "", 404
+
+
+@app.route('/api/school-logo')
+def get_school_logo():
+    from flask import send_file
+    return send_file('/home/sami/Downloads/sami.png', mimetype='image/png')
 
 @app.route('/')
 def index():
@@ -1627,7 +1632,7 @@ def api_intel():
     conn.row_factory = sqlite3.Row
     cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres 
                         FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id 
-                        WHERE s.student_class=? AND s.student_section=? AND s.wing=? GROUP BY s.id""", (u['assigned_class'], u['assigned_section'], u['wing']))
+                        WHERE s.student_class=? AND s.student_section=? AND s.wing=? GROUP BY s.id""", (u['assigned_class'], u['assigned_section'], u['assigned_wing'], 'Pending'))
     flags = []
     for r in cur.fetchall():
         perc = (r['pres'] / r['total'] * 100) if r['total'] > 0 else 100
@@ -1846,7 +1851,7 @@ def list_leaves_v2():
         res = conn.execute("""SELECT * FROM apsokara_studentleave 
                             WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') 
                             ORDER BY status DESC, id DESC""",
-                            (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'))).fetchall()
+                            (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchall()
     
     data = [dict(row) for row in res]
     conn.close()
@@ -1880,7 +1885,7 @@ def get_pending_leave_count():
         conn = sqlite3.connect(DB_PATH)
         count = conn.execute("""SELECT COUNT(*) FROM apsokara_studentleave 
                              WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND status='Pending'""",
-                             (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'))).fetchone()[0]
+                             (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchone()[0]
         conn.close()
         return jsonify({'count': count})
     except:

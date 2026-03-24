@@ -197,7 +197,7 @@ from .models import Student
 def exam_window_view(request):
     import sqlite3
     from django.utils import timezone
-    conn = sqlite3.connect('db.sqlite3', timeout=20)
+    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
@@ -254,7 +254,7 @@ def create_exam_view(request):
         s_date = request.POST.get('start_date')
         e_date = request.POST.get('end_date')
         if name and group and s_date and e_date:
-            conn = sqlite3.connect('db.sqlite3', timeout=20)
+            conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
             c = conn.cursor()
             c.execute("INSERT INTO exams (name, class_group, start_date, end_date) VALUES (?, ?, ?, ?)", 
                       (name, group, s_date, e_date))
@@ -265,7 +265,7 @@ def create_exam_view(request):
 @login_required
 def delete_exam_view(request, exam_id):
     import sqlite3
-    conn = sqlite3.connect('db.sqlite3', timeout=20)
+    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
     c = conn.cursor()
     c.execute("DELETE FROM exams WHERE id = ?", (exam_id,))
     # Saath hi us exam ke saare marks bhi delete ho jayein (Cleanup)
@@ -307,7 +307,7 @@ def toggle_exam_status(request, exam_id):
 @login_required
 def manage_subjects_view(request, exam_id):
     import sqlite3
-    conn = sqlite3.connect('db.sqlite3', timeout=20)
+    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     if request.method == 'POST':
@@ -350,7 +350,7 @@ def exam_analytics_view(request, exam_id):
     import sqlite3
 
     # 1. Fetch Exam Details
-    conn = sqlite3.connect('db.sqlite3')
+    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute("SELECT * FROM exams WHERE id = ?", (exam_id,))
@@ -456,7 +456,7 @@ def exam_analytics_view(request, exam_id):
 @login_required
 def exam_class_detail_view(request, exam_id, class_name):
     import sqlite3
-    conn = sqlite3.connect('db.sqlite3')
+    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     

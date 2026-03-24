@@ -88,15 +88,38 @@ def init_finalize_routes(app, DB_PATH):
         conn.close()
         return jsonify({"success": True, "report": [dict(r) for r in marks]})
 
+    
     @app.route('/api/publish-final-result', methods=['POST'])
     def publish_final():
-        data = request.json; u = session.get('user'); ex_id = data.get('exam_id'); remarks = data.get('remarks', {})
+        data = request.json
+        u = session.get('user')
+        ex_id = data.get('exam_id')
+        remarks = data.get('remarks', {})
         conn = sqlite3.connect(DB_PATH)
         try:
             conn.execute("BEGIN TRANSACTION")
             for s_id, rmk in remarks.items():
-                conn.execute("INSERT OR REPLACE INTO student_marks (exam_id, student_id, subject_id, teacher_id, total_marks, obtained_marks, remarks, is_locked) VALUES (?, ?, 0, ?, 0, 0, ?, 1)", (ex_id, s_id, u['id'], rmk))
+                # Get grand totals first for the summary record
+                stats = conn.execute('SELECT SUM(obtained_marks), SUM(total_marks) FROM student_marks WHERE exam_id=? AND student_id=? AND subject_id > 0', (ex_id, s_id)).fetchone()
+                obt, tot = (stats[0] or 0), (stats[1] or 0)
+                
+                # subject_id=0 is the "Final Result" marker
+                conn.execute('''
+                    INSERT OR REPLACE INTO student_marks 
+                    (exam_id, student_id, subject_id, teacher_id, total_marks, obtained_marks, remarks, is_locked) 
+                    VALUES (?, ?, 0, ?, ?, ?, ?, 1)
+                ''', (ex_id, s_id, u['id'], tot, obt, rmk))
+                
+                # Lock all individual subjects for this student
                 conn.execute("UPDATE student_marks SET is_locked=1 WHERE exam_id=? AND student_id=?", (ex_id, s_id))
-            conn.commit(); return jsonify({"success": True})
-        except: conn.rollback(); return jsonify({"success": False})
-        finally: conn.close()
+            
+            conn.commit()
+            print(f"✅ CLASS FINALIZED: Exam {ex_id} for Class {u.get('assigned_class')}")
+            return jsonify({"success": True})
+        except Exception as e:
+            conn.rollback()
+            print(f"❌ FINALIZE FAILED: {str(e)}")
+            return jsonify({"success": False, "error": str(e)})
+        finally:
+            conn.close()
+    

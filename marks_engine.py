@@ -9,7 +9,7 @@ def init_marks_routes(app, login_required):
     def marks_init():
         today = date.today().isoformat()
         tid = session['user']['id']
-        conn = sqlite3.connect('db.sqlite3')
+        conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
         q = """
             SELECT DISTINCT e.id, e.name, e.class_group, e.end_date 
             FROM exams e 
@@ -24,7 +24,7 @@ def init_marks_routes(app, login_required):
     @login_required
     def marks_assignments(eid, class_group):
         tid = session['user']['id']
-        conn = sqlite3.connect('db.sqlite3')
+        conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
         # Logic to check entry count and overall lock (subject_id=0) per assignment
         q = """
             SELECT sa.id, sa.student_class, sa.section, sa.wing, sub.name, sub.id,
@@ -38,7 +38,7 @@ def init_marks_routes(app, login_required):
         data = conn.execute(q, (eid, tid, eid, tid, class_group)).fetchall()
         conn.close()
         return jsonify([{
-            'class': d[1], 'sec': d[2], 'wing': d[3], 'sub_name': d[4], 'sub_id': d[5],
+            'class': d[1], 'sec': d[2], 'wing': d[3], 'sub_name': d[4], 'subject_id': d[5],
             'is_completed': d[6] > 0, 'is_locked': d[7] > 0
         } for d in data])
 
@@ -46,7 +46,8 @@ def init_marks_routes(app, login_required):
     @login_required
     def load_students():
         d = request.json
-        conn = sqlite3.connect('db.sqlite3')
+        print(f"DEBUG DATA: {d}")
+        conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
         conn.row_factory = sqlite3.Row
         
         lock_q = "SELECT id FROM student_marks WHERE exam_id=? AND CAST(subject_id AS INTEGER)=0 AND student_id IN (SELECT id FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?) LIMIT 1"
@@ -59,26 +60,43 @@ def init_marks_routes(app, login_required):
             WHERE s.student_class = ? AND s.student_section = ? AND s.wing = ?
             ORDER BY CAST(s.roll_number AS INTEGER)
         """
-        rows = conn.execute(q_stu, (d['eid'], d['sid'], d['cls'], d['sec'], d['wing'])).fetchall()
+        rows = conn.execute(q_stu, (d['eid'], d.get('sid', d.get('subject_id')), d['cls'], d['sec'], d['wing'])).fetchall()
         conn.close()
         return jsonify({'students': [dict(r) for r in rows], 'locked': locked})
 
+    
+    
+    
+    
     @app.route('/api/marks/save', methods=['POST'])
     @login_required
     def marks_save():
         d = request.json
+        print(f"DEBUG SAVE ATTEMPT: {d}")
         tid = session['user']['id']
-        conn = sqlite3.connect('db.sqlite3')
+        conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
         try:
+            # Explicitly getting the ID
+            sub_id = d.get('subject_id')
+            eid = d.get('eid')
+            total = d.get('total')
+            
             for m in d['marks']:
+                # m['sid'] is student_id from JS, m['obt'] is marks
                 conn.execute('''
                     INSERT OR REPLACE INTO student_marks 
-                    (exam_id, student_id, subject_id, teacher_id, total_marks, obtained_marks, remarks, is_locked) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 0)
-                ''', (d['eid'], m['sid'], d['sid'], tid, d['total'], m['obt'], m['rem']))
+                    (exam_id, subject_id, student_id, total_marks, obtained_marks, remarks, teacher_id) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (eid, sub_id, m['sid'], total, m['obt'], m['rem'], tid))
             conn.commit()
+            print(f"✅ SUCCESSFULLY SAVED {len(d['marks'])} RECORDS")
             return jsonify({'status': 'success'})
         except Exception as e:
+            print(f"❌ SAVE FAILED: {str(e)}")
             return jsonify({'status': 'error', 'message': str(e)})
         finally:
             conn.close()
+    
+    
+    
+    
