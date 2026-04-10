@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    :root { --danger-red: #ff4d4d; --success-green: #2ecc71; --dark-bg: #1a1a2e; }
+    .command-center { background: var(--dark-bg); color: white; padding: 20px; border-radius: 15px; font-family: 'Segoe UI', sans-serif; }
+    .status-card { background: #16213e; border: 1px solid #0f3460; border-radius: 10px; padding: 15px; transition: 0.3s; }
+    .audit-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+    .audit-table tr { background: #0f3460; border-radius: 5px; }
+    .audit-table td, .audit-table th { padding: 15px; text-align: left; }
+    .badge-ready { background: var(--success-green); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; }
+    .badge-pending { background: var(--danger-red); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8em; }
+    .nuclear-btn { 
+        width: 100%; padding: 20px; font-size: 1.5em; font-weight: bold; 
+        border-radius: 10px; border: none; transition: 0.5s; cursor: pointer;
+    }
+    .nuclear-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+    .nuclear-btn:not(:disabled) { 
+        background: linear-gradient(45deg, #e94560, #ff4d4d); color: white;
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+    }
+    .nuclear-btn:not(:disabled):hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(233, 69, 96, 0.8); }
+</style>
+
+<div class="command-center container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>🚀 Promotion Command Center</h1>
+            <p class="text-muted">Academic Session: <strong>{{ curr_session.name }}</strong></p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="status-card">
+                <h5>Window Status</h5>
+                {% if window_open %}
+                    <span class="text-success">● OPEN</span> <small>(Ends {{ settings.end_date|date:"d M" }})</small>
+                {% else %}
+                    <span class="text-danger">● CLOSED</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="status-card h-100">
+                <h3><i class="fas fa-cog"></i> Configuration</h3>
+                <form method="POST" action="{% url 'update_promotion_settings' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label>Target Session</label>
+                        <select name="target_session" class="form-control bg-dark text-white border-secondary">
+                            {% for s in sessions %}
+                            <option value="{{ s.id }}" {% if s == settings.target_session %}selected{% endif %}>{{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Pass Threshold (%)</label>
+                        <input type="number" name="passing_percentage" value="{{ settings.passing_percentage }}" class="form-control bg-dark text-white border-secondary">
+                    </div>
+                    <button type="submit" class="btn btn-outline-info w-100">Save Config</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="status-card">
+                <h3><i class="fas fa-clipboard-check"></i> Readiness Audit</h3>
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th>Class/Section</th>
+                            <th>Wing</th>
+                            <th>Students</th>
+                            <th>Lock Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in readiness_data %}
+                        <tr>
+                            <td><strong>{{ g.class }}-{{ g.section }}</strong></td>
+                            <td>{{ g.wing }}</td>
+                            <td>{{ g.locked }}/{{ g.total }}</td>
+                            <td>
+                                {% if g.is_ready %}
+                                <span class="badge-ready">READY</span>
+                                {% else %}
+                                <span class="badge-pending">PENDING</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            {% if settings.executed %}
+                <div class="alert alert-success">✅ Promotion already executed for this session on {{ settings.executed_at }}.</div>
+            {% else %}
+                <form method="POST" action="{% url 'execute_promotion' %}" onsubmit="return confirm('WARNING: This action is irreversible. Are you sure you want to PROMOTE all eligible students?')">
+                    {% csrf_token %}
+                    <button type="submit" class="nuclear-btn" {% if not can_execute %}disabled{% endif %}>
+                        {% if not all_ready %}
+                            <i class="fas fa-lock"></i> LOCKS PENDING
+                        {% elif not window_open %}
+                            <i class="fas fa-calendar-times"></i> WINDOW CLOSED
+                        {% else %}
+                            <i class="fas fa-rocket"></i> EXECUTE GRAND PROMOTION
+                        {% endif %}
+                    </button>
+                </form>
+                <p class="mt-3 text-muted">
+                    {% if not all_ready %}* Ensure all class teachers have locked their marks results.{% endif %}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

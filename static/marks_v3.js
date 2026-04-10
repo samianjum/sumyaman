@@ -1,4 +1,4 @@
-let currentSheetData = {};
+var currentSheetData = {};
 
 const getSmartRemark = (obt, max) => {
     const p = (obt / max) * 100;
@@ -187,6 +187,17 @@ async function performSave() {
         rem: rems[i].value
     }));
     
+    if (!navigator.onLine) {
+        await saveOffline('/api/marks/save', 'POST', {
+            eid: currentSheetData.eid, 
+            subject_id: currentSheetData.subject_id, 
+            total: total, 
+            marks: marks
+        });
+        alert('📶 OFFLINE: Marks saved locally. Will sync when internet is back.');
+        navToMarks();
+        return;
+    }
     const res = await fetch('/api/marks/save', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},

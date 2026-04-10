@@ -1,10 +1,10 @@
 from student_result import init_student_routes
 from finalize_module import init_finalize_routes
-from flask import Flask, render_template_string, request, jsonify, session
+from flask import send_file, send_from_directory, make_response, send_from_directory, Flask, render_template_string, request, jsonify, session
 import os, sqlite3, datetime, pytz
 from functools import wraps
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.secret_key = "aps_okara_ultimate_final_v3"
 
 # --- CONFIG ---
@@ -15,6 +15,8 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user' not in session:
+            if request.path.startswith('/api/'):
+                return jsonify({'error': 'offline_or_logged_out'}), 401
             return '<script>window.location.href="/";</script>'
         return f(*args, **kwargs)
     return decorated_function
@@ -27,13 +29,95 @@ init_student_routes(app, DB_PATH)
 
 # --- UI TEMPLATE ---
 HTML_TEMPLATE = '''
+<script>
+window.safeLogout = async function(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    
+    console.log("Checking connection for logout...");
+    
+    // Check 1: navigator.onLine
+    if (!navigator.onLine) {
+        if (window.showToast) showToast("❌ OFFLINE: Internet required to logout!", "error");
+        else alert("❌ Offline: Internet required.");
+        return false;
+    }
+
+    // Confirmation using your custom modal
+    if (window.askUser) {
+        const ok = await askUser("Logout Session? Active internet is required.");
+        if (!ok) return false;
+    } else if (!confirm("Logout now?")) {
+        return false;
+    }
+
+    // Check 2: Final Ping right before redirect
+    try {
+        const ping = await fetch('/static/logo.png', { method: 'HEAD', cache: 'no-store' });
+        if (ping.ok) {
+            localStorage.clear();
+            window.location.replace('/logout');
+        } else {
+            throw new Error();
+        }
+    } catch (err) {
+        showToast("❌ SERVER UNREACHABLE: Logout blocked!", "error");
+    }
+    return false;
+};
+</script>
+
+
+
+
+    <script>
+     else {
+                alert("❌ OFFLINE: Internet connection is required to logout.");
+            }
+            return false; // Stop everything
+        }
+        
+        if (confirm("Are you sure you want to logout?")) {
+            localStorage.clear();
+            window.location.replace('/logout');
+        }
+    }
+
+    // Login logic protection
+    setTimeout(() => {
+        if (window.doLogin && !window.doLogin._guarded) {
+            const _oldLogin = window.doLogin;
+            window.doLogin = async function() {
+                if (!navigator.onLine) {
+                    if (typeof showToast === 'function') showToast("❌ OFFLINE: Login Disabled", "error");
+                    else alert("❌ No Internet Connection");
+                    return;
+                }
+                return await _oldLogin();
+            };
+            window.doLogin._guarded = true;
+        }
+    }, 1000);
+    </script>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1B4332">
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                
+            });
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>APS OKARA</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/tailwind.min.css"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -69,10 +153,106 @@ HTML_TEMPLATE = '''
     
         @keyframes zoom-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .net-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .net-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .net-offline { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        .sync-badge { position: absolute; top: -5px; right: 10px; background: #ef4444; color: white; font-size: 8px; padding: 2px 5px; border-radius: 10px; font-weight: 900; }
+
 
     </style>
 <script src="/static/student_view.js"></script>
+
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register("/sw.js")
+                .then(reg => console.log('SW Registered!', reg))
+                .catch(err => console.log('SW Registration Failed!', err));
+        });
+    }
+    </script>
+
+    
+
+    
+
+
+
+<script>
+    const OFFLINE_KEY = 'aps_offline_queue';
+
+    // INTERCEPTOR WITH SECURITY
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+        const url = args[0];
+        const options = args[1];
+
+        // RULE 1: Sensitive URLs hamesha ONLINE honi chahiye
+        const sensitiveUrls = ['/api/login', '/logout', '/api/change-password'];
+        const isSensitive = sensitiveUrls.some(u => url.includes(u));
+
+        if (isSensitive) {
+            if (!navigator.onLine) {
+                alert("❌ SECURITY ERROR: Internet is required for Login/Logout.");
+                throw new Error("Offline Sensitive Action");
+            }
+            return originalFetch(...args); // Direct bypass to server
+        }
+
+        // RULE 2: Baaki POST requests (Attendance, Leave, Diary) ko Offline handle karo
+        if (!navigator.onLine && options && options.method === 'POST') {
+            let payload = {};
+            
+            // Check for Files in Diary/Leave
+            if (options.body instanceof FormData) {
+                let hasFiles = false;
+                options.body.forEach((v) => { if(v instanceof File && v.size > 0) hasFiles = true; });
+                if (hasFiles) {
+                    alert("⚠️ INTERNET REQUIRED: Files cannot be sent offline.");
+                    throw new Error("Offline Files");
+                }
+                options.body.forEach((v, k) => { payload[k] = v; });
+            } else {
+                try { payload = JSON.parse(options.body); } catch(e) { payload = options.body; }
+            }
+
+            const queue = JSON.parse(localStorage.getItem(OFFLINE_KEY) || '[]');
+            queue.push({url, data: payload, time: Date.now()});
+            localStorage.setItem(OFFLINE_KEY, JSON.stringify(queue));
+
+            return new Response(JSON.stringify({success: true, status: "offline"}), {
+                status: 200, headers: {'Content-Type': 'application/json'}
+            });
+        }
+
+        return originalFetch(...args);
+    };
+
+    // Auto-Sync Background Function
+    async function syncNow() {
+        if(!navigator.onLine) return;
+        const queue = JSON.parse(localStorage.getItem(OFFLINE_KEY) || '[]');
+        if(queue.length === 0) return;
+        
+        for(let i=0; i < queue.length; i++) {
+            try {
+                const res = await originalFetch(queue[i].url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(queue[i].data)
+                });
+                if(res.ok) queue.splice(i, 1);
+            } catch(e) {}
+        }
+        localStorage.setItem(OFFLINE_KEY, JSON.stringify(queue));
+    }
+    setInterval(syncNow, 10000); // Check every 10 seconds
+</script>
+
+    <script src="/static/js/dexie.js"></script>
+    <script src="/static/js/db.js"></script>
 </head>
+
 <body>
     <div id="custom-confirm" class="hidden fixed inset-0 z-[200000] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
         <div class="bg-white w-full max-w-sm rounded-[35px] p-8 shadow-2xl scale-95 animate-zoom-in border border-gray-100">
@@ -112,7 +292,7 @@ HTML_TEMPLATE = '''
         <div id="main-header" class="app-header shadow-md p-4 bg-gradient-to-r from-[#1B4332] to-[#2D6A4F]">
             <div class="flex justify-between items-center mb-3 opacity-80 border-b border-white/10 pb-2">
                 <span id="current-date" class="text-[9px] font-bold tracking-tighter uppercase">-- --- ----</span>
-                <span id="current-time" class="text-[9px] font-black tracking-widest text-[#D4AF37]">00:00:00</span>
+                <span id="current-time" class="text-[9px] font-black tracking-widest text-[#D4AF37]">00:00:00</span> <div id="net-ind" class="net-status net-online"></div>
             </div>
 
             <div class="flex items-center gap-3">
@@ -435,7 +615,7 @@ HTML_TEMPLATE = '''
                     {% endif %}
 
                     
-                    <button onclick="window.location.href='/logout'" class="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-black text-sm border border-red-100 mt-4">LOGOUT SESSION</button>
+                    <button onclick="safeLogout(event)" class="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-black text-sm border border-red-100 mt-4">LOGOUT SESSION</button>
                 </div>
             </div>
 
@@ -447,7 +627,7 @@ HTML_TEMPLATE = '''
             <div onclick="showTab('mark')" id="n-mark" class="nav-btn"><span>📋</span><span>{{ 'History' if user.role == 'Student' else 'Attend' }}</span></div>
             {% endif %}
             <div onclick="showTab('profile')" id="n-profile" class="nav-btn"><span>👤</span><span>Profile</span></div>
-            <div onclick="window.location.href='/logout'" class="nav-btn text-red-400"><span>🚪</span><span>Exit</span></div>
+            <div onclick="safeLogout(event)" class="nav-btn text-red-400"><span>🚪</span><span>Exit</span></div>
         </div>
         {% endif %}
     </div>
@@ -463,15 +643,56 @@ HTML_TEMPLATE = '''
         }
         window.currentRole = 'Student';
 
+        
         async function doLogin() {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({uid: document.getElementById('uid').value, dob: document.getElementById('dob').value, role: window.currentRole})
-            });
-            const data = await res.json();
-            if(data.success) window.location.reload(); else showToast("Login Failed!", "error");
+            const loginBtn = event.target;
+            const originalText = loginBtn.innerText;
+
+            // Step 1: Strict Internet Check
+            if (!navigator.onLine) {
+                showToast("❌ OFFLINE: Internet connection required to login!", "error");
+                return;
+            }
+
+            try {
+                // UI Feedback
+                loginBtn.disabled = true;
+                loginBtn.innerText = "⏳ AUTHENTICATING...";
+
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        uid: document.getElementById('uid').value, 
+                        dob: document.getElementById('dob').value, 
+                        role: window.currentRole
+                    })
+                });
+
+                if (res.status === 503) {
+                    throw new Error("Offline Mode Active");
+                }
+
+                const data = await res.json();
+                
+                if(data.success) { 
+                    localStorage.setItem("isLoggedIn", "true"); 
+                    showToast("✅ Login Successful! Redirecting...", "success");
+                    if(window.location.pathname === "/login" || window.location.pathname === "/") { 
+                        window.location.replace("/?login=" + Date.now()); 
+                    } 
+                } else {
+                    showToast("❌ Login Failed: " + (data.error || "Invalid Credentials"), "error");
+                }
+            } catch (err) {
+                console.error("Login Error:", err);
+                showToast("❌ CONNECTION ERROR: Cannot reach server!", "error");
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerText = originalText;
+            }
         }
+    
 
         
     let diaryAssignments = [];
@@ -541,7 +762,7 @@ HTML_TEMPLATE = '''
             for(let i=0; i<files.length; i++) formData.append('files', files[i]);
 
             const res = await fetch('/api/diary/post', { method: 'POST', body: formData });
-            const result = await res.json();
+            
             
             if(result.success) {
                 alert("✅ Diary Published Successfully!");
@@ -903,6 +1124,11 @@ async function markDiariesAsRead() {
     
         @keyframes zoom-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .net-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .net-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .net-offline { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        .sync-badge { position: absolute; top: -5px; right: 10px; background: #ef4444; color: white; font-size: 8px; padding: 2px 5px; border-radius: 10px; font-weight: 900; }
+
 
     </style>
 
@@ -1145,85 +1371,121 @@ window.renderLeaveHistory = async function(filterMode = 'All') {
     if(document.getElementById('leave-menu')) document.getElementById('leave-menu').classList.add('hidden');
     const inner = document.getElementById('leave-dynamic-inner');
     inner.classList.remove('hidden');
-    
     inner.innerHTML = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit active:scale-90 transition-all">← Back to Menu</button>
                       <div class="flex justify-center py-10"><div class="animate-spin h-8 w-8 border-4 border-rose-600 border-t-transparent rounded-full"></div></div>`;
 
-    const res = await fetch('/api/leave/list');
-    let data = await res.json();
-    
-    // Filtering Logic
-    if(filterMode === 'Pending') {
-        data = data.filter(l => l.status === 'Pending');
-    } else if(filterMode === 'History') {
-        data = data.filter(l => l.status !== 'Pending');
+    let serverData = [];
+    let isOfflineMode = false;
+
+    try {
+        const res = await fetch('/api/leave/list');
+        const json = await res.json();
+        serverData = Array.isArray(json) ? json : [];
+    } catch (e) {
+        console.warn("📡 Using Offline Mode for History");
+        isOfflineMode = true;
     }
 
-    if(data.length === 0) {
-        inner.innerHTML = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit active:scale-90 transition-all">← Back to Menu</button>
-                          <div class="text-center py-20 opacity-20 font-black text-xs uppercase tracking-widest">No ${filterMode} Records</div>`;
-        return;
-    }
+    try {
+        const offlinePending = await db.syncQueue.where('url').equals('/api/leave/submit').toArray();
+        const mappedOffline = offlinePending.map(item => ({
+            id: 'off-' + item.id,
+            full_name: 'You (Sync Pending)',
+            reason: item.body.reason,
+            start_date: item.body.start_date,
+            end_date: item.body.end_date,
+            status: 'Offline',
+            is_offline: true
+        }));
 
-    const cards = data.map(l => `
-        <div class="glass-card p-5 mb-4 border-l-4 ${l.status==='Approved'?'border-green-500':l.status==='Rejected'?'border-red-500':'border-amber-400'} animate-slide-up">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <h4 class="font-black text-xs uppercase text-slate-800">${l.full_name}</h4>
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Roll: ${l.roll_number || 'N/A'}</p>
-                </div>
-                <span class="text-[8px] font-black uppercase px-3 py-1.5 rounded-full ${l.status==='Approved'?'bg-green-100 text-green-700':l.status==='Rejected'?'bg-red-100 text-red-700':'bg-amber-100 text-amber-700'}">${l.status}</span>
-            </div>
-            <div class="bg-gray-50/50 p-3 rounded-xl my-3 border border-gray-100">
-                <p class="text-[11px] leading-relaxed text-slate-600 italic">"${l.reason}"</p>
-            </div>
-            <div class="flex items-center justify-between text-[10px] font-bold text-gray-500">
-                <span>📅 ${l.start_date} → ${l.end_date}</span>
-                <div class="flex gap-3">
-                    ${l.attachment ? `<button onclick="viewLeaveFile('${l.attachment}')" class="text-blue-600 font-black">📎 VIEW</button>` : ''}
-                    ${"{{user.role}}"==='Teacher' && l.status==='Pending' ? `
-                        <button onclick="handleLeaveAction(${l.id},'Approved','${filterMode}')" class="text-green-600 font-black">APPROVE</button>
-                        <button onclick="handleLeaveAction(${l.id},'Rejected','${filterMode}')" class="text-red-600 font-black">REJECT</button>
-                    `:''}
-                </div>
-            </div>
-        </div>`).join('');
-    
-    inner.innerHTML = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit active:scale-90 transition-all">← Back to Menu</button>` + cards;
+        let combinedData = [...mappedOffline, ...serverData];
+        
+        if(filterMode === 'Pending') combinedData = combinedData.filter(l => l.status === 'Pending' || l.status === 'Offline');
+        else if(filterMode === 'History') combinedData = combinedData.filter(l => l.status !== 'Pending' && l.status !== 'Offline');
+
+        if (combinedData.length === 0) {
+            inner.innerHTML = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit">← Back</button>
+                              <div class="text-center py-10 text-gray-400 font-bold">No Leave Requests Found ${isOfflineMode ? '(Offline)' : ''}</div>`;
+            return;
+        }
+
+        // --- RENDER LOGIC START ---
+        let html = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit active:scale-90 transition-all">← Back to Menu</button>
+                    <div class="space-y-4">`;
+        
+        combinedData.forEach(l => {
+            const sClass = l.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' : (l.status === 'Offline' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600');
+            html += `<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+                        ${l.is_offline ? '<div class="absolute top-0 right-0 bg-amber-500 text-[8px] text-white px-3 py-1 rounded-bl-xl font-black uppercase tracking-tighter">Sync Pending</div>' : ''}
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-black text-gray-900 text-sm capitalize">${l.reason}</h4>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${l.start_date} to ${l.end_date}</p>
+                            </div>
+                            <span class="text-[9px] font-black px-3 py-1 rounded-full uppercase ${sClass}">${l.status}</span>
+                        </div>
+                    </div>`;
+        });
+        html += `</div>`;
+        inner.innerHTML = html;
+        // --- RENDER LOGIC END ---
+
+    } catch (err) {
+        inner.innerHTML = `<div class="text-center py-10 font-black text-rose-600 uppercase">Critical UI Error</div>`;
+    }
 };
 
 
 
+const Object_from_iterable = (iter) => { const obj = {}; for (const [k, v] of iter) { if(k!=="attachment") obj[k] = v; } return obj; };
 window.submitLeaveRequest = async function() {
-    const startDate = document.getElementById('l-start').value;
-    const endDate = document.getElementById('l-end').value;
-    const reason = document.getElementById('l-reason').value;
-
-    if(!startDate || !reason) return alert("Bhai, Date aur Reason zaroori hai!");
-    
-    // Time Travel Protection
-    if(endDate && new Date(endDate) < new Date(startDate)) {
-        return alert("Ghalti! End Date hamesha Start Date ke baad honi chahiye.");
-    }
-
     const btn = document.getElementById('l-sub-btn');
-    const fd = new FormData();
-    fd.append('start', startDate);
-    fd.append('end', endDate || startDate);
-    fd.append('reason', reason);
+    const start = document.getElementById('l-start').value;
+    const end = document.getElementById('l-end').value;
+    const reason = document.getElementById('l-reason').value;
     const file = document.getElementById('l-file').files[0];
+
+    if(!start || !end || !reason) return alert("Please fill all required fields!");
+
+    const fd = new FormData();
+    fd.append('start_date', start);
+    fd.append('end_date', end);
+    fd.append('reason', reason);
     if(file) fd.append('attachment', file);
-    
-    btn.disabled = true;
-    btn.innerText = "UPLOADING...";
-    
-    const res = await fetch('/api/leave/submit', {method:'POST', body:fd});
-    const result = await res.json();
-    
-    if(result.success) {
-        renderLeaveHistory();
-    } else {
-        alert("Error: " + result.error);
+
+    try {
+        btn.disabled = true;
+        btn.innerText = "PROCESSING...";
+
+        if (!navigator.onLine) {
+            const offlineData = {};
+            fd.forEach((value, key) => { if(!(value instanceof File)) offlineData[key] = value; });
+            await saveOffline('/api/leave/submit', 'POST', offlineData);
+            alert("📡 Offline Mode: Leave saved locally!");
+            renderLeaveHistory();
+            return;
+        }
+
+        const res = await fetch('/api/leave/submit', {method:'POST', body:fd});
+        const result = await res.json();
+        
+        // Handle both server success and Service Worker offline fallback
+        if(result.success || result.status === 'offline') {
+            if(result.status === 'offline') {
+                const offlineData = {};
+                fd.forEach((value, key) => { if(!(value instanceof File)) offlineData[key] = value; });
+                await saveOffline('/api/leave/submit', 'POST', offlineData);
+                alert("📡 Network Flaky: Saved to Offline Storage!");
+            } else {
+                alert("🚀 Leave Submitted Successfully!");
+            }
+            renderLeaveHistory();
+        } else {
+            throw new Error(result.error || "Submission failed");
+        }
+    } catch (e) {
+        alert("❌ Error: " + e.message);
+    } finally {
         btn.disabled = false;
         btn.innerText = "🚀 Submit Request";
     }
@@ -1369,6 +1631,21 @@ window.askUser = function(message) {
 <script src="/static/marks_v3.js"></script>
 <script src="/static/marks_v3.js"></script>
 </body>
+    <script>
+        window.addEventListener("online", async () => {
+            const pending = JSON.parse(localStorage.getItem("pending_sync") || "[]");
+            if (pending.length > 0) {
+                console.log("Internet back! Syncing " + pending.length + " items...");
+                for (const item of pending) {
+                    try {
+                        await fetch(item.url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(item.body)});
+                    } catch (e) { console.error("Sync failed for item", e); }
+                }
+                localStorage.removeItem("pending_sync");
+                alert("✅ All offline marks have been synced to server!");
+            }
+        });
+    </script>
 
 <script>
 // JS Cleaned for New Engine
@@ -1378,7 +1655,7 @@ window.askUser = function(message) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({exam_id: eid, sub_id: sid, total_marks: total_m, marks: marks})
     });
-    const result = await res.json();
+    
     if(result.status === 'success') { alert('DATA SAVED!'); showTab('marks-entry'); }
 }
 
@@ -1403,6 +1680,21 @@ async function _old_load() {
 </script>
 
 </html>
+    <script>
+        window.addEventListener("online", async () => {
+            const pending = JSON.parse(localStorage.getItem("pending_sync") || "[]");
+            if (pending.length > 0) {
+                console.log("Internet back! Syncing " + pending.length + " items...");
+                for (const item of pending) {
+                    try {
+                        await fetch(item.url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(item.body)});
+                    } catch (e) { console.error("Sync failed for item", e); }
+                }
+                localStorage.removeItem("pending_sync");
+                alert("✅ All offline marks have been synced to server!");
+            }
+        });
+    </script>
 '''
 
 # --- BACKEND ROUTES ---
@@ -1411,21 +1703,27 @@ async function _old_load() {
 @app.route('/app_logo')
 def get_app_logo():
     import os
-    from flask import send_file
     path = "/home/sami/Downloads/sami.png"
     if os.path.exists(path):
-        return send_file(path, mimetype='image/png')
+        return send_file(path, mimetype="image/png")
+    return "", 404
+    import os
+    path = "/home/sami/Downloads/sami.png"
+    if os.path.exists(path):
+        return send_file(path, mimetype="image/png")
     return "", 404
 
 
 @app.route('/api/school-logo')
 def get_school_logo():
-    from flask import send_file
     return send_file('/home/sami/Downloads/sami.png', mimetype='image/png')
 
 @app.route('/')
 def index():
-    return render_template_string(HTML_TEMPLATE, logged_in='user' in session, user=session.get('user'))
+    resp = make_response(render_template_string(HTML_TEMPLATE, logged_in='user' in session, user=session.get('user')))
+    if not request.path.startswith('/static/'): resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
@@ -1654,7 +1952,9 @@ def student_detailed_stats(sid):
 @app.route('/logout')
 def logout():
     session.clear()
-    return '<script>window.location.href="/";</script>'
+    response = make_response('<script>localStorage.clear(); window.location.replace("/?v=" + Date.now());</script>')
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response
 
 
 # ==========================================
@@ -1680,51 +1980,38 @@ def diary_init_teacher():
     conn.close()
     return jsonify([dict(r) for r in rows])
 
+
 @app.route('/api/diary/post', methods=['POST'])
 @login_required
 def diary_post_new():
     try:
         u = session['user']
         if u['role'] != 'Teacher': return jsonify({'success': False, 'msg': 'Only teachers can post'}), 403
-        
         uploaded_files = request.files.getlist('files')
         file_paths = []
         if not os.path.exists('uploads/diary'): os.makedirs('uploads/diary')
-        
         for file in uploaded_files:
             if file and file.filename:
                 filename = f"{int(datetime.datetime.now().timestamp())}_{file.filename}"
                 path = os.path.join('uploads/diary', filename)
                 file.save(path)
                 file_paths.append(path)
-        
         data = request.form
-        content_text = data.get('content')
-        target_class = data.get('class')
-        target_section = data.get('section')
-        target_wing = data.get('wing')
-        # Wing Normalization for Student Sync
+        content_text, target_class = data.get('content'), data.get('class')
+        target_section, target_wing = data.get('section'), data.get('wing')
         if target_wing and target_wing.lower().startswith('g'): target_wing = 'Girls'
         if target_wing and target_wing.lower().startswith('b'): target_wing = 'Boys'
         subject = data.get('subject')
-        
         is_scheduled = 1 if data.get('schedule_date') else 0
-        post_date = data.get('schedule_date') if is_scheduled else datetime.datetime.now().strftime("%Y-%m-%d")
-        time_str = datetime.datetime.now().strftime("%I:%M %p")
-        full_timestamp = f"{post_date} {time_str}"
-
+        post_date = data.get('schedule_date') if is_scheduled else datetime.datetime.now().strftime('%Y-%m-%d')
+        full_ts = f"{post_date} {datetime.datetime.now().strftime('%I:%M %p')}"
         conn = sqlite3.connect(DB_PATH)
-        conn.execute("""
-            INSERT INTO apsokara_dailydiary 
-            (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (u['id'], u['full_name'], target_class, target_section, subject, content_text, 
-                ",".join(file_paths), is_scheduled, target_wing, full_timestamp))
+        conn.execute("INSERT INTO apsokara_dailydiary (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                     (u['id'], u['full_name'], target_class, target_section, target_wing, subject, content_text, full_ts, is_scheduled, ",".join(file_paths)))
         conn.commit()
         conn.close()
         return jsonify({'success': True, 'msg': 'Diary Published!'})
-    except Exception as e:
-        return jsonify({'success': False, 'msg': str(e)})
+    except Exception as e: return jsonify({'success': False, 'msg': str(e)})
 
 @app.route('/api/diary/fetch')
 @login_required
@@ -1764,41 +2051,16 @@ def diary_unread_status():
     last_seen = request.args.get('last_seen', 0, type=int)
     conn = sqlite3.connect(DB_PATH)
     s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
-    row = conn.execute("SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?", (s_class, s_sec, s_wing, last_seen)).fetchone()
+    query = "SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?"
+    row = conn.execute(query, (s_class, s_sec, s_wing, s_wing, last_seen)).fetchone()
     conn.close()
     return jsonify({'count': row[0] or 0, 'latest_id': row[1] or 0})
-
-    
-    # Browser se bheji gayi last seen ID
-    last_seen = request.args.get('last_seen', 0, type=int)
-    
-    conn = sqlite3.connect(DB_PATH)
-    s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
-    
-    # Sirf wo diaries count karo jo last_seen se bari hain
-    query = "SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?"
-    row = conn.execute(query, (s_class, s_sec, s_wing, last_seen)).fetchone()
-    conn.close()
-    
-    return jsonify({
-        'count': row[0] or 0,
-        'latest_id': row[1] or 0
-    })
-
-    conn = sqlite3.connect(DB_PATH)
-    s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
-    row = conn.execute("SELECT MAX(id), COUNT(*) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')", (s_class, s_sec, s_wing)).fetchone()
-    conn.close()
-    return jsonify({'latest_id': row[0] or 0, 'total': row[1] or 0})
 
 
 
 @app.route('/uploads/<path:filename>')
 def serve_uploads(filename):
-    from flask import send_from_directory
-    return send_from_directory('uploads', filename)
-
-
+    return send_from_directory("uploads/diary", filename)
 
 # ==========================================
 # STRICT LEAVE MANAGEMENT SYSTEM (BACKEND)
@@ -1823,13 +2085,19 @@ def submit_leave_v2():
     
     try:
         with sqlite3.connect(DB_PATH) as conn:
+            # Improved Logic: Handle both Form and JSON for Offline/Online Sync
+            data = request.form if request.form else (request.get_json() if request.is_json else {})
+            
+            s_date = data.get('start') or data.get('start_date')
+            e_date = data.get('end') or data.get('end_date')
+            reason = data.get('reason')
+
             conn.execute("""INSERT INTO apsokara_studentleave 
                 (student_id, full_name, roll_number, class, section, wing, start_date, end_date, reason, attachment) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (u['id'], u['full_name'], u.get('roll_number'), u.get('student_class'), 
-                 u.get('student_section'), u.get('wing'), 
-                 request.form.get('start'), request.form.get('end'), 
-                 request.form.get('reason'), file_path))
+                (u['id'], u['full_name'], u.get('roll_number', 'N/A'), u.get('student_class', 'N/A'), 
+                 u.get('student_section', 'N/A'), u.get('wing', 'N/A'), 
+                 s_date, e_date, reason, file_path))
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1892,5 +2160,22 @@ def get_pending_leave_count():
         return jsonify({'count': 0})
 
 
+
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory("static", "sw.js")
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+@app.after_request
+def add_header(response):
+    # Allow home page and static files to be cached for offline use
+    if request.path.startswith('/static/') or request.path in ['/sw.js', '/']:
+        response.headers['Cache-Control'] = 'public, max-age=31536000'
+    return response
+    if request.path.startswith('/static/') or request.path == '/sw.js':
+        response.headers['Cache-Control'] = 'public, max-age=31536000'
+    else:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response

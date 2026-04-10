@@ -1,0 +1,144 @@
+
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+<div class="container-fluid py-4" style="background: #f4f7f6; min-height: 100vh;">
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; background: linear-gradient(45deg, #1a2a6c, #b21f1f);">
+        <div class="card-body p-4 text-white">
+            <h2 class="fw-bold mb-0"><i class="fas fa-rocket me-2"></i> Promotion Command Center</h2>
+            <p class="opacity-75">Select an exam to audit results and initiate student migration.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+                <div class="card-header bg-white fw-bold py-3">1. INITIALIZE AUDIT</div>
+                <div class="card-body">
+                    <form method="GET" action="">
+                        <label class="small fw-bold text-muted">SELECT ACTIVE EXAM</label>
+                        {% if exams_list %}
+                        <select name="exam_id" class="form-select mb-3 border-2" onchange="this.form.submit()">
+                            <option value="">-- Choose Exam --</option>
+                            {% for ex in exams_list %}
+                            <option value="{{ ex.id }}" {% if selected_exam.id == ex.id %}selected{% endif %}>{{ ex.name }} (Group: {{ ex.class_group }})</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <div class="alert alert-info border-0 mt-3 small">
+                            <i class="fas fa-info-circle"></i> No exams are currently pending for promotion.
+                        </div>
+                        {% endif %}
+
+                    {% if selected_exam %}
+                    <form method="POST" action="{% url 'execute_promotion' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="exam_id" value="{{ selected_exam.id }}">
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted">PASSING PERCENTAGE (%)</label>
+                            <input type="number" name="pass_perc" class="form-control border-2" value="33">
+                        </div>
+                        
+                        {% if can_promote %}
+                        <div class="alert alert-success border-0 small">
+                            <i class="fas fa-check-circle"></i> All sections have published results. You can now proceed.
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold shadow-sm" style="border-radius: 10px;">
+                            LAUNCH PROMOTION NOW
+                        </button>
+                        {% else %}
+                        <div class="alert alert-danger border-0 small">
+                            <i class="fas fa-lock"></i> Promotion is locked. Some teachers have not finalized marks.
+                        </div>
+                        <button class="btn btn-secondary w-100 py-3 fw-bold disabled" style="border-radius: 10px;">
+                            SYSTEM LOCKED
+                        </button>
+                        {% endif %}
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            {% if report %}
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-header bg-dark text-white fw-bold py-3">PROMOTION SUMMARY REPORT</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr><th>Student</th><th>Class Info</th><th>Marks (%)</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for r in report %}
+                                <tr>
+                                    <td><b class="text-primary">{{ r.name }}</b></td>
+                                    <td>{{ r.class }}</td>
+                                    <td>{{ r.marks }} ({{ r.perc }}%)</td>
+                                    <td>
+                                        <span class="badge {% if r.result == 'PROMOTED' %}bg-success{% else %}bg-danger{% endif %} rounded-pill">
+                                            {{ r.result }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% elif selected_exam %}
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-header bg-white fw-bold py-3 text-uppercase small text-muted">Class Teacher Audit Log</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr class="text-muted small">
+                                    <th class="ps-4">CLASS TEACHER</th>
+                                    <th>SECTION</th>
+                                    <th>PROGRESS</th>
+                                    <th class="text-end pe-4">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in sections_status %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2 bg-soft-primary text-primary rounded-circle p-2 text-center" style="width:35px; background: #eef2ff;">
+                                                {{ s.teacher|slice:":1" }}
+                                            </div>
+                                            <b>{{ s.teacher }}</b>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark">{{ s.class }}-{{ s.section }} ({{ s.wing }})</span></td>
+                                    <td>
+                                        <div class="progress" style="height: 6px; width: 100px;">
+                                            <div class="progress-bar {% if s.pending == 0 %}bg-success{% else %}bg-warning{% endif %}" 
+                                                 style="width: {% if s.pending == 0 %}100{% else %}50{% endif %}%"></div>
+                                        </div>
+                                        <small class="text-muted">{{ s.locked }} Locked / {{ s.pending }} Pending</small>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold {% if '✅' in s.status %}text-success{% else %}text-danger{% endif %}">
+                                            {{ s.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5 bg-white shadow-sm" style="border-radius: 15px;">
+                <i class="fas fa-search fa-4x text-light mb-3"></i>
+                <h5 class="text-muted">Please select an exam to start the audit.</h5>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
