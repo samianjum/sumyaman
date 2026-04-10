@@ -2095,8 +2095,8 @@ def submit_leave_v2():
             conn.execute("""INSERT INTO apsokara_studentleave 
                 (student_id, full_name, roll_number, class, section, wing, start_date, end_date, reason, attachment) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (u['id'], u['full_name'], u.get('roll_number', 'N/A'), u.get('student_class', 'N/A'), 
-                 u.get('student_section', 'N/A'), u.get('wing', 'N/A'), 
+                (u['id'], u['full_name'], u.get('roll_number', 'N/A'), u.get('assigned_class', 'N/A'), 
+                 u.get('assigned_section', 'N/A'), u.get('wing', 'N/A'), 
                  s_date, e_date, reason, file_path))
         return jsonify({'success': True})
     except Exception as e:
@@ -2135,8 +2135,8 @@ def leave_action_v2():
     d = request.json
     try:
         with sqlite3.connect(DB_PATH) as conn:
-            conn.execute("UPDATE apsokara_studentleave SET status=? WHERE id=? AND class=? AND section=? AND wing=?", 
-                        (d['status'], d['id'], u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing')))
+            conn.execute("UPDATE apsokara_studentleave SET status=? WHERE id=? AND class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')", 
+                        (d['status'], d['id'], u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing')))
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})

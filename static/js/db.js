@@ -33,9 +33,17 @@ async function syncOfflineData() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(item.body)
             });
-            if (res.ok) {
+            
+            const resData = await res.json();
+            
+            // Sirf tab delete karo jab server sach mein success: true de
+            if (res.ok && resData.status !== 'offline' && resData.success === true) {
                 await db.syncQueue.delete(item.id);
-                alert("🔄 Background Sync Complete!"); console.log("✅ Sync successful for ID:", item.id);
+                console.log("✅ Sync successful and verified by Server for ID:", item.id);
+                // Agar history function available hai to refresh karo
+                if (typeof renderLeaveHistory === 'function') renderLeaveHistory();
+            } else {
+                console.warn("⚠️ Server rejected or offline fake response. Data kept safe.", resData);
             }
         } catch (e) {
             console.error("❌ Sync failed, will retry later:", e);
@@ -45,3 +53,9 @@ async function syncOfflineData() {
 
 // Net aane par khud ba khud sync shuru karein
 window.addEventListener('online', syncOfflineData);
+
+// App load hone par aur har 15 second baad double check karein
+window.addEventListener('load', () => {
+    setTimeout(syncOfflineData, 2000);
+    setInterval(syncOfflineData, 15000);
+});
