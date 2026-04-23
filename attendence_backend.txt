@@ -1,0 +1,81 @@
+
+@app.route('/api/check-lock')
+@login_required
+def check_lock():
+    u = session['user']
+    today = datetime.datetime.now(PK_TZ).date().isoformat()
+    conn = sqlite3.connect(DB_PATH)
+    # Check max edit count for this class today
+    res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a 
+                        JOIN apsokara_student s ON a.student_id = s.id 
+                        WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
+                        (today, u['assigned_class'], u['assigned_section'], u['wing'])).fetchone()
+    conn.close()
+    return jsonify({"edit_count": res[0] if res[0] is not None else 0})
+
+
+@app.route('/api/students-marking')
+@login_required
+def students_marking():
+    u = session['user']
+    if u['role'] != 'Teacher' or not u.get('is_class_teacher'):
+        return jsonify({"students": [], "error": "Unauthorized"}), 403
+    today = datetime.datetime.now(PK_TZ).date().isoformat()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    
+    # Query checking both attendance table AND approved leaves for today
+    query = """
+        SELECT s.id, s.full_name, s.father_name, s.roll_number, a.status,
+        (SELECT COUNT(*) FROM apsokara_studentleave l 
+         WHERE l.student_id = s.id 
+         AND l.status = 'Approved' 
+         AND ? BETWEEN l.start_date AND l.end_date) as on_leave
+        FROM apsokara_student s 
+        LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=?
+        WHERE s.student_class=? AND s.student_section=? AND s.wing=? 
+        ORDER BY CAST(s.roll_number AS INTEGER)
+    """
+    cur = conn.execute(query, (today, today, u['assigned_class'], u['assigned_section'], u['wing']))
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return jsonify({"students": rows})
+
+
+@app.route('/api/sync-attendance', methods=['POST'])
+@login_required
+def sync_attendance():
+    try:
+        data = request.json
+        attendance_list = data.get('attendance', [])
+        u = session['user']
+        today = datetime.datetime.now(PK_TZ).date().isoformat()
+        
+        conn = sqlite3.connect(DB_PATH)
+        for item in attendance_list:
+            # Check if record already exists
+            existing = conn.execute("SELECT id, edit_count FROM apsokara_attendance WHERE student_id=? AND date=?", 
+                                 (item['id'], today)).fetchone()
+            
+            if existing:
+                new_count = (existing[1] or 0) + 1
+                conn.execute("UPDATE apsokara_attendance SET status=?, edit_count=? WHERE student_id=? AND date=?",
+                            (item['status'], new_count, item['id'], today))
+            else:
+                conn.execute("INSERT INTO apsokara_attendance (date, status, student_id, marked_by, edit_count) VALUES (?, ?, ?, ?, ?)",
+                            (today, item['status'], item['id'], u['full_name'], 0))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"❌ Attendance Error: {str(e)}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route('/api/archive')
+@login_required
+def api_archive():
+    date = request.args.get('date')
+    u = session['user']
+    conn = sqlite3.connect(DB_PATH)

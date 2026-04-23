@@ -1,0 +1,151 @@
+885:        async function openAttendanceTab(type) {
+886-            if(type === 'marking') {
+887-                await checkLockStatus();
+888-                showTab('attendance-view');
+889-                loadMarkingInterface();
+890-            } else {
+891-                showTab(type + '-view');
+892-                if(type === 'archive') loadArchive();
+893-                if(type === 'intel') loadIntel();
+894-            }
+895-        }
+896-
+897-        async function loadMarkingInterface() {
+898-            const list = document.getElementById('marking-area');
+899-            const banner = document.getElementById('lock-banner');
+900-            const footer = document.getElementById('marking-footer');
+901-            
+902-            if(isLocked) {
+903-                banner.innerHTML = '<div class="glass-card bg-green-50 text-center border-green-200"><h2 class="text-3xl">🛡️</h2><h4 class="font-black text-green-700">ATTENDANCE SECURED</h4><p class="text-[10px] font-bold">Database is finalized for today.</p></div>';
+904-                footer.innerHTML = '';
+905-            } else {
+906-                banner.innerHTML = currentEditCount === 1 ? '<div class="p-3 bg-red-50 text-red-600 text-[10px] font-black rounded-xl border border-red-100 uppercase">⚠️ Last chance to edit. Database will lock after sync.</div>' : '<div class="p-3 bg-yellow-50 text-yellow-700 text-[10px] font-black rounded-xl border border-yellow-100 uppercase">💡 Marking active. You can edit once after saving.</div>';
+907-                footer.innerHTML = '<button onclick="syncAttendance()" class="btn-sync">🚀 FINAL LOCK & SYNC</button>';
+908-            }
+909-
+910-            const res = await fetch('/api/students-marking');
+911-            const data = await res.json();
+912-            list.innerHTML = data.students.map(s => {
+913-                let statusControl = '';
+914-                if(isLocked) {
+915-                    statusControl = `<span class="status-pill ${s.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${s.status || 'N/A'}</span>`;
+916-                } else if(s.on_leave > 0) {
+917-                    // Logic for locked leave status
+918-                    statusControl = `<span class="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1.5 rounded-full border border-amber-200 animate-pulse">📝 ON LEAVE</span>
+919-                                     <input type="hidden" id="s_${s.id}" value="Leave">`;
+920-                } else {
+921-                    // Normal dropdown
+922-                    statusControl = `
+923-                    <select id="s_${s.id}" class="text-xs font-black bg-gray-50 p-2 rounded-lg border-none outline-none">
+924-                        <option value="Present" ${s.status === 'Present' ? 'selected' : ''}>Present</option>
+925-                        <option value="Absent" ${s.status === 'Absent' ? 'selected' : ''}>Absent</option>
+926-                        <option value="Leave" ${s.status === 'Leave' ? 'selected' : ''}>Leave</option>
+927-                    </select>`;
+928-                }
+929-                return `
+930-                <div class="glass-card flex justify-between items-center ${s.on_leave > 0 ? 'bg-amber-50/40 border-amber-200' : ''}">
+931-                    <div><p class="text-[9px] font-bold text-gray-400">#${s.roll_number}</p><h4 class="font-black text-sm">${s.full_name}</h4></div>
+932-                    ${statusControl}
+933-                </div>`;
+934-            }).join('');
+935-        }
+936-
+937-        async function syncAttendance() {
+938-            if(!(await askUser("Lock this record?"))) return;
+939-            const students = document.querySelectorAll('[id^="s_"]');
+940-            const attendance = Array.from(students).map(s => ({ id: s.id.split('_')[1], status: s.value }));
+941-            
+942-            const res = await fetch('/api/sync-attendance', {
+943-                method: 'POST',
+944-                headers: {'Content-Type': 'application/json'},
+945-                body: JSON.stringify({ attendance })
+946-            });
+947-            const data = await res.json();
+948-            if(data.success) { alert("Successfully Synced!"); showTab('mark'); } else { alert("Error syncing: " + data.error); }
+949-        }
+950-
+951-        async function loadArchive() {
+952-            const dateInput = document.getElementById('archive-date').value;
+953-            let date = dateInput;
+954-            // Agar Student hai aur date select nahi ki, to date parameter khali bhejo
+955-            if ('{{ user.role }}' === 'Student' && !dateInput) {
+956-                date = ''; 
+957-            } else if (!dateInput) {
+958-                date = new Date().toISOString().split('T')[0];
+959-            }
+960-            const res = await fetch('/api/archive?date=' + date);
+961-            const data = await res.json();
+962-            document.getElementById('archive-results').innerHTML = data.map(s => `
+963-                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl">
+964-                    <div>
+965-                        <span class="text-[9px] font-bold text-gray-400">${s.date || ''}</span>
+966-                        <h4 class="text-xs font-black">${s.full_name || 'My Record'}</h4>
+967-                    </div>
+968-                    <span class="status-pill ${s.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${s.status}</span>
+969-                </div>
+970-            `).join('') || '<p class="text-center text-xs py-10 font-bold text-gray-300">No history found.</p>';
+971-        }
+972-
+973-        
+974-        
+975-        
+976-        
+977-        async function unlockVault() {
+978-            const auth_id = document.getElementById('v-auth-id').value;
+979-            const dob = document.getElementById('v-dob').value;
+980-            if(!auth_id || !dob) { alert("Please fill both fields"); return; }
+981-            
+982-            const res = await fetch('/api/unlock-vault', {
+983-                method: 'POST',
+984-                headers: {'Content-Type': 'application/json'},
+985-                body: JSON.stringify({ auth_id, dob })
+986-            });
+987-            const data = await res.json();
+988-            if(data.success) {
+989-                document.getElementById('vault-auth').classList.add('hidden');
+990-                document.getElementById('profile-details').classList.remove('hidden');
+991-                document.getElementById('p-father').innerText = data.info.father_name;
+992-                document.getElementById('p-uid-val').innerText = data.info.uid;
+993-                document.getElementById('p-dob-val').innerText = data.info.dob;
+994-                document.getElementById('p-rel').innerText = data.info.religion;
+995-                document.getElementById('p-contact').innerText = data.info.contact;
+996-                document.getElementById('p-addr').innerText = data.info.address;
+997-            } else {
+998-                showToast("Verification Failed!", "error");
+999-            }
+1000-        }
+1001-
+1002-
+1003-        
+1004-        async function loadIntel() {
+1005-            const container = document.getElementById('intel-view');
+1006-            if(!container) return;
+1007-            const res = await fetch('/api/students-marking');
+1008-            const data = await res.json();
+1009-            const total = data.students.length;
+1010-            const leaves = data.students.filter(s => s.on_leave > 0).length;
+1011-
+1012-            container.innerHTML = `
+1013-                <div class="space-y-6 animate-fade-in pb-20 w-full px-2">
+1014-                    <div class="grid grid-cols-2 gap-4">
+1015-                        <div class="glass-card bg-[#1B4332] text-white p-6 border-none shadow-xl rounded-3xl">
+1016-                            <p class="text-[10px] font-black opacity-70 uppercase tracking-widest">Total Students</p>
+1017-                            <h2 class="text-4xl font-black">${total}</h2>
+1018-                        </div>
+1019-                        <div class="glass-card bg-amber-500 text-white p-6 border-none shadow-xl rounded-3xl">
+1020-                            <p class="text-[10px] font-black opacity-70 uppercase tracking-widest">On Leave</p>
+1021-                            <h2 class="text-4xl font-black">${leaves}</h2>
+1022-                        </div>
+1023-                    </div>
+1024-                    <div class="glass-card p-5 bg-white shadow-lg border-2 border-[#1B4332]/5 rounded-3xl">
+1025-                        <label class="text-xs font-black text-[#1B4332] uppercase mb-3 block">Select Student Record</label>
+1026-                        <select onchange="fetchStudentDeepStats(this.value)" class="w-full p-4 rounded-2xl border-none bg-gray-100 text-base font-bold shadow-inner outline-none">
+1027-                            <option value="">Choose Student...</option>
+1028-                            ${data.students.map(s => `<option value="${s.id}">${s.full_name} s/o ${s.father_name}</option>`).join('')}
+1029-                        </select>
+1030-                    </div>
+1031-                    <div id="intel-details-area" class="w-full min-h-[300px]">
+1032-                        <div class="flex flex-col items-center justify-center py-20 opacity-20">
+1033-                            <div class="text-8xl">💎</div>
+1034-                            <p class="font-black uppercase mt-4 tracking-tighter text-lg text-center">Detailed Analytics</p>
+1035-                        </div>

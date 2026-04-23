@@ -1,0 +1,111 @@
+            } else {
+                showTab(type + '-view');
+                if(type === 'archive') loadArchive();
+                if(type === 'intel') loadIntel();
+            }
+        }
+
+        async function loadMarkingInterface() {
+            const list = document.getElementById('marking-area');
+            const banner = document.getElementById('lock-banner');
+            const footer = document.getElementById('marking-footer');
+            
+            if(isLocked) {
+                banner.innerHTML = '<div class="glass-card bg-green-50 text-center border-green-200"><h2 class="text-3xl">🛡️</h2><h4 class="font-black text-green-700">ATTENDANCE SECURED</h4><p class="text-[10px] font-bold">Database is finalized for today.</p></div>';
+                footer.innerHTML = '';
+            } else {
+                banner.innerHTML = currentEditCount === 1 ? '<div class="p-3 bg-red-50 text-red-600 text-[10px] font-black rounded-xl border border-red-100 uppercase">⚠️ Last chance to edit. Database will lock after sync.</div>' : '<div class="p-3 bg-yellow-50 text-yellow-700 text-[10px] font-black rounded-xl border border-yellow-100 uppercase">💡 Marking active. You can edit once after saving.</div>';
+                footer.innerHTML = '<button onclick="syncAttendance()" class="btn-sync">🚀 FINAL LOCK & SYNC</button>';
+            }
+
+            const res = await fetch('/api/students-marking');
+            const data = await res.json();
+            list.innerHTML = data.students.map(s => {
+                let statusControl = '';
+                if(isLocked) {
+                    statusControl = `<span class="status-pill ${s.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${s.status || 'N/A'}</span>`;
+                } else if(s.on_leave > 0) {
+                    // Logic for locked leave status
+                    statusControl = `<span class="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1.5 rounded-full border border-amber-200 animate-pulse">📝 ON LEAVE</span>
+                                     <input type="hidden" id="s_${s.id}" value="Leave">`;
+                } else {
+                    // Normal dropdown
+                    statusControl = `
+                    <select id="s_${s.id}" class="text-xs font-black bg-gray-50 p-2 rounded-lg border-none outline-none">
+                        <option value="Present" ${s.status === 'Present' ? 'selected' : ''}>Present</option>
+                        <option value="Absent" ${s.status === 'Absent' ? 'selected' : ''}>Absent</option>
+                        <option value="Leave" ${s.status === 'Leave' ? 'selected' : ''}>Leave</option>
+                    </select>`;
+                }
+                return `
+                <div class="glass-card flex justify-between items-center ${s.on_leave > 0 ? 'bg-amber-50/40 border-amber-200' : ''}">
+                    <div><p class="text-[9px] font-bold text-gray-400">#${s.roll_number}</p><h4 class="font-black text-sm">${s.full_name}</h4></div>
+                    ${statusControl}
+                </div>`;
+            }).join('');
+        }
+
+        async function syncAttendance() {
+            if(!(await askUser("Lock this record?"))) return;
+            const students = document.querySelectorAll('[id^="s_"]');
+            const attendance = Array.from(students).map(s => ({ id: s.id.split('_')[1], status: s.value }));
+            
+            const res = await fetch('/api/sync-attendance', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ attendance })
+            });
+            const data = await res.json();
+            if(data.success) { alert("Successfully Synced!"); showTab('mark'); } else { alert("Error syncing: " + data.error); }
+        }
+
+        async function loadArchive() {
+            const dateInput = document.getElementById('archive-date').value;
+            let date = dateInput;
+            // Agar Student hai aur date select nahi ki, to date parameter khali bhejo
+            if ('{{ user.role }}' === 'Student' && !dateInput) {
+                date = ''; 
+            } else if (!dateInput) {
+                date = new Date().toISOString().split('T')[0];
+            }
+            const res = await fetch('/api/archive?date=' + date);
+            const data = await res.json();
+            document.getElementById('archive-results').innerHTML = data.map(s => `
+                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl">
+                    <div>
+                        <span class="text-[9px] font-bold text-gray-400">${s.date || ''}</span>
+                        <h4 class="text-xs font-black">${s.full_name || 'My Record'}</h4>
+                    </div>
+                    <span class="status-pill ${s.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${s.status}</span>
+                </div>
+            `).join('') || '<p class="text-center text-xs py-10 font-bold text-gray-300">No history found.</p>';
+        }
+
+        
+        
+        
+        
+        async function unlockVault() {
+            const auth_id = document.getElementById('v-auth-id').value;
+            const dob = document.getElementById('v-dob').value;
+            if(!auth_id || !dob) { alert("Please fill both fields"); return; }
+            
+            const res = await fetch('/api/unlock-vault', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ auth_id, dob })
+            });
+            const data = await res.json();
+            if(data.success) {
+                document.getElementById('vault-auth').classList.add('hidden');
+                document.getElementById('profile-details').classList.remove('hidden');
+                document.getElementById('p-father').innerText = data.info.father_name;
+                document.getElementById('p-uid-val').innerText = data.info.uid;
+                document.getElementById('p-dob-val').innerText = data.info.dob;
+                document.getElementById('p-rel').innerText = data.info.religion;
+                document.getElementById('p-contact').innerText = data.info.contact;
+                document.getElementById('p-addr').innerText = data.info.address;
+            } else {
+                showToast("Verification Failed!", "error");
+            }
+        }

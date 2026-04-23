@@ -52,7 +52,7 @@ window.safeLogout = async function(e) {
 
     // Check 2: Final Ping right before redirect
     try {
-        const ping = await fetch('/app_logo', { method: 'HEAD', cache: 'no-store' });
+        const ping = await fetch('/static/logo.png', { method: 'HEAD', cache: 'no-store' });
         if (ping.ok) {
             localStorage.clear();
             window.location.replace('/logout');
@@ -116,74 +116,19 @@ window.safeLogout = async function(e) {
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AXIS</title>
-    <link rel="icon" type="image/png" href="/app_logo">
+    <title>APS OKARA</title>
     <script src="/static/tailwind.min.css"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #0f172a; margin: 0; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
         .app-shell { width: 100%; max-width: 450px; height: 100vh; background: #ffffff; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-        .app-header { 
-    background: linear-gradient(180deg, #0B132B 0%, #0F1B3D 100%); 
-    padding: 8px 16px; 
-    border-bottom: 1px solid rgba(111,255,233,0.12); 
-    flex-shrink: 0; 
-    z-index: 20; 
-    min-height: 140px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: space-between;
-}
+        .app-header { background: #1B4332; color: white; padding: 40px 20px 25px; border-radius: 0 0 30px 30px; flex-shrink: 0; z-index: 20; }
         .app-body { flex: 1; overflow-y: auto; padding: 20px 20px 100px; }
-        .app-nav { 
-            position: absolute; 
-            bottom: 20px; 
-            left: 5%;
-            width: 90%; 
-            height: 70px; 
-            background: rgba(11, 19, 43, 0.9); 
-            backdrop-filter: blur(15px); 
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center; 
-            border: 1px solid rgba(111, 255, 233, 0.15); 
-            border-radius: 25px;
-            z-index: 100; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .nav-btn { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            transition: all 0.3s ease;
-        }
-        .nav-btn svg { 
-            width: 22px; 
-            height: 22px; 
-            stroke: rgba(255,255,255,0.5); 
-            transition: all 0.3s ease;
-        }
-        .nav-btn span:last-child { 
-            font-size: 9px; 
-            font-weight: 800; 
-            color: rgba(255,255,255,0.4); 
-            text-transform: uppercase; 
-            margin-top: 4px; 
-            letter-spacing: 0.05em;
-        }
-        .active-nav svg { 
-            stroke: #6FFFE9 !important; 
-            filter: drop-shadow(0 0 8px rgba(111, 255, 233, 0.8)) !important;
-            transform: translateY(-3px);
-            stroke-width: 3px;
-        }
-        .active-nav span { 
-            color: #6FFFE9 !important; 
-        }
+        .app-nav { position: absolute; bottom: 0; width: 100%; height: 75px; background: rgba(255,255,255,0.98); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #f1f5f9; z-index: 100; left: 0; }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-btn span:last-child { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-top: 2px; }
+        .active-nav span { color: #1B4332 !important; }
         .glass-card { background: white; border-radius: 20px; padding: 18px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .hidden { display: none !important; }
         .btn-sync { background: #1B4332; color: white; width: 100%; padding: 15px; border-radius: 15px; font-weight: 800; margin-top: 20px; }
@@ -214,45 +159,6 @@ window.safeLogout = async function(e) {
         .sync-badge { position: absolute; top: -5px; right: 10px; background: #ef4444; color: white; font-size: 8px; padding: 2px 5px; border-radius: 10px; font-weight: 900; }
 
 
-    
-        .axis-input {
-            background: transparent !important;
-            border: none !important;
-            border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-            border-radius: 0 !important;
-            color: white !important;
-            padding: 12px 0 !important;
-            transition: all 0.3s ease;
-        }
-        .axis-input:focus {
-            border-bottom: 1px solid #6FFFE9 !important;
-            outline: none !important;
-            box-shadow: 0 4px 10px -5px rgba(111, 255, 233, 0.2);
-        }
-        .tab-text {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.2em;
-            color: rgba(255,255,255,0.3);
-            transition: all 0.3s ease;
-        }
-        .tab-active {
-            color: #6FFFE9 !important;
-        }
-        .tab-indicator {
-            height: 2px;
-            background: #6FFFE9;
-            width: 100%;
-            margin-top: 4px;
-            box-shadow: 0 0 8px #6FFFE9;
-        }
-    
-    
-        .saas-card { background: #ffffff; border-radius: 20px; padding: 20px; border: 1px solid #f1f5f9; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04); transition: all 0.2s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .saas-card:active { transform: scale(0.95); }
-        .saas-accent { position: absolute; left: 0; top: 25%; bottom: 25%; width: 4px; border-radius: 0 4px 4px 0; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-    
     </style>
 <script src="/static/student_view.js"></script>
 
@@ -361,80 +267,63 @@ window.safeLogout = async function(e) {
 
     <div id="toast-container"></div>
     <div class="app-shell">
-        
         {% if not logged_in %}
-        <div class="app-body flex flex-col items-center px-10 h-full justify-between pt-6 pb-12" style="background: #0B132B; color: white;">
-            <div class="mt-0 flex flex-col items-center">
-                <div class="w-20 h-20 mb-2">
-                    <img src="/app_logo?v=1776620591" class="w-full h-full object-contain filter brightness-125" alt="AXIS">
-                </div>
-                <h1 class="text-2xl font-black tracking-[0.4em] text-white">AXIS</h1>
+        <div class="app-body flex flex-col justify-center">
+            <div class="text-center mb-10">
+                <div class="w-20 h-20 bg-[#1B4332] rounded-[2rem] mx-auto flex items-center justify-center text-4xl mb-4 shadow-lg">🏫</div>
+                <h1 class="text-3xl font-black text-[#1B4332]">APS OKARA</h1>
             </div>
-
-            <div class="w-full space-y-12">
-                <div class="flex justify-center gap-10">
-                    <div onclick="setRole('Student')" id="sBtn" class="tab-text cursor-pointer tab-active">STUDENT<div id="sInd" class="tab-indicator"></div></div>
-                    <div onclick="setRole('Teacher')" id="tBtn" class="tab-text cursor-pointer">STAFF<div id="tInd" class="tab-indicator hidden"></div></div>
+            <div class="bg-gray-50 p-6 rounded-[35px] border border-gray-100">
+                <div class="flex bg-gray-200 p-1.5 rounded-2xl mb-6">
+                    <button onclick="setRole('Student')" id="sBtn" class="flex-1 py-3 rounded-xl font-black text-sm bg-[#D4AF37] text-[#1B4332]">STUDENT</button>
+                    <button onclick="setRole('Teacher')" id="tBtn" class="flex-1 py-3 rounded-xl font-black text-sm text-gray-400">STAFF</button>
                 </div>
-
-                <div class="space-y-6">
-                    <input type="text" id="uid" placeholder="ID / B-FORM" class="w-full axis-input text-sm">
-                    <input type="date" id="dob" value="2010-01-01" class="w-full axis-input text-sm opacity-50">
-                </div>
-            </div>
-
-            <div class="w-full mb-4">
-                <button onclick="doLogin()" class="w-full bg-[#6FFFE9] text-[#0B132B] py-4 rounded-full font-black text-[12px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-[0_10px_30px_-10px_rgba(111,255,233,0.4)]">
-                    ENTER TERMINAL
-                </button>
-                <p class="text-[9px] font-bold tracking-[0.3em] uppercase opacity-20 text-center mt-12">© 2026 AXIS OS • V1.0.1</p>
+                <input type="text" id="uid" placeholder="ID / B-Form" class="w-full p-4 mb-4 rounded-2xl outline-none">
+                <input type="date" id="dob" value="2010-01-01" class="w-full p-4 mb-6 rounded-2xl outline-none">
+                <button onclick="doLogin()" class="w-full bg-[#1B4332] text-white py-4 rounded-2xl font-black shadow-xl">LOGIN</button>
             </div>
         </div>
         {% else %}
-    
         
         
         
         
         
-        <div id="main-header" class="app-header">
-            <div class="flex justify-between items-center w-full">
-                <span class="text-[13px] font-[800] text-[#6FFFE9] tracking-[0.15em] uppercase">AXIS</span>
-                <span id="current-time" class="text-[11px] text-white/70 font-medium">00:00 AM</span>
+        <div id="main-header" class="app-header shadow-md p-4 bg-gradient-to-r from-[#1B4332] to-[#2D6A4F]">
+            <div class="flex justify-between items-center mb-3 opacity-80 border-b border-white/10 pb-2">
+                <span id="current-date" class="text-[9px] font-bold tracking-tighter uppercase">-- --- ----</span>
+                <span id="current-time" class="text-[9px] font-black tracking-widest text-[#D4AF37]">00:00:00</span> <div id="net-ind" class="net-status net-online"></div>
             </div>
 
-            <div id="header-identity-section">
-                <div class="flex items-center gap-[12px] mt-0">
-                    <div class="w-[34px] h-[34px] flex-shrink-0 bg-white/5 rounded-xl overflow-hidden shadow-sm border border-white/10">
-                        <img src="/app_logo" class="w-full h-full object-contain" alt="Logo">
-                    </div>
-                    <div class="flex flex-col min-w-0 flex-1">
-                        <h2 class="text-[18px] font-[800] text-white leading-tight truncate uppercase tracking-tight">{{ user.full_name }}</h2>
-                        <span class="text-[12px] text-white/65 font-medium">
-                            {% if user.role == "Student" %}
-                                {{ user.assigned_class }}-{{ user.assigned_section }}
-                            {% else %}
-                                {{ user.role }}
-                            {% endif %}
-                        </span>
+            <div class="flex items-center gap-3">
+                <div class="flex-shrink-0">
+                    <div class="w-14 h-14 rounded-full border-2 border-white/30 bg-white flex items-center justify-center overflow-hidden shadow-sm">
+                        <img src="/app_logo" alt="Logo" class="w-[80%] h-[80%] object-contain">
                     </div>
                 </div>
-                <div class="flex items-center gap-2 mt-0 pt-2 border-t border-white/5">
-                    <div class="w-[6px] h-[6px] rounded-full bg-[#6FFFE9] shadow-[0_0_8px_#6FFFE9]"></div>
-                    <span class="text-[10px] font-bold text-white/40 uppercase tracking-widest">Online • Secure Session</span>
+
+                <div class="flex-grow">
+                    <h2 class="text-lg font-black leading-tight">{{ user.full_name }}</h2>
+                    <p class="text-[10px] font-bold opacity-90">S/O: {{ user.father_name }}</p>
+                    
+                    <div class="mt-1 flex items-center gap-2">
+                        <span class="text-[8px] font-black bg-black/20 px-2 py-0.5 rounded uppercase tracking-tighter text-[#D4AF37]">{{ user.role }}</span>
+                        {% if user.role == 'Student' %}
+                            <span class="text-[9px] font-bold opacity-80 border-l border-white/30 pl-2">Class: {{ user.assigned_class }}-{{ user.assigned_section }}</span>
+                        {% elif user.role == 'Teacher' and user.is_class_teacher %}
+                            <span class="text-[9px] font-bold opacity-80 border-l border-white/30 pl-2">IC: {{ user.assigned_class }}-{{ user.assigned_section }}</span>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
-            
-            <div id="header-compact-section" class="hidden flex items-center gap-3 mt-1">
-                <button onclick="showTab('home')" class="text-[#6FFFE9] text-xl">←</button>
-                <h1 id="page-display-title" class="text-white font-[800] text-[16px] uppercase tracking-tight">PAGE</h1>
             </div>
         </div>
 
         <script>
         function updateClock() {
             const now = new Date();
-            document.getElementById('current-time').innerText = now.toLocaleTimeString('en-GB', { hour12: true, hour: '2-digit', minute: '2-digit' }).toUpperCase();
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            document.getElementById('current-date').innerText = now.toLocaleDateString('en-GB', options).toUpperCase();
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('en-GB', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -451,7 +340,7 @@ window.safeLogout = async function(e) {
                 d.status.forEach(s => {
                     html += `<div class="glass-card flex items-center justify-between py-2 px-3 mb-2"><div><p class="text-[10px] font-black uppercase">${s.subject}</p><p class="text-[8px] text-gray-400">${s.teacher}</p></div><span class="${s.submitted ? 'text-emerald-600' : 'text-rose-600'} font-black text-[9px]">${s.submitted ? '✓ READY' : '× PENDING'}</span></div>`;
                 });
-                if(d.is_ready) html += `<button onclick="publishResult(${d.exam_id})" class="w-full bg-[#1B4332] text-white py-3 rounded-xl font-black text-xs mt-0">🚀 PUBLISH RESULT</button>`;
+                if(d.is_ready) html += `<button onclick="publishResult(${d.exam_id})" class="w-full bg-[#1B4332] text-white py-3 rounded-xl font-black text-xs mt-2">🚀 PUBLISH RESULT</button>`;
                 area.innerHTML = html;
             } catch(e) { area.innerHTML = "Error!"; }
         }
@@ -477,90 +366,75 @@ window.safeLogout = async function(e) {
             
             
             
-            
-            <div id="page-home" class="space-y-6 animate-zoom-in">
-                <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-                    <div class="min-w-[130px] bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest">Attendance</p>
-                        <p class="text-xl font-black text-[#0B132B]">92%</p>
-                    </div>
-                    <div class="min-w-[130px] bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest">Tasks</p>
-                        <p class="text-xl font-black text-rose-500">2 Pending</p>
-                    </div>
-                    <div class="min-w-[130px] bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                        <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest">Next Test</p>
-                        <p class="text-xl font-black text-cyan-500">Friday</p>
-                    </div>
+            <div id="page-home" class="grid grid-cols-2 gap-4">
+                {% if user.role == 'Student' or (user.role == 'Teacher' and user.is_class_teacher) %}
+                <div onclick="openLeaveHub()" class="relative glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-rose-500 active:scale-95 transition-all cursor-pointer">
+                    <span id="leave-badge" class="hidden absolute top-3 right-3 bg-red-600 text-white text-[10px] font-black h-5 w-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white animate-bounce">0</span>
+                    <div class="text-4xl mb-3 drop-shadow-md">✉️</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">Leave Hub</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Status & Apply</p>
                 </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    {% if user.role == 'Student' %}
-                    <div onclick="openDiaryHub()" class="saas-card group">
-                        <div class="saas-accent bg-cyan-400"></div>
-                        <svg class="w-6 h-6 mb-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                        <h4 class="font-black text-[11px] uppercase tracking-tighter">Diary</h4>
-                        <p class="text-[8px] text-gray-400 font-bold mt-1">Daily Homework</p>
-                    </div>
-                    <div onclick="showTab('mark')" class="saas-card group">
-                        <div class="saas-accent bg-blue-600"></div>
-                        <svg class="w-6 h-6 mb-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        <h4 class="font-black text-[11px] uppercase tracking-tighter">Reports</h4>
-                        <p class="text-[8px] text-gray-400 font-bold mt-1">Performance</p>
-                    </div>
-                    {% endif %}
-
-                    {% if user.role == 'Teacher' %}
-                    <div onclick="openDiaryHub()" class="saas-card group">
-                        <div class="saas-accent bg-purple-600"></div>
-                        <svg class="w-6 h-6 mb-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                        <h4 class="font-black text-[11px] uppercase tracking-tighter">Post Diary</h4>
-                    </div>
-                    <div onclick="navToMarks()" class="saas-card group">
-                        <div class="saas-accent bg-indigo-600"></div>
-                        <svg class="w-6 h-6 mb-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        <h4 class="font-black text-[11px] uppercase tracking-tighter">Marks Entry</h4>
-                    </div>
-                    {% endif %}
-
-                    {% if user.is_class_teacher %}
-                    <div onclick="showTab('mark')" class="saas-card group">
-                        <div class="saas-accent bg-emerald-500"></div>
-                        <svg class="w-6 h-6 mb-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 002-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                        <h4 class="font-black text-[11px] uppercase tracking-tighter">Attendance</h4>
-                    </div>
-                    {% endif %}
-
-                    <div onclick="openLeaveHub()" class="saas-card group">
-                        <div class="saas-accent bg-rose-500"></div>
-                        <svg class="w-6 h-6 mb-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                        <h4 class="font-black text-[11px] uppercase tracking-tighter">Leave Hub</h4>
-                    </div>
+                {% endif %}
+                {% if user.role == 'Teacher' and user.assignments %}
+                <div onclick="openDiaryHub()" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-purple-600 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mb-3 drop-shadow-md">📓</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">Daily Diary</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Post Homework</p>
                 </div>
+                {% endif %}
 
-                <div class="bg-[#0B132B] p-5 rounded-3xl flex items-center justify-between shadow-xl">
-                    <div class="flex items-center gap-4">
-                        <div class="p-3 bg-white/10 rounded-2xl">
-                            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                        <div>
-                            <h5 class="text-white text-[10px] font-black uppercase tracking-widest opacity-70">Insights</h5>
-                            <p class="text-white text-xs font-bold">Complete your English task today!</p>
-                        </div>
-                    </div>
-                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                {% if user.role == 'Student' %}
+                <div onclick="openDiaryHub()" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-amber-500 active:scale-95 transition-all cursor-pointer relative">
+                    <div id="diary-badge" class="hidden absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-bounce">0</div>
+                    <div class="text-4xl mb-3 drop-shadow-md">📖</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">Diary</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Check Homework</p>
                 </div>
+                {% endif %}
 
-                <div class="space-y-3">
-                    <h3 class="font-black text-[10px] uppercase tracking-widest text-gray-400 ml-1">Recent Updates</h3>
-                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-gray-600">Math Homework Posted</span>
-                        <span class="text-[9px] font-black text-gray-400">10:45 AM</span>
-                    </div>
+                {% if user.role == 'Teacher' and user.is_class_teacher %}
+                <div onclick="showTab('mark')" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-green-600 active:scale-95 transition-all">
+                    <div class="text-4xl mb-3 drop-shadow-md">📋</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">Attendance</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Mark Daily Presence</p>
                 </div>
+                {% endif %}
+
+
+                {% if user.role == 'Student' %}
+                <div onclick="showTab('mark')" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-blue-600 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mb-3 drop-shadow-md">📊</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">Reports</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">View Progress</p>
+                </div>
+                {% endif %}
+
+                {% if user.role == 'Student' %}
+                <div onclick="showTab('results'); loadStudentResults();" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-emerald-500 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mb-3 drop-shadow-md">🏆</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">My Result</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Official Record</p>
+                </div>
+                {% endif %}
+                {% if user.role == 'Teacher' %}
+                <div onclick="navToMarks()" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-indigo-600 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mb-3 drop-shadow-md">🎯</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">Marks Entry</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Grading Portal</p>
+                </div>
+                {% endif %}
+                {% if user.role == 'Teacher' and user.is_class_teacher %}
+                <div onclick="showTab('final-upload'); loadFinalizeStatus();" class="glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-orange-500 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mb-3 drop-shadow-md">📤</div>
+                    <h4 class="font-black text-[11px] uppercase tracking-tighter">Finalize</h4>
+                    <p class="text-[8px] opacity-60 font-bold mt-1">Submit Class</p>
+                </div>
+                {% endif %}
             </div>
 
-            <div id='page-results' class='hidden animate-slide-up pb-24'>
+            
+
+    <div id='page-results' class='hidden animate-slide-up pb-24'>
         
         <div id='student-result-container' class='space-y-4'></div>
     </div>
@@ -695,7 +569,7 @@ window.safeLogout = async function(e) {
                 <div id="profile-details" class="hidden space-y-3">
                     <div class="glass-card p-4">
                         <p class="text-[9px] font-bold text-gray-400 uppercase">Personal Record</p>
-                        <div class="mt-0 space-y-2 text-sm font-bold text-gray-700">
+                        <div class="mt-2 space-y-2 text-sm font-bold text-gray-700">
                             <div class="flex justify-between border-b pb-1"><span>Full Name:</span><span>{{ user.full_name }}</span></div>
                             <div class="flex justify-between border-b pb-1"><span>Father Name:</span><span id="p-father">***</span></div>
                             <div class="flex justify-between border-b pb-1"><span>{{ 'B-Form:' if user.role == 'Student' else 'CNIC:' }}</span><span id="p-uid-val">***</span></div>
@@ -709,7 +583,7 @@ window.safeLogout = async function(e) {
                     {% if user.role == 'Teacher' and user.is_class_teacher %}
                     <div class="glass-card p-4 border-l-4 border-blue-600">
                         <p class="text-[9px] font-bold text-gray-400 uppercase">Professional Status</p>
-                        <div class="mt-0 space-y-2 text-sm font-bold text-gray-700">
+                        <div class="mt-2 space-y-2 text-sm font-bold text-gray-700">
                             <div class="flex justify-between border-b pb-1"><span>Class Teacher:</span><span>YES</span></div>
                             <div class="flex justify-between border-b pb-1"><span>In-charge of:</span><span>{{ user.assigned_class }}-{{ user.assigned_section }} ({{ user.wing }})</span></div>
                         </div>
@@ -719,7 +593,7 @@ window.safeLogout = async function(e) {
                     {% if user.role == 'Teacher' and user.assignments %}
                     <div class="glass-card p-4 border-l-4 border-purple-600">
                         <p class="text-[9px] font-bold text-gray-400 uppercase">📚 Subject Assignments</p>
-                        <div class="mt-0 space-y-2">
+                        <div class="mt-2 space-y-2">
                             {% for sub in user.assignments %}
                             <div class="flex justify-between items-center text-[11px] font-bold bg-gray-50 p-2 rounded-lg border border-purple-100">
                                 <span class="text-purple-700">{{ sub.s_name if sub.s_name else 'Subject' }}</span>
@@ -733,7 +607,7 @@ window.safeLogout = async function(e) {
                     {% if user.role == 'Student' %}
                     <div class="glass-card p-4 border-l-4 border-[#1B4332]">
                         <p class="text-[9px] font-bold text-gray-400 uppercase">Academic Info</p>
-                        <div class="mt-0 space-y-2 text-sm font-bold text-gray-700">
+                        <div class="mt-2 space-y-2 text-sm font-bold text-gray-700">
                             <div class="flex justify-between border-b pb-1"><span>Roll No:</span><span>{{ user.roll_number }}</span></div>
                             <div class="flex justify-between border-b pb-1"><span>Class:</span><span>{{ user.assigned_class }}-{{ user.assigned_section }}</span></div>
                         </div>
@@ -748,27 +622,15 @@ window.safeLogout = async function(e) {
         </div>
 
         <div class="app-nav">
-            <div onclick="showTab('home')" id="n-home" class="nav-btn active-nav">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                <span>Dashboard</span>
-            </div>
-            
+            <div onclick="showTab('home')" id="n-home" class="nav-btn active-nav"><span>🏠</span><span>Home</span></div>
             {% if user.role == 'Student' or (user.role == 'Teacher' and user.is_class_teacher) %}
-            <div onclick="showTab('mark')" id="n-mark" class="nav-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                <span>{{ 'Activity' if user.role == 'Student' else 'Attend' }}</span>
-            </div>
+            <div onclick="showTab('mark')" id="n-mark" class="nav-btn"><span>📋</span><span>{{ 'History' if user.role == 'Student' else 'Attend' }}</span></div>
             {% endif %}
-
-            <div onclick="showTab('profile')" id="n-profile" class="nav-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                <span>Account</span>
-            </div>
+            <div onclick="showTab('profile')" id="n-profile" class="nav-btn"><span>👤</span><span>Profile</span></div>
+            <div onclick="safeLogout(event)" class="nav-btn text-red-400"><span>🚪</span><span>Exit</span></div>
         </div>
         {% endif %}
     </div>
-
-
 
     <script>
         let currentEditCount = 0;
@@ -776,10 +638,8 @@ window.safeLogout = async function(e) {
 
         function setRole(r) {
             window.currentRole = r;
-            document.getElementById('sBtn').classList.toggle('tab-active', r === 'Student');
-            document.getElementById('tBtn').classList.toggle('tab-active', r === 'Teacher');
-            document.getElementById('sInd').classList.toggle('hidden', r !== 'Student');
-            document.getElementById('tInd').classList.toggle('hidden', r !== 'Teacher');
+            document.getElementById('sBtn').className = r === 'Student' ? "flex-1 py-3 rounded-xl font-black text-sm bg-[#D4AF37] text-[#1B4332]" : "flex-1 py-3 rounded-xl font-black text-sm text-gray-400";
+            document.getElementById('tBtn').className = r === 'Teacher' ? "flex-1 py-3 rounded-xl font-black text-sm bg-[#D4AF37] text-[#1B4332]" : "flex-1 py-3 rounded-xl font-black text-sm text-gray-400";
         }
         window.currentRole = 'Student';
 
@@ -949,7 +809,7 @@ window.safeLogout = async function(e) {
                         <span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">${datePart}</span>
                     </div>
                     <p class="text-xs text-gray-600 leading-relaxed mb-3">${d.content}</p>
-                    <div class="flex justify-between items-center mt-0 pt-2 border-t border-gray-100">
+                    <div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
                         <span class="text-[8px] font-bold text-gray-400 uppercase">${metaInfo}</span>
                         <div class="flex space-x-2">
                             ${d.attachments ? d.attachments.split(',').filter(x=>x).map((url, idx) => `
@@ -993,57 +853,15 @@ window.safeLogout = async function(e) {
             const targetPage = document.getElementById('page-' + t);
             if (targetPage) targetPage.classList.remove('hidden');
             
-            if(document.getElementById('n-' + t)) {
-                document.getElementById('n-' + t).classList.add('active-nav');
-            } else if (t === 'archive-view' || t === 'marking-view' || t === 'attendance-view') {
-                // Agar sub-pages pe hon tab bhi Activity tab ko glow rakho
-                const markTab = document.getElementById('n-mark');
-                if(markTab) markTab.classList.add('active-nav');
-            }
+            if(document.getElementById('n-' + t)) document.getElementById('n-' + t).classList.add('active-nav');
 
-            // --- ADAPTIVE HEADER LOGIC ---
+            // --- HEADER VISIBILITY LOGIC ---
             const header = document.getElementById('main-header');
-            const identity = document.getElementById('header-identity-section');
-            const compact = document.getElementById('header-compact-section');
-            const pageTitle = document.getElementById('page-display-title');
-            const clock = document.getElementById('current-time');
-
-            const titles = {
-                'home': 'Home',
-                'diary': 'Daily Diary',
-                'mark': 'Attendance',
-                'leave': 'Leave Hub',
-                'profile': 'User Profile',
-                'results': 'Exam Results',
-                'marks-entry': 'Marks Entry',
-                'final-upload': 'Finalize & Submit',
-                'marking-view': 'Grading Portal',
-                'attendance-view': 'Attendance Mark',
-                'archive-view': 'History Archive',
-                'intel-view': 'System Intel'
-            };
-
-            // Removed marking-view and attendance-view from here so header stays visible
-            const fullScreenPages = ['archive-view', 'intel-view'];
-            
+            const fullScreenPages = ['marking-view', 'attendance-view', 'archive-view', 'intel-view'];
             if (fullScreenPages.includes(t)) {
                 header.classList.add('hidden');
             } else {
                 header.classList.remove('hidden');
-                if (t === 'home') {
-                    // Home: Full Header Mode
-                    identity.classList.remove('hidden');
-                    compact.classList.add('hidden');
-                    clock.classList.remove('hidden');
-                    header.style.minHeight = '80px';
-                } else {
-                    // Inner Pages: Compact Mode
-                    identity.classList.add('hidden');
-                    compact.classList.remove('hidden');
-                    clock.classList.add('hidden');
-                    header.style.minHeight = '30px';
-                    if(titles[t]) pageTitle.innerText = titles[t];
-                }
             }
 
             if(t === 'mark') {
@@ -1312,45 +1130,6 @@ async function markDiariesAsRead() {
         .sync-badge { position: absolute; top: -5px; right: 10px; background: #ef4444; color: white; font-size: 8px; padding: 2px 5px; border-radius: 10px; font-weight: 900; }
 
 
-    
-        .axis-input {
-            background: transparent !important;
-            border: none !important;
-            border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-            border-radius: 0 !important;
-            color: white !important;
-            padding: 12px 0 !important;
-            transition: all 0.3s ease;
-        }
-        .axis-input:focus {
-            border-bottom: 1px solid #6FFFE9 !important;
-            outline: none !important;
-            box-shadow: 0 4px 10px -5px rgba(111, 255, 233, 0.2);
-        }
-        .tab-text {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.2em;
-            color: rgba(255,255,255,0.3);
-            transition: all 0.3s ease;
-        }
-        .tab-active {
-            color: #6FFFE9 !important;
-        }
-        .tab-indicator {
-            height: 2px;
-            background: #6FFFE9;
-            width: 100%;
-            margin-top: 4px;
-            box-shadow: 0 0 8px #6FFFE9;
-        }
-    
-    
-        .saas-card { background: #ffffff; border-radius: 20px; padding: 20px; border: 1px solid #f1f5f9; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04); transition: all 0.2s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .saas-card:active { transform: scale(0.95); }
-        .saas-accent { position: absolute; left: 0; top: 25%; bottom: 25%; width: 4px; border-radius: 0 4px 4px 0; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-    
     </style>
 
 <div id="master-viewer" class="hidden fixed inset-0 z-[10000] bg-black/95 flex flex-col items-center justify-center">
@@ -1950,9 +1729,11 @@ async function _old_load() {
 
 
 @app.route('/app_logo')
-def serve_app_logo():
-    # Direct path to your new logo
-    return send_file('/home/sami/Videos/logo.png', mimetype='image/png', max_age=0)
+def get_app_logo():
+    import os
+    path = "/home/sami/Downloads/sami.png"
+    if os.path.exists(path):
+        return send_file(path, mimetype="image/png")
     return "", 404
     import os
     path = "/home/sami/Downloads/sami.png"
@@ -1963,7 +1744,7 @@ def serve_app_logo():
 
 @app.route('/api/school-logo')
 def get_school_logo():
-    return send_file('/home/sami/Videos/logo.png', mimetype='image/png')
+    return send_file('/home/sami/Downloads/sami.png', mimetype='image/png')
 
 @app.route('/')
 def index():
