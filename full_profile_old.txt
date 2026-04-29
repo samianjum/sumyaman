@@ -1,0 +1,1787 @@
+            <div id="page-profile" class="hidden pb-24 animate-fade-in">
+                <div class="bg-gradient-to-b from-[#1E3A8A] to-[#2563EB] p-8 pb-12 rounded-b-[40px] flex flex-col items-center text-white shadow-xl">
+                    <div class="relative group">
+                        <div id="profile-avatar-container" class="w-28 h-28 rounded-full border-4 border-white/30 shadow-2xl overflow-hidden bg-white/10 flex items-center justify-center backdrop-blur-md">
+                            {% if user.profile_pic %}
+                                <img id="user-pfp" src="{{ user.profile_pic }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <span id="user-initial" class="text-4xl font-black text-blue-600">{{ user.full_name[0]|upper }}</span>
+                            {% endif %}
+                        </div>
+                        <button onclick="openPfpMenu()" class="absolute bottom-0 right-0 bg-white text-blue-600 p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </button>
+                    </div>
+                    <h1 class="mt-4 text-2xl font-black tracking-tight">{{ user.full_name|title }}</h1>
+                    <div class="flex items-center space-x-2 mt-1 opacity-90">
+                        <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">{{ user.role }}</span>
+                        <span class="text-sm">•</span>
+                        <span class="text-sm font-medium">{% if user.role == 'Student' %}{{ user.student_class }}-{{ user.student_section }}{% else %}{{ user.assigned_wing }}{% endif %}</span>
+                    </div>
+                </div>
+
+                <div class="px-6 -mt-8 space-y-4">
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex items-center space-x-3 mb-4 text-blue-900">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
+                            <h2 class="font-black text-sm uppercase tracking-wider">Academic Details</h2>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><p class="text-[10px] text-gray-400 uppercase font-bold">Roll Number</p><p class="font-bold text-gray-800">{{ user.roll_number or 'N/A' }}</p></div>
+                            <div><p class="text-[10px] text-gray-400 uppercase font-bold">Wing</p><p class="font-bold text-gray-800">{{ user.wing or user.assigned_wing }}</p></div>
+                            <div><p class="text-[10px] text-gray-400 uppercase font-bold">Section</p><p class="font-bold text-gray-800">{{ user.student_section or user.assigned_section }}</p></div>
+                            <div><p class="text-[10px] text-gray-400 uppercase font-bold">Status</p><p class="text-green-600 font-bold text-xs flex items-center">● Active</p></div>
+                        </div>
+                    </div>
+
+                    <details class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden group">
+                        <summary class="flex items-center justify-between p-6 cursor-pointer list-none">
+                            <div class="flex items-center space-x-3 text-gray-700 font-black text-sm uppercase tracking-wider">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                <span>Personal Profile</span>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </summary>
+                        <div class="px-6 pb-6 space-y-4 border-t border-gray-50 pt-4">
+                            <div><p class="text-[10px] text-gray-400 font-bold uppercase">Father's Name</p><p class="font-medium text-gray-700">{{ user.father_name|title }}</p></div>
+                            <div><p class="text-[10px] text-gray-400 font-bold uppercase">Date of Birth</p><p class="font-medium text-gray-700">{{ user.dob }}</p></div>
+                            <div><p class="text-[10px] text-gray-400 font-bold uppercase">CNIC / B-Form</p><p class="font-medium text-gray-700">{{ user.cnic or user.b_form }}</p></div>
+                            <div><p class="text-[10px] text-gray-400 font-bold uppercase">Address</p><p class="font-medium text-xs text-gray-600 leading-relaxed">{{ user.address if "IMG_DATA:" not in user.address else "Primary Residence" }}</p></div>
+                        </div>
+                    </details>
+
+                    <button onclick="safeLogout(event)" class="w-full bg-red-50 text-red-600 p-5 rounded-3xl font-black text-sm flex items-center justify-center space-x-2 border-2 border-red-100 hover:bg-red-600 hover:text-white transition-all shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        <span>TERMINATE SESSION</span>
+                    </button>
+
+                    <div class="text-center pb-8">
+                        <p class="text-[10px] font-bold text-gray-300 tracking-[0.2em] uppercase">Powered by AXIS Ecosystem</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pfp-modal" class="fixed inset-0 bg-black/40 z-[100] hidden backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="w-full max-w-sm bg-white rounded-[24px] p-6 shadow-2xl scale-95 transition-transform">
+                    <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+                    <h3 class="text-xl font-black text-gray-800 mb-6 text-center">Manage Profile Picture</h3>
+                    <div class="space-y-3">
+                        <button onclick="document.getElementById('pfp-input').click()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold flex items-center justify-center space-x-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            <span>Upload New Photo</span>
+                        </button>
+                        <button onclick="removePfp()" class="w-full bg-gray-100 text-red-600 p-4 rounded-2xl font-bold flex items-center justify-center space-x-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span>Remove Current</span>
+                        </button>
+                        <button onclick="closePfpMenu()" class="w-full text-gray-500 p-4 font-bold">Cancel</button>
+                    </div>
+                    <input type="file" id="pfp-input" class="hidden" accept="image/*" onchange="handlePfpUpload(this)">
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="app-nav">
+            <div onclick="showTab('home')" id="n-home" class="nav-btn active-nav">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <span>Dashboard</span>
+            </div>
+            
+            {% if user.role == 'Student' or (user.role == 'Teacher' and user.is_class_teacher) %}
+            <div onclick="showTab('mark')" id="n-mark" class="nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>{{ 'Activity' if user.role == 'Student' else 'Attend' }}</span>
+            </div>
+            {% endif %}
+
+            <div onclick="showTab('profile')" id="n-profile" class="nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Account</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+
+
+    <script>
+        let currentEditCount = 0;
+        let isLocked = false;
+
+        function setRole(r) {
+            window.currentRole = r;
+            document.getElementById('sBtn').classList.toggle('tab-active', r === 'Student');
+            document.getElementById('tBtn').classList.toggle('tab-active', r === 'Teacher');
+            document.getElementById('sInd').classList.toggle('hidden', r !== 'Student');
+            document.getElementById('tInd').classList.toggle('hidden', r !== 'Teacher');
+        }
+        window.currentRole = 'Student';
+
+        
+        async function doLogin() {
+            const loginBtn = event.target;
+            const originalText = loginBtn.innerText;
+
+            // Step 1: Strict Internet Check
+            if (!navigator.onLine) {
+                showToast("❌ OFFLINE: Internet connection required to login!", "error");
+                return;
+            }
+
+            try {
+                // UI Feedback
+                loginBtn.disabled = true;
+                loginBtn.innerText = "⏳ AUTHENTICATING...";
+
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        uid: document.getElementById('uid').value, 
+                        dob: document.getElementById('dob').value, 
+                        role: window.currentRole
+                    })
+                });
+
+                if (res.status === 503) {
+                    throw new Error("Offline Mode Active");
+                }
+
+                const data = await res.json();
+                
+                if(data.success) { 
+                    localStorage.setItem("isLoggedIn", "true"); 
+                    showToast("✅ Login Successful! Redirecting...", "success");
+                    if(window.location.pathname === "/login" || window.location.pathname === "/") { 
+                        window.location.replace("/?login=" + Date.now()); 
+                    } 
+                } else {
+                    showToast("❌ Login Failed: " + (data.error || "Invalid Credentials"), "error");
+                }
+            } catch (err) {
+                console.error("Login Error:", err);
+                showToast("❌ CONNECTION ERROR: Cannot reach server!", "error");
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerText = originalText;
+            }
+        }
+    
+
+        
+    let diaryAssignments = [];
+    
+    
+    async function openDiaryHub() { markDiariesAsRead();
+        showTab('diary');
+        
+        // Reset UI Elements
+        const btn = document.getElementById('btn-pub');
+        if(btn) {
+            btn.disabled = false;
+            btn.innerText = "🚀 Publish";
+        }
+        const contentInput = document.getElementById('diary-content');
+        if(contentInput) contentInput.value = '';
+        
+        const fileInput = document.getElementById('diary-files');
+        if(fileInput) fileInput.value = '';
+
+        {% if user.role == 'Teacher' %}
+            const res = await fetch('/api/diary/init-teacher');
+            diaryAssignments = await res.json();
+            document.getElementById('teacher-diary-controls').classList.remove('hidden');
+            document.getElementById('diary-post-form').classList.add('hidden');
+            document.getElementById('diary-display-list').innerHTML = '';
+        {% else %}
+            loadStudentDiary();
+        {% endif %}
+    }
+
+    function showDiaryForm() {
+        const select = document.getElementById('diary-target');
+        select.innerHTML = diaryAssignments.map(a => `<option value='${JSON.stringify(a)}'>${a.sub_name} | Class ${a.student_class}-${a.section} (${a.wing})</option>`).join('');
+        document.getElementById('teacher-diary-controls').classList.add('hidden');
+        document.getElementById('diary-post-form').classList.remove('hidden');
+    }
+
+    function toggleSchDate() {
+        document.getElementById('diary-sch-date').classList.toggle('hidden', !document.getElementById('diary-sch-check').checked);
+    }
+
+    
+    async function submitDiary() {
+        const btn = document.getElementById('btn-pub');
+        const contentVal = document.getElementById('diary-content').value;
+        if(!contentVal) return alert("Please write some content!");
+        
+        btn.disabled = true; 
+        btn.innerText = "Sending...";
+        
+        try {
+            const target = JSON.parse(document.getElementById('diary-target').value);
+            const formData = new FormData();
+            formData.append('content', contentVal);
+            formData.append('class', target.student_class);
+            formData.append('section', target.section);
+            formData.append('wing', target.wing);
+            formData.append('subject', target.sub_name);
+            
+            const schCheck = document.getElementById('diary-sch-check');
+            if(schCheck && schCheck.checked) {
+                formData.append('schedule_date', document.getElementById('diary-sch-date').value);
+            }
+            
+            const files = document.getElementById('diary-files').files;
+            for(let i=0; i<files.length; i++) formData.append('files', files[i]);
+
+            const res = await fetch('/api/diary/post', { method: 'POST', body: formData });
+            
+            
+            if(result.success) {
+                alert("✅ Diary Published Successfully!");
+                // This will reset the button and clear the form
+                await openDiaryHub(); 
+            } else {
+                alert("❌ Error: " + result.msg);
+                btn.disabled = false;
+                btn.innerText = "🚀 Publish";
+            }
+        } catch (e) {
+            alert("⚠️ Error: " + e.message);
+            btn.disabled = false;
+            btn.innerText = "🚀 Publish";
+        }
+    }
+
+    
+    async function loadStudentDiary() {
+        const list = document.getElementById('diary-display-list');
+        list.innerHTML = '<p class="text-center text-xs font-bold text-gray-400 py-10">Fetching...</p>';
+        
+        let u = JSON.parse(localStorage.getItem('user') || '{}');
+        let role = u.role || 'Student';
+
+        try {
+            const res = await fetch('/api/diary/fetch');
+            const diaries = await res.json();
+            
+            if(!diaries || diaries.length === 0) {
+                list.innerHTML = '<div class="text-center py-10 opacity-40"><div class="text-5xl mb-2">📭</div><p class="font-black text-xs">No diary entries found</p></div>';
+                return;
+            }
+
+            list.innerHTML = diaries.map(d => {
+                // Teacher kelye Class-Section, Student kelye Teacher ka naam
+                const metaInfo = (role === "Teacher") ? `FOR: ${d.class}-${d.section} (${d.wing})` : `BY: ${d.teacher_name}`;
+                const datePart = d.date_posted ? d.date_posted.split('|')[0] : '---';
+                
+                return `
+                <div class="glass-card p-4 border-l-4 border-amber-500 mb-3 animate-fade-in">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-black text-sm text-[#1B4332]">${d.subject}</h4>
+                        <span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">${datePart}</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed mb-3">${d.content}</p>
+                    <div class="flex justify-between items-center mt-0 pt-2 border-t border-gray-100">
+                        <span class="text-[8px] font-bold text-gray-400 uppercase">${metaInfo}</span>
+                        <div class="flex space-x-2">
+                            ${d.attachments ? d.attachments.split(',').filter(x=>x).map((url, idx) => `
+                                <button onclick="viewMedia('${url}', ${idx})" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">👁️ View ${idx+1}</button>
+                            `).join('') : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            console.error(e);
+            list.innerHTML = '<p class="text-center text-red-500 text-xs py-10">Error loading diary.</p>';
+        }
+    }
+
+
+    async function loadDiaryHistory() {
+        document.getElementById('teacher-diary-controls').classList.add('hidden');
+        loadStudentDiary(); // Reuse the same display logic
+    }
+
+        function showTab(t) {
+            // Auto-lock profile if moving away or coming back to it
+            if (t === "profile") { /* Vault check removed */ }
+
+            const pages = ['home', 'diary', 'mark', 'results', 'marks-entry', 'final-upload', 'profile', 'marking-view', 'attendance-view', 'archive-view', 'intel-view', 'leave', 'marks-portal'];
+            pages.forEach(p => {
+                const el = document.getElementById('page-' + p);
+                if (el) el.classList.add('hidden');
+                if (t === 'results') loadStudentResults();
+            });
+
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-nav'));
+            
+            const targetPage = document.getElementById('page-' + t);
+            if (targetPage) targetPage.classList.remove('hidden');
+            
+            if(document.getElementById('n-' + t)) {
+                document.getElementById('n-' + t).classList.add('active-nav');
+            } else if (t === 'archive-view' || t === 'marking-view' || t === 'attendance-view') {
+                // Agar sub-pages pe hon tab bhi Activity tab ko glow rakho
+                const markTab = document.getElementById('n-mark');
+                if(markTab) markTab.classList.add('active-nav');
+            }
+
+            // --- ADAPTIVE HEADER LOGIC ---
+            const header = document.getElementById('main-header');
+            const identity = document.getElementById('header-identity-section');
+            const compact = document.getElementById('header-compact-section');
+            const pageTitle = document.getElementById('page-display-title');
+            const clock = document.getElementById('current-time');
+
+            const titles = {
+                'home': 'Home',
+                'diary': 'Daily Diary',
+                'mark': 'Attendance',
+                'leave': 'Leave Hub',
+                'profile': 'User Profile',
+                'results': 'Exam Results',
+                'marks-entry': 'Marks Entry',
+                'final-upload': 'Finalize & Submit',
+                'marking-view': 'Grading Portal',
+                'attendance-view': 'Attendance Mark',
+                'archive-view': 'History Archive',
+                'intel-view': 'System Intel'
+            };
+
+            // Removed marking-view and attendance-view from here so header stays visible
+            const fullScreenPages = ['archive-view', 'intel-view'];
+            
+            if (fullScreenPages.includes(t)) {
+                header.classList.add('hidden');
+            } else {
+                header.classList.remove('hidden');
+                if (t === 'home') {
+                    // Home: Full Header Mode
+                    identity.classList.remove('hidden');
+                    compact.classList.add('hidden');
+                    clock.classList.remove('hidden');
+                    header.style.minHeight = '80px';
+                } else {
+                    // Inner Pages: Compact Mode
+                    identity.classList.add('hidden');
+                    compact.classList.remove('hidden');
+                    clock.classList.add('hidden');
+                    header.style.minHeight = '30px';
+                    if(titles[t]) pageTitle.innerText = titles[t];
+                }
+            }
+
+            if(t === 'mark') {
+                if('{{ user.role }}' === 'Student') {
+                    showTab('archive-view');
+                    loadArchive();
+                } else {
+                    checkLockStatus();
+                }
+            }
+        }
+
+        async function checkLockStatus() {
+            const res = await fetch('/api/check-lock');
+            const data = await res.json();
+            currentEditCount = data.edit_count;
+            isLocked = currentEditCount >= 2;
+            document.getElementById('lock-status-text').innerText = isLocked ? "STATUS: LOCKED 🛡️" : (currentEditCount === 1 ? "STATUS: 1 EDIT LEFT" : "STATUS: OPEN");
+        }
+
+        async function openAttendanceTab(type) {
+            if(type === 'marking') {
+                await checkLockStatus();
+                showTab('attendance-view');
+                loadMarkingInterface();
+            } else {
+                showTab(type + '-view');
+                if(type === 'archive') loadArchive();
+                if(type === 'intel') loadIntel();
+            }
+        }
+
+        async function loadMarkingInterface() {
+            const list = document.getElementById('marking-area');
+            const banner = document.getElementById('lock-banner');
+            const footer = document.getElementById('marking-footer');
+            
+            if(isLocked) {
+                banner.innerHTML = '<div class="glass-card bg-green-50 text-center border-green-200"><h2 class="text-3xl">🛡️</h2><h4 class="font-black text-green-700">ATTENDANCE SECURED</h4><p class="text-[10px] font-bold">Database is finalized for today.</p></div>';
+                footer.innerHTML = '';
+            } else {
+                banner.innerHTML = currentEditCount === 1 ? '<div class="p-3 bg-red-50 text-red-600 text-[10px] font-black rounded-xl border border-red-100 uppercase">⚠️ Last chance to edit. Database will lock after sync.</div>' : '<div class="p-3 bg-yellow-50 text-yellow-700 text-[10px] font-black rounded-xl border border-yellow-100 uppercase">💡 Marking active. You can edit once after saving.</div>';
+                footer.innerHTML = '<button onclick="syncAttendance()" class="btn-sync">🚀 FINAL LOCK & SYNC</button>';
+            }
+
+            const res = await fetch('/api/students-marking');
+            const data = await res.json();
+            list.innerHTML = data.students.map(s => {
+                let statusControl = '';
+                if(isLocked) {
+                    statusControl = `<span class="status-pill ${s.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${s.status || 'N/A'}</span>`;
+                } else if(s.on_leave > 0) {
+                    // Logic for locked leave status
+                    statusControl = `<span class="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1.5 rounded-full border border-amber-200 animate-pulse">📝 ON LEAVE</span>
+                                     <input type="hidden" id="s_${s.id}" value="Leave">`;
+                } else {
+                    // Normal dropdown
+                    statusControl = `
+                    <select id="s_${s.id}" class="text-xs font-black bg-gray-50 p-2 rounded-lg border-none outline-none">
+                        <option value="Present" ${s.status === 'Present' ? 'selected' : ''}>Present</option>
+                        <option value="Absent" ${s.status === 'Absent' ? 'selected' : ''}>Absent</option>
+                        <option value="Leave" ${s.status === 'Leave' ? 'selected' : ''}>Leave</option>
+                    </select>`;
+                }
+                return `
+                <div class="glass-card flex justify-between items-center ${s.on_leave > 0 ? 'bg-amber-50/40 border-amber-200' : ''}">
+                    <div><p class="text-[9px] font-bold text-gray-400">#${s.roll_number}</p><h4 class="font-black text-sm">${s.full_name}</h4></div>
+                    ${statusControl}
+                </div>`;
+            }).join('');
+        }
+
+        async function syncAttendance() {
+            if(!(await askUser("Lock this record?"))) return;
+            const students = document.querySelectorAll('[id^="s_"]');
+            const attendance = Array.from(students).map(s => ({ id: s.id.split('_')[1], status: s.value }));
+            
+            const res = await fetch('/api/sync-attendance', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ attendance })
+            });
+            const data = await res.json();
+            if(data.success) { alert("Successfully Synced!"); showTab('mark'); } else { alert("Error syncing: " + data.error); }
+        }
+
+        async function loadArchive() {
+            const dateInput = document.getElementById('archive-date').value;
+            let date = dateInput;
+            // Agar Student hai aur date select nahi ki, to date parameter khali bhejo
+            if ('{{ user.role }}' === 'Student' && !dateInput) {
+                date = ''; 
+            } else if (!dateInput) {
+                date = new Date().toISOString().split('T')[0];
+            }
+            const res = await fetch('/api/archive?date=' + date);
+            const data = await res.json();
+            document.getElementById('archive-results').innerHTML = data.map(s => `
+                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl">
+                    <div>
+                        <span class="text-[9px] font-bold text-gray-400">${s.date || ''}</span>
+                        <h4 class="text-xs font-black">${s.full_name || 'My Record'}</h4>
+                    </div>
+                    <span class="status-pill ${s.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${s.status}</span>
+                </div>
+            `).join('') || '<p class="text-center text-xs py-10 font-bold text-gray-300">No history found.</p>';
+        }
+
+        
+        
+        
+        
+        /* Vault Function Removed */
+
+
+        
+        async function loadIntel() {
+            const container = document.getElementById('intel-view');
+            if(!container) return;
+            const res = await fetch('/api/students-marking');
+            const data = await res.json();
+            const total = data.students.length;
+            const leaves = data.students.filter(s => s.on_leave > 0).length;
+
+            container.innerHTML = `
+                <div class="space-y-6 animate-fade-in pb-20 w-full px-2">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="glass-card bg-[#1B4332] text-white p-6 border-none shadow-xl rounded-3xl">
+                            <p class="text-[10px] font-black opacity-70 uppercase tracking-widest">Total Students</p>
+                            <h2 class="text-4xl font-black">${total}</h2>
+                        </div>
+                        <div class="glass-card bg-amber-500 text-white p-6 border-none shadow-xl rounded-3xl">
+                            <p class="text-[10px] font-black opacity-70 uppercase tracking-widest">On Leave</p>
+                            <h2 class="text-4xl font-black">${leaves}</h2>
+                        </div>
+                    </div>
+                    <div class="glass-card p-5 bg-white shadow-lg border-2 border-[#1B4332]/5 rounded-3xl">
+                        <label class="text-xs font-black text-[#1B4332] uppercase mb-3 block">Select Student Record</label>
+                        <select onchange="fetchStudentDeepStats(this.value)" class="w-full p-4 rounded-2xl border-none bg-gray-100 text-base font-bold shadow-inner outline-none">
+                            <option value="">Choose Student...</option>
+                            ${data.students.map(s => `<option value="${s.id}">${s.full_name} s/o ${s.father_name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div id="intel-details-area" class="w-full min-h-[300px]">
+                        <div class="flex flex-col items-center justify-center py-20 opacity-20">
+                            <div class="text-8xl">💎</div>
+                            <p class="font-black uppercase mt-4 tracking-tighter text-lg text-center">Detailed Analytics</p>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        async function fetchStudentDeepStats(sid) {
+            if(!sid) return;
+            const area = document.getElementById('intel-details-area');
+            area.innerHTML = '<div class="flex justify-center py-20"><div class="animate-spin h-12 w-12 border-4 border-[#1B4332] border-t-transparent rounded-full"></div></div>';
+            const res = await fetch('/api/student-detailed-stats/' + sid);
+            const data = await res.json();
+            const s = data.stats;
+            const perc = s.total_days > 0 ? Math.round((s.presents / s.total_days) * 100) : 0;
+
+            area.innerHTML = `
+                <div class="space-y-5 animate-slide-up w-full">
+                    <div class="glass-card p-8 bg-gradient-to-br from-[#1B4332] to-[#081C15] text-white border-none shadow-2xl rounded-[2rem] relative overflow-hidden">
+                        <div class="relative z-10">
+                            <p class="text-xs font-black opacity-60 uppercase tracking-widest">Attendance Performance</p>
+                            <h2 class="text-6xl font-black my-2">${perc}%</h2>
+                            <div class="w-full bg-white/10 h-3 rounded-full overflow-hidden mt-4">
+                                <div class="bg-white h-full" style="width:${perc}%"></div>
+                            </div>
+                            <p class="text-xs mt-4 font-bold italic">${perc >= 75 ? '🟢 Meeting Criteria' : '🔴 Low Attendance'}</p>
+                        </div>
+                        <div class="absolute right-[-10px] bottom-[-20px] text-[10rem] opacity-5">💎</div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="glass-card text-center py-6 bg-green-50 rounded-3xl">
+                            <h4 class="text-3xl font-black text-green-700">${s.presents}</h4>
+                            <p class="text-[10px] font-black text-gray-400 uppercase">Presents</p>
+                        </div>
+                        <div class="glass-card text-center py-6 bg-red-50 rounded-3xl">
+                            <h4 class="text-3xl font-black text-red-700">${s.absents}</h4>
+                            <p class="text-[10px] font-black text-gray-400 uppercase">Absents</p>
+                        </div>
+                        <div class="glass-card text-center py-6 bg-amber-50 rounded-3xl">
+                            <h4 class="text-3xl font-black text-amber-700">${s.leaves}</h4>
+                            <p class="text-[10px] font-black text-gray-400 uppercase">Leaves</p>
+                        </div>
+                    </div>
+                    <div class="glass-card p-0 overflow-hidden bg-white shadow-xl rounded-[2rem]">
+                        <div class="bg-gray-50 p-5 border-b"><h4 class="text-xs font-black text-gray-500 uppercase">Recent Attendance Log</h4></div>
+                        <div class="divide-y divide-gray-50">
+                            ${data.history.map(h => `
+                                <div class="flex justify-between items-center p-5">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-3 h-3 rounded-full ${h.status === 'Present' ? 'bg-green-500' : h.status === 'Leave' ? 'bg-amber-500' : 'bg-red-500'}"></div>
+                                        <span class="text-sm font-black text-gray-800">${h.date}</span>
+                                    </div>
+                                    <span class="text-[10px] font-black px-4 py-1.5 rounded-full ${h.status === 'Present' ? 'bg-green-100 text-green-700' : h.status === 'Leave' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">${h.status}</span>
+                                </div>`).join('')}
+                        </div>
+                    </div>
+                </div>`;
+        }
+async function markDiariesAsRead() {
+        try {
+            const res = await fetch('/api/diary/unread-status');
+            const data = await res.json();
+            if(data.latest_id) {
+                localStorage.setItem('diary_last_seen_id', data.latest_id);
+                const badge = document.getElementById('diary-badge');
+                if(badge) badge.classList.add('hidden');
+            }
+        } catch(e) { console.error("Mark Read Error:", e); }
+    }
+
+    setInterval(updateDiaryBadge, 60000); // Check every 1 minute
+    document.addEventListener('DOMContentLoaded', updateDiaryBadge);
+</script>
+
+
+
+<style>
+    #master-viewer { transition: opacity 0.3s ease; }
+    .viewer-btn { background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); border-radius: 50%; width: 50px; height: 50px; display: flex; items-center; justify-content: center; color: white; transition: all 0.2s; }
+    .viewer-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+
+        /* Sexy Toast Styles */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100000; width: 90%; max-width: 400px; pointer-events: none; }
+        .toast-msg { background: rgba(15, 23, 42, 0.95); color: white; padding: 16px 20px; border-radius: 20px; margin-bottom: 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); display: flex; items-center; justify-content: center; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); animation: toast-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .toast-success { border-bottom: 4px solid #10b981; }
+        .toast-error { border-bottom: 4px solid #ef4444; }
+        .toast-warning { border-bottom: 4px solid #f59e0b; }
+        @keyframes toast-in { from { opacity: 0; transform: translateY(-100%) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .toast-out { animation: toast-out 0.3s ease forwards !important; }
+        @keyframes toast-out { to { opacity: 0; transform: translateY(-20px) scale(0.95); } }
+
+    
+        @keyframes zoom-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .net-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .net-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .net-offline { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        .sync-badge { position: absolute; top: -5px; right: 10px; background: #ef4444; color: white; font-size: 8px; padding: 2px 5px; border-radius: 10px; font-weight: 900; }
+
+
+    
+        .axis-input {
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 0 !important;
+            color: white !important;
+            padding: 12px 0 !important;
+            transition: all 0.3s ease;
+        }
+        .axis-input:focus {
+            border-bottom: 1px solid #6FFFE9 !important;
+            outline: none !important;
+            box-shadow: 0 4px 10px -5px rgba(111, 255, 233, 0.2);
+        }
+        .tab-text {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            color: rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+        .tab-active {
+            color: #6FFFE9 !important;
+        }
+        .tab-indicator {
+            height: 2px;
+            background: #6FFFE9;
+            width: 100%;
+            margin-top: 4px;
+            box-shadow: 0 0 8px #6FFFE9;
+        }
+    
+    
+        
+        .saas-card:active { transform: scale(0.95); }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    
+    </style>
+
+<div id="master-viewer" class="hidden fixed inset-0 z-[10000] bg-black/95 flex flex-col items-center justify-center">
+    <button onclick="closeMasterViewer()" class="absolute top-6 right-6 text-white text-4xl font-light hover:text-amber-500">&times;</button>
+    
+    <div class="relative w-full max-w-4xl px-12 flex items-center justify-center">
+        <button id="v-prev" onclick="changeMedia(-1)" class="viewer-btn absolute left-2 text-2xl">❮</button>
+        
+        <div class="w-full flex items-center justify-center overflow-hidden rounded-2xl shadow-2xl bg-black/20" style="height: 70vh;">
+            <img id="v-img" src="" class="max-w-full max-h-full object-contain hidden border border-white/10">
+            <div id="v-file" class="hidden text-center text-white">
+                <div class="text-8xl mb-4">📁</div>
+                <p class="font-bold text-lg">Document / File</p>
+                <p class="text-xs opacity-50">Cannot be previewed</p>
+            </div>
+        </div>
+
+        <button id="v-next" onclick="changeMedia(1)" class="viewer-btn absolute right-2 text-2xl">❯</button>
+    </div>
+
+    <div class="mt-6 flex flex-col items-center gap-3">
+        <span id="v-count" class="text-white/40 text-[10px] font-black tracking-widest uppercase">File 1 of 1</span>
+        <div class="flex gap-4">
+            <a id="v-download" href="#" download class="bg-amber-500 hover:bg-amber-600 text-black font-black px-10 py-3 rounded-full text-xs shadow-lg transition-all flex items-center gap-2">
+                <span>📥 DOWNLOAD FILE</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+    var mediaGallery = [];
+    var mediaIdx = 0;
+
+    window.viewMedia = function(urls, index) {
+        console.log("Opening Viewer with:", urls, "Index:", index);
+        if(!urls) return alert("No files found!");
+        
+        mediaGallery = urls.split(',').map(u => u.trim());
+        mediaIdx = parseInt(index);
+        
+        const viewer = document.getElementById('master-viewer');
+        if(viewer) {
+            viewer.classList.remove('hidden');
+            updateViewer();
+        } else {
+            console.error("Viewer element not found!");
+        }
+    };
+
+    window.updateViewer = function() {
+        let path = mediaGallery[mediaIdx];
+        if(!path.startsWith('/')) path = '/' + path;
+        
+        const fullUrl = window.location.origin + path;
+        const img = document.getElementById('v-img');
+        const file = document.getElementById('v-file');
+        const dl = document.getElementById('v-download');
+        const count = document.getElementById('v-count');
+
+        img.classList.add('hidden');
+        file.classList.add('hidden');
+        
+        document.getElementById('v-prev').classList.toggle('hidden', mediaGallery.length <= 1);
+        document.getElementById('v-next').classList.toggle('hidden', mediaGallery.length <= 1);
+
+        count.innerText = `FILE ${mediaIdx + 1} OF ${mediaGallery.length}`;
+        dl.href = fullUrl;
+
+        const ext = path.split('.').pop().toLowerCase();
+        const images = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+        if(images.includes(ext)) {
+            img.src = fullUrl;
+            img.onload = () => img.classList.remove('hidden');
+            img.onerror = () => {
+                img.classList.add('hidden');
+                file.classList.remove('hidden');
+            };
+        } else {
+            file.classList.remove('hidden');
+        }
+    };
+
+    window.changeMedia = function(dir) {
+        mediaIdx = (mediaIdx + dir + mediaGallery.length) % mediaGallery.length;
+        updateViewer();
+    };
+
+    window.closeMasterViewer = function() {
+        document.getElementById('master-viewer').classList.add('hidden');
+        document.getElementById('v-img').src = '';
+    };
+</script>
+
+
+<script>
+    let tempFileStorage = [];
+
+    document.addEventListener('change', function(e) {
+        if(e.target && e.target.id === 'diary-files') {
+            const newFiles = Array.from(e.target.files);
+            newFiles.forEach(f => {
+                // Duplicate check
+                if(!tempFileStorage.some(existing => existing.name === f.name && existing.size === f.size)) {
+                    tempFileStorage.push(f);
+                }
+            });
+            updateAttachUI();
+            
+            // Critical: Sync with the actual input for the original submitDiary function
+            syncFilesToInput();
+        }
+    });
+
+    function updateAttachUI() {
+        const zone = document.getElementById('attach-preview-zone');
+        const list = document.getElementById('attach-list');
+        const count = document.getElementById('attach-count');
+        
+        if(tempFileStorage.length > 0) {
+            zone.classList.remove('hidden');
+            count.innerText = `${tempFileStorage.length} Files Attached`;
+            list.innerHTML = '';
+            tempFileStorage.forEach((f, i) => {
+                list.innerHTML += `<span class="bg-white border border-blue-100 text-blue-600 text-[8px] font-bold px-2 py-1 rounded shadow-sm">📎 ${f.name}</span>`;
+            });
+        } else {
+            zone.classList.add('hidden');
+        }
+    }
+
+    function syncFilesToInput() {
+        const input = document.getElementById('diary-files');
+        const dataTransfer = new DataTransfer();
+        tempFileStorage.forEach(file => dataTransfer.items.add(file));
+        input.files = dataTransfer.files; // This updates the original input
+    }
+
+    window.clearAttaches = function() {
+        tempFileStorage = [];
+        document.getElementById('diary-files').value = '';
+        updateAttachUI();
+    };
+</script>
+
+
+<script>
+
+
+window.updateLeaveStatus = async function(id, status) {
+    if(!confirm(`Are you sure you want to ${status} this leave?`)) return;
+    try {
+        const res = await fetch('/api/leave/action', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id, status })
+        });
+        const result = await res.json();
+        if(result.success) {
+            alert("Leave " + status + " successfully!");
+            renderLeaveHistory('Pending');
+        } else {
+            alert("Error: " + result.error);
+        }
+    } catch(e) {
+        alert("Action failed. Check connection.");
+    }
+};
+
+window.openLeaveHub = function() {
+    showTab('leave');
+    const area = document.getElementById('leave-content-area');
+    const role = "{{ user.role }}";
+    
+    if(role === 'Student') {
+        area.innerHTML = `
+            <div id="leave-menu" class="grid grid-cols-1 gap-4 animate-fade-in">
+                <div onclick="renderLeaveApply()" class="glass-card flex items-center p-6 border-l-8 border-rose-500 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mr-5">📝</div>
+                    <div>
+                        <h4 class="font-black text-sm uppercase text-slate-800">Apply New Leave</h4>
+                        <p class="text-[10px] text-gray-400 font-bold">Submit a new request</p>
+                    </div>
+                </div>
+                <div onclick="renderLeaveHistory()" class="glass-card flex items-center p-6 border-l-8 border-slate-700 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mr-5">📜</div>
+                    <div>
+                        <h4 class="font-black text-sm uppercase text-slate-800">Leave History</h4>
+                        <p class="text-[10px] text-gray-400 font-bold">Track your previous status</p>
+                    </div>
+                </div>
+            </div>
+            <div id="leave-dynamic-inner" class="hidden animate-slide-up"></div>`;
+    
+    } else {
+        area.innerHTML = `
+            <div id="leave-menu" class="grid grid-cols-1 gap-4 animate-fade-in">
+                <div class="bg-rose-50 p-5 rounded-3xl border border-rose-100 mb-2">
+                    <h4 class="font-black text-rose-900 text-sm uppercase">Class Management</h4>
+                    <p class="text-[10px] text-rose-600 font-bold opacity-80 italic">{{ user.assigned_class }} - {{ user.assigned_section }} ({{ user.assigned_wing }})</p>
+                </div>
+
+                <div onclick="renderLeaveHistory('Pending')" class="relative glass-card flex items-center p-6 border-l-8 border-amber-500 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mr-5">📥</div>
+                    <div>
+                        <h4 class="font-black text-sm uppercase text-slate-800">Pending Requests</h4>
+                        <p class="text-[10px] text-gray-400 font-bold">New leaves waiting for action</p>
+                    </div>
+                    <span id="card-leave-badge" class="hidden absolute top-4 right-4 bg-red-600 text-white text-[10px] font-black h-6 w-6 flex items-center justify-center rounded-full shadow-lg border-2 border-white animate-pulse">0</span>
+                </div>
+
+                <div onclick="renderLeaveHistory('History')" class="glass-card flex items-center p-6 border-l-8 border-blue-600 active:scale-95 transition-all cursor-pointer">
+                    <div class="text-4xl mr-5">📚</div>
+                    <div>
+                        <h4 class="font-black text-sm uppercase text-slate-800">Leave Archive</h4>
+                        <p class="text-[10px] text-gray-400 font-bold">Past Approved/Rejected records</p>
+                    </div>
+                </div>
+            </div>
+            <div id="leave-dynamic-inner" class="hidden animate-slide-up"></div>`;
+        
+        // Sync badge on card load
+        setTimeout(updateLeaveBadge, 100);
+    }
+
+};
+
+
+window.renderLeaveApply = function() { 
+    document.getElementById('leave-menu').classList.add('hidden');
+    const inner = document.getElementById('leave-dynamic-inner');
+    inner.classList.remove('hidden');
+    inner.innerHTML = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit active:scale-90 transition-all">← Back to Menu</button>` + `
+        <div class="glass-card p-6 space-y-5 border-t-4 border-rose-500">
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-gray-400 uppercase">Duration</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="date" id="l-start" class="w-full p-4 bg-gray-50 rounded-2xl text-xs font-bold border-none focus:ring-2 ring-rose-500">
+                    <input type="date" id="l-end" class="w-full p-4 bg-gray-50 rounded-2xl text-xs font-bold border-none focus:ring-2 ring-rose-500">
+                </div>
+            </div>
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-gray-400 uppercase">Reason for Leave</label>
+                <textarea id="l-reason" placeholder="Explain your reason here..." class="w-full p-4 bg-gray-50 rounded-2xl text-sm min-h-[120px] border-none focus:ring-2 ring-rose-500"></textarea>
+            </div>
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-gray-400 uppercase">Attachment (Optional)</label>
+                <input type="file" id="l-file" class="text-[10px] w-full bg-blue-50/50 p-3 rounded-xl border border-dashed border-blue-200">
+            </div>
+            <button onclick="submitLeaveRequest()" id="l-sub-btn" class="w-full bg-rose-600 text-white py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-rose-200 active:scale-95 transition-all">🚀 Submit Request</button>
+        </div>`;
+     };
+
+
+window.renderLeaveHistory = async function(filterMode = 'All') {
+    if(document.getElementById('leave-menu')) document.getElementById('leave-menu').classList.add('hidden');
+    const inner = document.getElementById('leave-dynamic-inner');
+    inner.classList.remove('hidden');
+    inner.innerHTML = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit active:scale-90 transition-all">← Back to Menu</button>
+                      <div class="flex justify-center py-10"><div class="animate-spin h-8 w-8 border-4 border-rose-600 border-t-transparent rounded-full"></div></div>`;
+
+    let serverData = [];
+    let isOfflineMode = false;
+
+    try {
+        const res = await fetch('/api/leave/list'); // Teacher/Student both use same route but backend filters by session
+        const json = await res.json();
+        serverData = Array.isArray(json) ? json : [];
+    } catch (e) {
+        console.warn("📡 Using Offline Mode for History");
+        isOfflineMode = true;
+    }
+
+    try {
+        const offlinePending = await db.syncQueue.where('url').equals('/api/leave/submit').toArray();
+        const mappedOffline = offlinePending.map(item => ({
+            id: 'off-' + item.id,
+            full_name: 'You (Sync Pending)',
+            reason: item.body.reason,
+            start_date: item.body.start_date,
+            end_date: item.body.end_date,
+            status: 'Offline',
+            is_offline: true
+        }));
+
+        let combinedData = [...mappedOffline, ...serverData];
+        
+        if(filterMode === 'Pending') combinedData = combinedData.filter(l => l.status === 'Pending' || l.status === 'Offline');
+        else if(filterMode === 'History') combinedData = combinedData.filter(l => l.status !== 'Pending' && l.status !== 'Offline');
+
+        if (combinedData.length === 0) {
+            inner.innerHTML = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit">← Back</button>
+                              <div class="text-center py-10 text-gray-400 font-bold">No Leave Requests Found ${isOfflineMode ? '(Offline)' : ''}</div>`;
+            return;
+        }
+
+        // --- RENDER LOGIC START ---
+        const userRole = '{{ user.role }}';
+        let html = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit active:scale-90 transition-all">← Back to Menu</button>
+                    <div class="space-y-4">`;
+        
+        combinedData.forEach(l => {
+            const sClass = l.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' : (l.status === 'Offline' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600');
+            html += `<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
+                        ${l.is_offline ? '<div class="absolute top-0 right-0 bg-amber-500 text-[8px] text-white px-3 py-1 rounded-bl-xl font-black uppercase tracking-tighter">Sync Pending</div>' : ''}
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-black text-gray-900 text-sm capitalize">${l.reason}</h4>
+                                ${ (userRole === 'Teacher' && l.status === 'Pending') ? `
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="updateLeaveStatus(${l.id}, 'Approved')" class="bg-emerald-600 text-white text-[10px] font-black px-4 py-2 rounded-xl active:scale-95 transition-all shadow-sm shadow-emerald-200">APPROVE</button>
+                                    <button onclick="updateLeaveStatus(${l.id}, 'Rejected')" class="bg-rose-600 text-white text-[10px] font-black px-4 py-2 rounded-xl active:scale-95 transition-all shadow-sm shadow-rose-200">REJECT</button>
+                                </div>
+                                ` : '' }
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${l.start_date} to ${l.end_date}</p>
+                            </div>
+                            <span class="text-[9px] font-black px-3 py-1 rounded-full uppercase ${sClass}">${l.status}</span>
+                        </div>
+                    </div>`;
+        });
+        html += `</div>`;
+        inner.innerHTML = html;
+        // --- RENDER LOGIC END ---
+
+    } catch (err) {
+        inner.innerHTML = `<div class="text-center py-10 font-black text-rose-600 uppercase">Critical UI Error</div>`;
+    }
+};
+
+
+
+const Object_from_iterable = (iter) => { const obj = {}; for (const [k, v] of iter) { if(k!=="attachment") obj[k] = v; } return obj; };
+window.submitLeaveRequest = async function() {
+    const btn = document.getElementById('l-sub-btn');
+    const start = document.getElementById('l-start').value;
+    const end = document.getElementById('l-end').value;
+    const reason = document.getElementById('l-reason').value;
+    const file = document.getElementById('l-file').files[0];
+
+    if(!start || !end || !reason) return alert("Please fill all required fields!");
+
+    const fd = new FormData();
+    fd.append('start_date', start);
+    fd.append('end_date', end);
+    fd.append('reason', reason);
+    if(file) fd.append('attachment', file);
+
+    try {
+        btn.disabled = true;
+        btn.innerText = "PROCESSING...";
+
+        if (!navigator.onLine) {
+            const offlineData = {};
+            fd.forEach((value, key) => { if(!(value instanceof File)) offlineData[key] = value; });
+            await saveOffline('/api/leave/submit', 'POST', offlineData);
+            alert("📡 Offline Mode: Leave saved locally!");
+            renderLeaveHistory();
+            return;
+        }
+
+        const res = await fetch('/api/leave/submit', {method:'POST', body:fd});
+        const result = await res.json();
+        
+        // Handle both server success and Service Worker offline fallback
+        if(result.success || result.status === 'offline') {
+            if(result.status === 'offline') {
+                const offlineData = {};
+                fd.forEach((value, key) => { if(!(value instanceof File)) offlineData[key] = value; });
+                await saveOffline('/api/leave/submit', 'POST', offlineData);
+                alert("📡 Network Flaky: Saved to Offline Storage!");
+            } else {
+                alert("🚀 Leave Submitted Successfully!");
+            }
+            renderLeaveHistory();
+        } else {
+            throw new Error(result.error || "Submission failed");
+        }
+    } catch (e) {
+        alert("❌ Error: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "🚀 Submit Request";
+    }
+};
+
+
+window.handleLeaveAction = async function(id, status, currentFilter) {
+    if(!(await askUser('Are you sure you want to proceed?'))) return;
+    await fetch('/api/leave/action', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id, status})
+    });
+    renderLeaveHistory(currentFilter);
+    updateLeaveBadge();
+};
+</script>
+
+<script>
+
+window.viewLeaveFile = function(url) {
+    const masterModal = document.getElementById('master-viewer');
+    if(!masterModal) return alert("Viewer not found!");
+
+    masterModal.classList.remove('hidden');
+
+    const img = document.getElementById('v-img');
+    const fileDiv = document.getElementById('v-file');
+    const downloadBtn = document.getElementById('v-download');
+    
+    // Reset Views
+    if(img) img.classList.add('hidden');
+    if(fileDiv) fileDiv.classList.add('hidden');
+    
+    // Hide nav arrows for single attachment
+    if(document.getElementById('v-prev')) document.getElementById('v-prev').style.display = 'none';
+    if(document.getElementById('v-next')) document.getElementById('v-next').style.display = 'none';
+
+    const isImg = url.match(/\\.(jpg|jpeg|png|gif|webp)$/i);
+    const path = url.startsWith('/') ? url : '/' + url;
+    
+    if(isImg) {
+        if(img) { img.src = path; img.classList.remove('hidden'); }
+    } else {
+        if(fileDiv) fileDiv.classList.remove('hidden');
+    }
+    
+    if(downloadBtn) { downloadBtn.href = path; }
+};
+
+</script>
+<script>
+
+
+window.updateLeaveBadge = async function() {
+    const mainBadge = document.getElementById('leave-badge');
+    const cardBadge = document.getElementById('card-leave-badge');
+    
+    try {
+        const res = await fetch('/api/leave/pending-count');
+        const data = await res.json();
+        const count = data.count || 0;
+
+        if(mainBadge) {
+            if(count > 0) { mainBadge.innerText = count; mainBadge.classList.remove('hidden'); }
+            else { mainBadge.classList.add('hidden'); }
+        }
+        
+        if(cardBadge) {
+            if(count > 0) { cardBadge.innerText = count; cardBadge.classList.remove('hidden'); }
+            else { cardBadge.classList.add('hidden'); }
+        }
+    } catch(e) {}
+};
+
+
+// Auto-run on load
+document.addEventListener('DOMContentLoaded', updateLeaveBadge);
+// Update when returning home
+const originalShowTab = window.showTab;
+window.showTab = function(id) {
+    if(originalShowTab) originalShowTab(id);
+    if(id === 'home') updateLeaveBadge();
+};
+
+</script>
+<script>
+
+window.showToast = function(msg, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    
+    // Auto-detect type based on common emojis if not provided
+    let toastClass = 'toast-success';
+    if(msg.includes('❌') || msg.includes('Error') || msg.includes('Failed')) toastClass = 'toast-error';
+    if(msg.includes('⚠️') || msg.includes('Ghalti')) toastClass = 'toast-warning';
+    if(type === 'error') toastClass = 'toast-error';
+
+    toast.className = `toast-msg ${toastClass}`;
+    toast.innerHTML = `<span>${msg}</span>`;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('toast-out');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+};
+
+// Global Override: Replace default alert with our sexy toast
+window.alert = function(msg) {
+    window.showToast(msg);
+};
+
+</script>
+<script>
+
+window.askUser = function(message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('custom-confirm');
+        const msgEl = document.getElementById('confirm-msg');
+        const yesBtn = document.getElementById('confirm-yes');
+        const noBtn = document.getElementById('confirm-no');
+        
+        msgEl.innerText = message;
+        modal.classList.remove('hidden');
+        
+        const cleanup = (result) => {
+            modal.classList.add('hidden');
+            yesBtn.onclick = null;
+            noBtn.onclick = null;
+            resolve(result);
+        };
+        
+        yesBtn.onclick = () => cleanup(true);
+        noBtn.onclick = () => cleanup(false);
+    });
+};
+
+</script>
+<script src="/static/finalize.js"></script>
+<script src="/static/marks.js"></script>
+<script src="/static/marks_v3.js"></script>
+<script src="/static/marks_v3.js">
+window.openPfpMenu = () => document.getElementById('pfp-modal').classList.remove('hidden');
+window.closePfpMenu = () => document.getElementById('pfp-modal').classList.add('hidden');
+
+window.handlePfpUpload = async (input) => {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const base64 = e.target.result;
+        const res = await fetch('/api/update-profile-pic', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({action: 'upload', image: base64})
+        });
+        const data = await res.json();
+        if(data.success) location.reload();
+        else showToast("Failed to upload!", "error");
+    };
+    reader.readAsDataURL(input.files[0]);
+};
+
+window.removePfp = async () => {
+    const res = await fetch('/api/update-profile-pic', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'remove'})
+    });
+    const data = await res.json();
+    if(data.success) location.reload();
+    else showToast("Error removing photo", "error");
+};
+
+</script>
+
+<script>
+function openPfpMenu() { 
+    const m = document.getElementById('pfp-modal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+}
+function closePfpMenu() { 
+    const m = document.getElementById('pfp-modal');
+    m.classList.add('hidden'); m.classList.remove('flex');
+}
+async function handlePfpUpload(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const res = await fetch('/api/update-profile-pic', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({action: 'upload', image: e.target.result})
+        });
+        if(res.ok) { window.location.href = window.location.pathname + '?t=' + Date.now(); } else { alert('Upload failed'); }
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+async function removePfp() {
+    const res = await fetch('/api/update-profile-pic', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'remove'})
+    });
+    if(res.ok) { window.location.href = window.location.pathname + '?t=' + Date.now(); } else { alert('Upload failed'); }
+}
+// Close modal on click outside
+window.onclick = (e) => { if(e.target.id == 'pfp-modal') closePfpMenu(); }
+</script>
+
+</body>
+    <script>
+        window.addEventListener("online", async () => {
+            const pending = JSON.parse(localStorage.getItem("pending_sync") || "[]");
+            if (pending.length > 0) {
+                console.log("Internet back! Syncing " + pending.length + " items...");
+                for (const item of pending) {
+                    try {
+                        await fetch(item.url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(item.body)});
+                    } catch (e) { console.error("Sync failed for item", e); }
+                }
+                localStorage.removeItem("pending_sync");
+                alert("✅ All offline marks have been synced to server!");
+            }
+        });
+    </script>
+
+<script>
+// JS Cleaned for New Engine
+
+    const res = await fetch('/api/teacher/save_marks_v2', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({exam_id: eid, sub_id: sid, total_marks: total_m, marks: marks})
+    });
+    
+    if(result.status === 'success') { alert('DATA SAVED!'); showTab('marks-entry'); }
+}
+
+async function _old_load() {
+    const eid = document.getElementById('exam-selector').value;
+    const list = document.getElementById('teacher-assign-list');
+    if(!eid || eid.includes('No')) return;
+    list.innerHTML = '<div class="p-10 text-center text-gray-400 font-bold text-[10px]">FETCHING...</div>';
+    try {
+        const res = await fetch(`/api/teacher/assignments_v2/${eid}`);
+        const data = await res.json();
+        list.innerHTML = data.map(a => `
+            <div class="glass-card flex items-center justify-between border-l-8 border-indigo-600 active:scale-95 transition-all">
+                <div>
+                    <span class="bg-indigo-100 text-indigo-700 text-[8px] font-black px-2 py-0.5 rounded uppercase">${a.sub_name}</span>
+                    <h4 class="font-black text-gray-800 text-sm mt-1 uppercase">CLASS ${a.student_class}-${a.section} (${a.wing.toUpperCase()})</h4>
+                </div>
+                <button class="bg-indigo-600 text-white p-2 rounded-lg shadow-lg">➔</button>
+            </div>`).join('') || '<div class="p-10 text-center text-gray-400 text-[10px]">NO DATA</div>';
+    } catch(e) { list.innerHTML = '<div class="text-center text-red-500 font-bold">ERROR</div>'; }
+}
+</script>
+
+</html>
+    <script>
+        window.addEventListener("online", async () => {
+            const pending = JSON.parse(localStorage.getItem("pending_sync") || "[]");
+            if (pending.length > 0) {
+                console.log("Internet back! Syncing " + pending.length + " items...");
+                for (const item of pending) {
+                    try {
+                        await fetch(item.url, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(item.body)});
+                    } catch (e) { console.error("Sync failed for item", e); }
+                }
+                localStorage.removeItem("pending_sync");
+                alert("✅ All offline marks have been synced to server!");
+            }
+        });
+    </script>
+'''
+
+# --- BACKEND ROUTES ---
+
+
+@app.route('/app_logo')
+def serve_app_logo():
+    try:
+        return send_file('static/logo.png', mimetype='image/png')
+    except Exception:
+        return "Logo not found", 404
+    except FileNotFoundError:
+        return send_file('static/logo.png', mimetype='image/png')
+    return "", 404
+    import os
+    path = "/home/sami/Downloads/sami.png"
+    if os.path.exists(path):
+        return send_file(path, mimetype="image/png")
+    return "", 404
+
+
+@app.route('/api/school-logo')
+def get_school_logo():
+    try:
+        return send_file('/home/sami/Music/logo.png', mimetype='image/png', max_age=0)
+    except FileNotFoundError:
+        return send_file('static/logo.png', mimetype='image/png')
+
+@app.route('/')
+def index():
+    resp = make_response(render_template_string(HTML_TEMPLATE, logged_in='user' in session, user=session.get('user')))
+    if not request.path.startswith('/static/'): resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.json
+    print(f'SAVE ATTEMPT -> EID: {data.get("eid")}, SID: {data.get("sid")}')
+    uid, dob, role = str(data.get('uid', '')).strip(), str(data.get('dob', '')).strip(), data.get('role', 'Student')
+    uid_int = int(uid) if uid.isdigit() else -1
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    if role == "Student":
+        cur.execute("SELECT * FROM apsokara_student WHERE (b_form=? OR id=? OR roll_number=?) AND dob=?", (uid, uid_int, uid, dob))
+    else:
+        cur.execute("SELECT * FROM apsokara_teacher WHERE (cnic=? OR id=?) AND dob=?", (uid, uid_int, dob))
+    user = cur.fetchone()
+    
+    if user:
+        u_dict = dict(user)
+        u_dict['role'] = role
+        u_dict['assigned_class'] = u_dict.get('assigned_class') or u_dict.get('student_class')
+        u_dict['assigned_section'] = u_dict.get('assigned_section') or u_dict.get('student_section')
+        u_dict['wing'] = u_dict.get('assigned_wing') or u_dict.get('wing')
+        u_dict['is_class_teacher'] = u_dict.get('is_class_teacher', 0)
+        
+        
+        
+        
+        
+        # --- NEW: Fetch Subject Assignments for Teachers ---
+        if role == "Teacher":
+            t_id = u_dict.get('id')
+            cur.execute("""
+                SELECT 
+                    COALESCE(s.name, 'Subject ' || sa.subject_id) AS s_name,
+                    sa.student_class AS c_num, 
+                    sa.section AS s_sec, 
+                    sa.wing AS w_wing
+                FROM apsokara_subjectassignment sa
+                LEFT JOIN apsokara_subject s ON sa.subject_id = s.id
+                WHERE sa.teacher_id = ?""", (t_id,))
+            rows = cur.fetchall()
+            u_dict['assignments'] = [dict(r) for r in rows]
+            # Debug: print(f"Assignments found: {u_dict['assignments']}")
+        # ---------------------------------------------------
+
+
+
+
+        
+        session['user'] = {k: v for k, v in u_dict.items() if k not in ['address', 'bio', 'pfp_base64']}
+
+        conn.close()
+        return jsonify({"success": True})
+    conn.close()
+    return jsonify({"success": False})
+
+@app.route('/api/check-lock')
+@login_required
+def check_lock():
+    u = session['user']
+    today = datetime.datetime.now(PK_TZ).date().isoformat()
+    conn = sqlite3.connect(DB_PATH)
+    # Check max edit count for this class today
+    res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a 
+                        JOIN apsokara_student s ON a.student_id = s.id 
+                        WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
+                        (today, u['assigned_class'], u['assigned_section'], u['wing'])).fetchone()
+    conn.close()
+    return jsonify({"edit_count": res[0] if res[0] is not None else 0})
+
+
+@app.route('/api/students-marking')
+@login_required
+def students_marking():
+    u = session['user']
+    if u['role'] != 'Teacher' or not u.get('is_class_teacher'):
+        return jsonify({"students": [], "error": "Unauthorized"}), 403
+    today = datetime.datetime.now(PK_TZ).date().isoformat()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    
+    # Query checking both attendance table AND approved leaves for today
+    query = """
+        SELECT s.id, s.full_name, s.father_name, s.roll_number, a.status,
+        (SELECT COUNT(*) FROM apsokara_studentleave l 
+         WHERE l.student_id = s.id 
+         AND l.status = 'Approved' 
+         AND ? BETWEEN l.start_date AND l.end_date) as on_leave
+        FROM apsokara_student s 
+        LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=?
+        WHERE s.student_class=? AND s.student_section=? AND s.wing=? 
+        ORDER BY CAST(s.roll_number AS INTEGER)
+    """
+    cur = conn.execute(query, (today, today, u['assigned_class'], u['assigned_section'], u['wing']))
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return jsonify({"students": rows})
+
+
+@app.route('/api/sync-attendance', methods=['POST'])
+@login_required
+def sync_attendance():
+    try:
+        data = request.json
+        attendance_list = data.get('attendance', [])
+        u = session['user']
+        today = datetime.datetime.now(PK_TZ).date().isoformat()
+        
+        conn = sqlite3.connect(DB_PATH)
+        for item in attendance_list:
+            # Check if record already exists
+            existing = conn.execute("SELECT id, edit_count FROM apsokara_attendance WHERE student_id=? AND date=?", 
+                                 (item['id'], today)).fetchone()
+            
+            if existing:
+                new_count = (existing[1] or 0) + 1
+                conn.execute("UPDATE apsokara_attendance SET status=?, edit_count=? WHERE student_id=? AND date=?",
+                            (item['status'], new_count, item['id'], today))
+            else:
+                conn.execute("INSERT INTO apsokara_attendance (date, status, student_id, marked_by, edit_count) VALUES (?, ?, ?, ?, ?)",
+                            (today, item['status'], item['id'], u['full_name'], 0))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"❌ Attendance Error: {str(e)}")
+        return jsonify({"success": False, "error": str(e)})
+
+
+@app.route('/api/archive')
+@login_required
+def api_archive():
+    date = request.args.get('date')
+    u = session['user']
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    if u['role'] == 'Student':
+        if date:
+            cur.execute("""SELECT a.date, a.status, a.marked_by, 
+                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 / 
+                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id) as stats
+                         FROM apsokara_attendance a 
+                         WHERE a.student_id = ? AND a.date = ? 
+                         ORDER BY a.date DESC""", (u['id'], date))
+        else:
+            cur.execute("""SELECT a.date, a.status, a.marked_by,
+                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 / 
+                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id) as stats
+                         FROM apsokara_attendance a 
+                         WHERE a.student_id = ? 
+                         ORDER BY a.date DESC""", (u['id'],))
+    else:
+        if not date:
+            return jsonify({"error": "Date required for staff"}), 400
+        cur.execute("""SELECT s.full_name, a.status, a.date 
+                     FROM apsokara_student s 
+                     JOIN apsokara_attendance a ON s.id = a.student_id 
+                     WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
+                     (date, u['assigned_class'], u['assigned_section'], u['wing']))
+    
+    res = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return jsonify(res)
+
+# Removed the old duplicated block that was below this point
+
+
+
+# Vault Route Removed
+
+
+@app.route('/api/intel')
+@login_required
+def api_intel():
+    u = session['user']
+    if u['role'] == 'Student':
+        return jsonify({"flags": [], "error": "Access Denied"}), 403
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres 
+                        FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id 
+                        WHERE s.student_class=? AND s.student_section=? AND s.wing=? GROUP BY s.id""", (u['assigned_class'], u['assigned_section'], u['assigned_wing'], 'Pending'))
+    flags = []
+    for r in cur.fetchall():
+        perc = (r['pres'] / r['total'] * 100) if r['total'] > 0 else 100
+        if perc < 75: flags.append({"full_name": r['full_name'], "perc": int(perc)})
+    conn.close()
+    return jsonify({"flags": flags})
+
+
+@app.route('/api/student-detailed-stats/<int:sid>')
+@login_required
+def student_detailed_stats(sid):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    stats = conn.execute("SELECT COUNT(*) as total_days, SUM(CASE WHEN status='Present' THEN 1 ELSE 0 END) as presents, SUM(CASE WHEN status='Absent' THEN 1 ELSE 0 END) as absents, SUM(CASE WHEN status='Leave' THEN 1 ELSE 0 END) as leaves FROM apsokara_attendance WHERE student_id = ?", (sid,)).fetchone()
+    history = conn.execute("SELECT date, status FROM apsokara_attendance WHERE student_id = ? ORDER BY date DESC LIMIT 15", (sid,)).fetchall()
+    conn.close()
+    return jsonify({"stats": dict(stats), "history": [dict(h) for h in history]})
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    response = make_response('<script>localStorage.clear(); window.location.replace("/?v=" + Date.now());</script>')
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response
+
+
+# ==========================================
+#        NEW DIARY SYSTEM BACKEND
+# ==========================================
+
+@app.route('/api/diary/init-teacher')
+@login_required
+def diary_init_teacher():
+    u = session['user']
+    if u['role'] != 'Teacher': return jsonify({'error': 'Unauthorized'}), 403
+    
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    # Get unique assignments for this teacher
+    query = """
+        SELECT DISTINCT sa.student_class, sa.section, sa.wing, s.name as sub_name 
+        FROM apsokara_subjectassignment sa 
+        JOIN apsokara_subject s ON sa.subject_id = s.id 
+        WHERE sa.teacher_id = ?
+    """
+    rows = conn.execute(query, (u['id'],)).fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+
+@app.route('/api/diary/post', methods=['POST'])
+@login_required
+def diary_post_new():
+    try:
+        u = session['user']
+        if u['role'] != 'Teacher': return jsonify({'success': False, 'msg': 'Only teachers can post'}), 403
+        uploaded_files = request.files.getlist('files')
+        file_paths = []
+        if not os.path.exists('uploads/diary'): os.makedirs('uploads/diary')
+        for file in uploaded_files:
+            if file and file.filename:
+                filename = f"{int(datetime.datetime.now().timestamp())}_{file.filename}"
+                path = os.path.join('uploads/diary', filename)
+                file.save(path)
+                file_paths.append(path)
+        data = request.form
+        content_text, target_class = data.get('content'), data.get('class')
+        target_section, target_wing = data.get('section'), data.get('wing')
+        if target_wing and target_wing.lower().startswith('g'): target_wing = 'Girls'
+        if target_wing and target_wing.lower().startswith('b'): target_wing = 'Boys'
+        subject = data.get('subject')
+        is_scheduled = 1 if data.get('schedule_date') else 0
+        post_date = data.get('schedule_date') if is_scheduled else datetime.datetime.now().strftime('%Y-%m-%d')
+        full_ts = f"{post_date} {datetime.datetime.now().strftime('%I:%M %p')}"
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("INSERT INTO apsokara_dailydiary (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                     (u['id'], u['full_name'], target_class, target_section, target_wing, subject, content_text, full_ts, is_scheduled, ",".join(file_paths)))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'msg': 'Diary Published!'})
+    except Exception as e: return jsonify({'success': False, 'msg': str(e)})
+
+@app.route('/api/diary/fetch')
+@login_required
+def diary_fetch_list():
+    u = session['user']
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    
+    if u['role'] == 'Student':
+        # Student sirf apni class ki diaries dekhega jo schedule date tak pohanch chuki hain
+        query = """
+            SELECT * FROM apsokara_dailydiary 
+            WHERE class=? AND section=? 
+            AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')
+            ORDER BY id DESC
+        """
+        rows = conn.execute(query, (u.get('student_class', u.get('assigned_class')), u.get('student_section', u.get('assigned_section')), u['wing'], u['wing'])).fetchall()
+    else:
+        # Teacher apni saari history dekhega
+        query = "SELECT * FROM apsokara_dailydiary WHERE teacher_id=? ORDER BY id DESC"
+        rows = conn.execute(query, (u['id'],)).fetchall()
+    
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+# ==========================================
+
+
+
+
+@app.route('/api/diary/unread-status')
+@login_required
+def diary_unread_status():
+    u = session.get('user')
+    if not u or u.get('role') != 'Student': return jsonify({'count': 0, 'latest_id': 0})
+    last_seen = request.args.get('last_seen', 0, type=int)
+    conn = sqlite3.connect(DB_PATH)
+    s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
+    query = "SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?"
+    row = conn.execute(query, (s_class, s_sec, s_wing, s_wing, last_seen)).fetchone()
+    conn.close()
+    return jsonify({'count': row[0] or 0, 'latest_id': row[1] or 0})
+
+
+
+@app.route('/uploads/<path:filename>')
+def serve_uploads(filename):
+    return send_from_directory("uploads/diary", filename)
+
+# ==========================================
+# STRICT LEAVE MANAGEMENT SYSTEM (BACKEND)
+# ==========================================
+
+@app.route('/api/leave/submit', methods=['POST'])
+@login_required
+def submit_leave_v2():
+    u = session['user']
+    if u.get('role') != 'Student':
+        return jsonify({'success': False, 'error': 'Only students can apply'})
+    
+    import time
+    file_path = ""
+    if 'attachment' in request.files:
+        f = request.files['attachment']
+        if f and f.filename != '':
+            os.makedirs('static/uploads/leaves', exist_ok=True)
+            fname = f"LV_{u['id']}_{int(time.time())}_{f.filename}"
+            f.save(os.path.join('static/uploads/leaves', fname))
+            file_path = f"static/uploads/leaves/{fname}"
+    
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            # Improved Logic: Handle both Form and JSON for Offline/Online Sync
+            data = request.form if request.form else (request.get_json() if request.is_json else {})
+            
+            s_date = data.get('start') or data.get('start_date')
+            e_date = data.get('end') or data.get('end_date')
+            reason = data.get('reason')
+
+            conn.execute("""INSERT INTO apsokara_studentleave 
+                (student_id, full_name, roll_number, class, section, wing, start_date, end_date, reason, attachment) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (u['id'], u['full_name'], u.get('roll_number', 'N/A'), u.get('assigned_class', 'N/A'), 
+                 u.get('assigned_section', 'N/A'), u.get('wing', 'N/A'), 
+                 s_date, e_date, reason, file_path))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/leave/list')
+@login_required
+def list_leaves_v2():
+    u = session['user']
+    role = u.get('role')
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    
+    if role == 'Student':
+        # Student sirf apni history dekhega
+        res = conn.execute("SELECT * FROM apsokara_studentleave WHERE student_id = ? ORDER BY id DESC", (u['id'],)).fetchall()
+    else:
+        # Teacher sirf apni assigned class ki leaves dekhega
+        # Hum is_class_teacher ka check pehle hi UI me laga chuke honge
+        res = conn.execute("""SELECT * FROM apsokara_studentleave 
+                            WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') 
+                            ORDER BY status DESC, id DESC""",
+                            (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchall()
+    
+    data = [dict(row) for row in res]
+    conn.close()
+    return jsonify(data)
+
+@app.route('/api/leave/action', methods=['POST'])
+@login_required
+def leave_action_v2():
+    u = session['user']
+    if not u.get('is_class_teacher'):
+        return jsonify({'success': False, 'error': 'Unauthorized'})
+    
+    d = request.json
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.execute("UPDATE apsokara_studentleave SET status=? WHERE id=? AND class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')", 
+                        (d['status'], d['id'], u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing')))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+
+@app.route('/api/leave/pending-count')
+@login_required
+def get_pending_leave_count():
+    u = session['user']
+    if not u.get('is_class_teacher'):
+        return jsonify({'count': 0})
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        count = conn.execute("""SELECT COUNT(*) FROM apsokara_studentleave 
+                             WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND status='Pending'""",
+                             (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchone()[0]
+        conn.close()
+        return jsonify({'count': count})
+    except:
+        return jsonify({'count': 0})
+
+
+
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory("static", "sw.js")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
+@app.after_request
+def add_header(response):
+    # Allow home page and static files to be cached for offline use
+    if request.path.startswith('/static/') or request.path in ['/sw.js', '/']:
+        response.headers['Cache-Control'] = 'public, max-age=31536000'
+    return response
+    if request.path.startswith('/static/') or request.path == '/sw.js':
+        response.headers['Cache-Control'] = 'public, max-age=31536000'
+    else:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response

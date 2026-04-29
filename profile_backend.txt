@@ -1,0 +1,51 @@
+33:def update_profile_pic():
+34-    try:
+35-        data = request.json
+36-        action = data.get('action')
+37-        user = session['user']
+38-        table = 'apsokara_student' if user['role'] == 'Student' else 'apsokara_teacher'
+39-        
+40-        conn = sqlite3.connect(DB_PATH)
+41-        if action == 'upload':
+42-            img_data = data.get('image')
+43-            if not img_data: return jsonify({'error': 'No image'}), 400
+44-            
+45-            import base64
+46-            header, encoded = img_data.split(",", 1)
+47-            file_ext = header.split("/")[1].split(";")[0]
+48-            filename = f"pfp_{user['id']}_{int(datetime.datetime.now().timestamp())}.{file_ext}"
+49-            filepath = os.path.join('static/uploads/profile_pics', filename)
+50-            
+51-            with open(filepath, "wb") as fh:
+52-                fh.write(base64.b64decode(encoded))
+53-            
+54-            db_path = f"/static/uploads/profile_pics/{filename}"
+55-            conn.execute(f"UPDATE {table} SET profile_pic = ? WHERE id = ?", (db_path, user['id']))
+56-            session['user']['profile_pic'] = db_path
+57-            session.modified = True
+58-            
+59-        elif action == 'remove':
+60-            conn.execute(f"UPDATE {table} SET profile_pic = NULL WHERE id = ?", (user['id'],))
+61-            session['user']['profile_pic'] = None
+62-            session.modified = True
+63-            
+64-        conn.commit()
+65-        conn.close()
+66-        return jsonify({'success': True})
+67-    except Exception as e:
+68-        return jsonify({'error': str(e)}), 500
+69-
+70-    user_id = user['id']
+71-    role = user['role']
+72-    
+73-    table = "apsokara_student" if role == "Student" else "apsokara_teacher"
+74-    
+75-    conn = sqlite3.connect(DB_PATH)
+76-    cur = conn.cursor()
+77-    try:
+78-        if action == 'upload':
+79-            img_data = data.get('image')
+80-            cur.execute(f"UPDATE {table} SET address = ? WHERE id = ?", (f"IMG_DATA:{img_data}", user_id))
+81-        elif action == 'remove':
+82-            cur.execute(f"UPDATE {table} SET address = NULL WHERE id = ?", (user_id,))
+83-        

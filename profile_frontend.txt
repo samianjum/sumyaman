@@ -1,0 +1,10 @@
+            <div id="page-profile" class="hidden pb-24 animate-fade-in">
+                <div class="bg-gradient-to-b from-[#1E3A8A] to-[#2563EB] p-8 pb-12 rounded-b-[40px] flex flex-col items-center text-white shadow-xl">
+                    <div class="relative group">
+                        <div id="profile-avatar-container" class="w-28 h-28 rounded-full border-4 border-white/30 shadow-2xl overflow-hidden bg-white/10 flex items-center justify-center backdrop-blur-md">
+                            {% if user.profile_pic %}
+                                <img id="user-pfp" src="{{ user.profile_pic }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <span id="user-initial" class="text-4xl font-black text-blue-600">{{ user.full_name[0]|upper }}</span>
+                            {% endif %}
+                        </div>
