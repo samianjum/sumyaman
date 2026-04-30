@@ -36,5 +36,6 @@ urlpatterns = [
     path('search/', views.global_search, name='global_search'),
     
     # Main Dashboard (Empty path at the end)
+    path('subjects/', views.subject_manager_view, name='subject_manager'),
     path('', views.hq_dashboard, name='hq_dashboard'),
 ]

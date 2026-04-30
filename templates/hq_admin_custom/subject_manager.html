@@ -1,0 +1,151 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+<div class="container-fluid">
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert {% if 'warning' in message.tags %}alert-warning border-0 shadow-sm{% else %}alert-info{% endif %} d-flex align-items-center justify-content-between">
+            <div><i class="fas fa-exclamation-triangle me-2"></i>{{ message }}</div>
+            {% if 'warning' in message.tags %}
+            <form method="POST" style="display:inline;"> {% csrf_token %}
+                <input type="hidden" name="action" value="assign_subject">
+                <input type="hidden" name="override" value="true">
+                <input type="hidden" name="teacher_id" value="{{ conflict_data.t_id }}">
+                <input type="hidden" name="subject_id" value="{{ conflict_data.s_id }}">
+                <input type="hidden" name="class" value="{{ conflict_data.cl }}">
+                <input type="hidden" name="section" value="{{ conflict_data.sec }}">
+                <input type="hidden" name="wing" value="{{ conflict_data.wg }}">
+                <button class="btn btn-sm btn-danger shadow-sm">Replace Now</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold" style="color: var(--hq-primary);"><i class="fas fa-book-reader me-2"></i>Subject Management</h3>
+        <button class="btn shadow-sm text-white" style="background: var(--hq-primary);" data-bs-toggle="modal" data-bs-target="#subjectListModal">
+            <i class="fas fa-list me-2"></i>Manage Subjects
+        </button>
+    </div>
+
+    <div class="row">
+        <!-- Assignment Form -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header border-0 py-3" style="background: var(--hq-accent); color: white;">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-link me-2"></i>Assign Teacher</h6>
+                </div>
+                <div class="card-body p-4 bg-white">
+                    <form method="POST"> {% csrf_token %}
+                        <input type="hidden" name="action" value="assign_subject">
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted">SELECT TEACHER</label>
+                            <select name="teacher_id" class="form-select border-0 shadow-sm" style="background: #f1f5f9;" required>
+                                {% for t in teachers %}<option value="{{t.id}}">{{t.full_name}}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted">SELECT SUBJECT</label>
+                            <select name="subject_id" class="form-select border-0 shadow-sm" style="background: #f1f5f9;" required>
+                                {% for s in subjects %}<option value="{{s.id}}">{{s.name}}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <label class="small fw-bold text-muted">CLASS</label>
+                                <input name="class" class="form-control border-0 shadow-sm" style="background: #f1f5f9;" placeholder="10th" required>
+                            </div>
+                            <div class="col-4">
+                                <label class="small fw-bold text-muted">SEC</label>
+                                <input name="section" class="form-control border-0 shadow-sm" style="background: #f1f5f9;" placeholder="A" required>
+                            </div>
+                            <div class="col-4">
+                                <label class="small fw-bold text-muted">WING</label>
+                                <select name="wing" class="form-select border-0 shadow-sm" style="background: #f1f5f9;">
+                                    <option>Boys</option><option>Girls</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn w-100 fw-bold shadow-sm mt-2 text-white" style="background: var(--hq-accent);">UPDATE ASSIGNMENT</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignments Table -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <table class="table table-hover mb-0">
+                    <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <tr>
+                            <th class="py-3 px-4 small fw-bold">SUBJECT</th>
+                            <th class="py-3 small fw-bold">TEACHER</th>
+                            <th class="py-3 small fw-bold">CLASS</th>
+                            <th class="py-3 small fw-bold">WING</th>
+                            <th class="py-3 text-center small fw-bold">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        {% for a in assignments %}
+                        <tr>
+                            <td class="py-3 px-4 fw-bold" style="color: var(--hq-primary);">{{a.subject.name}}</td>
+                            <td class="py-3">{{a.teacher.full_name}}</td>
+                            <td class="py-3"><span class="badge bg-light text-dark border">{{a.student_class}}-{{a.section}}</span></td>
+                            <td class="py-3">{{a.wing}}</td>
+                            <td class="py-3 text-center">
+                                <form method="POST" style="display:inline;"> {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete_assignment">
+                                    <input type="hidden" name="assignment_id" value="{{a.id}}">
+                                    <button class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center py-5 text-muted">No assignments found yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subject Management Modal -->
+<div class="modal fade" id="subjectListModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header border-0 bg-light" style="border-radius: 15px 15px 0 0;">
+                <h5 class="fw-bold mb-0"><i class="fas fa-book me-2"></i>Subject Directory</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Add New Subject inline form -->
+                <form method="POST" class="mb-4"> {% csrf_token %}
+                    <input type="hidden" name="action" value="create_subject">
+                    <div class="input-group shadow-sm">
+                        <input type="text" name="name" class="form-control border-0 bg-light" placeholder="Enter new subject name..." required>
+                        <button class="btn text-white px-4" style="background: var(--hq-primary);" type="submit">Add Subject</button>
+                    </div>
+                </form>
+
+                <label class="small fw-bold text-muted mb-2">EXISTING SUBJECTS</label>
+                <div class="list-group list-group-flush border rounded shadow-sm overflow-auto" style="max-height: 300px;">
+                    {% for s in subjects %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <span class="fw-bold">{{ s.name }}</span>
+                        <span class="badge rounded-pill bg-light text-dark border">ID: {{ s.id }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center py-4 text-muted">No subjects added yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

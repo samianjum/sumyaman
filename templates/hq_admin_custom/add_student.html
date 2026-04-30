@@ -1,0 +1,58 @@
+{% extends "hq_admin_custom/base.html" %}
+{% block content %}
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="mb-0 text-primary"><i class="fas fa-user-plus me-2"></i>Register New Student</h5>
+    </div>
+    <div class="card-body p-4">
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <form method="POST" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Full Name</label>
+                <input type="text" name="full_name" class="form-control shadow-none" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Father Name</label>
+                <input type="text" name="father_name" class="form-control shadow-none" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">B-Form / CNIC</label>
+                <input type="text" name="b_form" class="form-control shadow-none" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Roll Number</label>
+                <input type="text" name="roll_number" class="form-control shadow-none" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Date of Birth</label>
+                <input type="date" name="dob" class="form-control shadow-none" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Class</label>
+                <input type="text" name="student_class" class="form-control shadow-none" placeholder="e.g. 10th" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Section</label>
+                <input type="text" name="student_section" class="form-control shadow-none" placeholder="e.g. A" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Wing</label>
+                <select name="wing" class="form-select shadow-none">
+                    <option value="Boys">Boys</option>
+                    <option value="Girls">Girls</option>
+                </select>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label fw-bold">Address</label>
+                <textarea name="address" class="form-control shadow-none" rows="2"></textarea>
+            </div>
+            <div class="col-12 mt-4 text-end">
+                <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm">
+                    <i class="fas fa-save me-2"></i>Save Student to Database
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

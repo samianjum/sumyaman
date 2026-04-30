@@ -7,11 +7,17 @@
     .table th { font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 15px; }
     .table td { vertical-align: middle; padding: 12px 15px; font-size: 0.9rem; }
     .badge-wing { padding: 5px 10px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; }
+    .is-invalid { border: 2px solid #dc3545 !important; }
 </style>
 
 <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold"><i class="fas fa-user-graduate me-2 text-primary"></i> Student Directory</h2>
+        <div>
+            <button class="btn btn-success fw-bold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                <i class="fas fa-plus me-2"></i>CREATE NEW STUDENT
+            </button>
+        </div>
         <span class="badge bg-dark px-3 py-2">Total Records: {{ total_count }}</span>
     </div>
 
@@ -106,4 +112,54 @@
         {% endif %}
     </div>
 </div>
+
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">Register New Student</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    {% if form.errors %}
+                        <div class="alert alert-danger shadow-sm border-start border-4 border-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i><strong>Validation Error:</strong> Please check the highlighted fields below.
+                        </div>
+                    {% endif %}
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="{% if field.name == 'address' or field.name == 'parents_phone' %}col-md-12{% elif field.name == 'student_class' or field.name == 'student_section' or field.name == 'religion' %}col-md-4{% else %}col-md-6{% endif %}">
+                            <label class="fw-bold small {% if field.errors %}text-danger{% endif %}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <script>document.getElementsByName("{{ field.name }}")[0].classList.add("is-invalid");</script>
+                                <div class="text-danger fw-bold" style="font-size: 0.75rem;">
+                                    {% for error in field.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">SAVE STUDENT</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if form.errors or show_modal %}
+        var myModal = new bootstrap.Modal(document.getElementById('addStudentModal'));
+        myModal.show();
+        {% endif %}
+    });
+</script>
 {% endblock %}
+

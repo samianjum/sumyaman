@@ -1,60 +1,195 @@
 {% extends 'hq_admin_custom/base.html' %}
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark"><i class="fas fa-chalkboard-teacher me-2"></i>Teacher Staff</h2>
-        <span class="badge bg-dark px-3 py-2">Total: {{ total_count }}</span>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2>Teacher Management</h2>
+            <p class="text-muted">Manage your faculty and subject assignments</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTeacherModal">
+            <i class="fas fa-user-plus"></i> Create New Teacher
+        </button>
     </div>
+    <hr>
 
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body p-3">
-            <form method="GET" class="row g-2">
-                <div class="col-md-10">
-                    <input type="text" name="q" class="form-control" placeholder="Search by name, ID or phone..." value="{{ query }}">
+    <!-- Registration Modal -->
+    <div class="modal fade" id="addTeacherModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Registration: New Faculty Member</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-dark w-100">Search</button>
-                </div>
-            </form>
+                <form method="POST" id="teacherForm">
+                    {% csrf_token %}
+                    {% if form.errors or formset.errors %}
+                    <div class="alert alert-danger mx-4 mt-3 py-2 shadow-sm">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Validation Error:</strong> 
+                        Please correct the highlighted fields below.
+                        <div class="text-danger fw-bold mt-2">{% for error in form.non_field_errors %}{{ error }}{% endfor %}</div>
+                    </div>
+                    {% endif %}
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">{{ form.full_name.label_tag }} {{ form.full_name }}<div class="text-danger small">{% for error in form.full_name.errors %}{{ error }}{% endfor %}</div></div>
+                            <div class="col-md-4">{{ form.father_name.label_tag }} {{ form.father_name }}<div class="text-danger small">{% for error in form.father_name.errors %}{{ error }}{% endfor %}</div></div>
+                            <div class="col-md-4">{{ form.cnic.label_tag }} {{ form.cnic }}<div class="text-danger small fw-bold">{% for error in form.cnic.errors %}{{ error }}{% endfor %}</div></div>
+                            <div class="col-md-4">{{ form.dob.label_tag }} {{ form.dob }}<div class="text-danger small">{% for error in form.dob.errors %}{{ error }}{% endfor %}</div></div>
+                            <div class="col-md-4">{{ form.religion.label_tag }} {{ form.religion }}<div class="text-danger small">{% for error in form.religion.errors %}{{ error }}{% endfor %}</div></div>
+                            <div class="col-md-4">{{ form.contact.label_tag }} {{ form.contact }}<div class="text-danger small">{% for error in form.contact.errors %}{{ error }}{% endfor %}</div></div>
+                            <div class="col-12">{{ form.address.label_tag }} {{ form.address }}<div class="text-danger small">{% for error in form.address.errors %}{{ error }}{% endfor %}</div></div>
+                            
+                            <div class="col-12 mt-3">
+                                <div class="form-check form-switch">
+                                    {{ form.is_class_teacher }}
+                                    <label class="form-check-label">Assign as Class Teacher?</label>
+                                </div>
+                            </div>
+
+                            <div id="class_teacher_fields" style="display: none;" class="row g-3 mt-1 border p-3 bg-light rounded">
+                                <div class="col-md-4">{{ form.assigned_class.label_tag }} {{ form.assigned_class }}<div class="text-danger small">{% for error in form.assigned_class.errors %}{{ error }}{% endfor %}</div></div>
+                                <div class="col-md-4">{{ form.assigned_section.label_tag }} {{ form.assigned_section }}<div class="text-danger small">{% for error in form.assigned_section.errors %}{{ error }}{% endfor %}</div></div>
+                                <div class="col-md-4">{{ form.assigned_wing.label_tag }} {{ form.assigned_wing }}<div class="text-danger small">{% for error in form.assigned_wing.errors %}{{ error }}{% endfor %}</div></div>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-4 border-bottom pb-2">Subject Assignments</h4>
+                        <div id="formset_wrapper" class="border p-3 rounded bg-white">
+                            {{ formset.management_form }}
+
+                            {% if formset.non_form_errors %}
+                            <div class="alert alert-warning py-1 small">
+                                {% for error in formset.non_form_errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                            {% for sub_form in formset %}
+                                {% if sub_form.non_field_errors %}
+                                <div class="alert alert-danger py-1 small">
+                                    {% for error in sub_form.non_field_errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                                    <table class="table align-middle" id="assignment_table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Subject</th><th>Class</th><th>Section</th><th>Wing</th><th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sub_form in formset %}
+                                    <tr class="assignment-row">
+                                        <td>{{ sub_form.subject }}<div class="text-danger sx-small" style="font-size: 0.75rem;">{{ sub_form.subject.errors }}</div></td>
+                                        <td>{{ sub_form.student_class }}<div class="text-danger sx-small" style="font-size: 0.75rem;">{{ sub_form.student_class.errors }}</div></td>
+                                        <td>{{ sub_form.section }}<div class="text-danger sx-small" style="font-size: 0.75rem;">{{ sub_form.section.errors }}</div></td>
+                                        <td>{{ sub_form.wing }}<div class="text-danger sx-small" style="font-size: 0.75rem;">{{ sub_form.wing.errors }}</div></td>
+                                        <td><button type="button" class="btn btn-outline-danger btn-sm remove-row">Remove</button></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <button type="button" id="add_more" class="btn btn-info btn-sm mt-2">
+                                <i class="fas fa-plus"></i> Add More Subject
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success px-4">Finalize & Save Records</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <!-- Faculty List -->
+    <div class="mt-5">
+        <h3>Faculty Members ({{ total_count }})</h3>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-hover mt-3 shadow-sm">
+                <thead class="table-dark">
                     <tr>
-                        <th class="ps-4">Teacher Name</th>
-                        <th>ID / Code</th>
-                        <th>Status</th>
-                        <th class="text-end pe-4">Action</th>
+                        <th>Name</th><th>CNIC</th><th>Status</th><th>Assigned Class</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for t in teachers %}
                     <tr>
-                        <td class="ps-4">
-                            <div class="fw-bold">{{ t.full_name|upper }}</div>
-                            <small class="text-muted">{{ t.phone_number }}</small>
-                        </td>
-                        <td><code class="text-dark fw-bold">{{ t.employee_id|default:t.id }}</code></td>
+                        <td>{{ t.full_name }}</td>
+                        <td>{{ t.cnic }}</td>
                         <td>
                             {% if t.is_class_teacher %}
-                            <span class="badge bg-success-subtle text-success border border-success">Class Teacher</span>
+                            <span class="badge bg-success">Class Teacher</span>
                             {% else %}
-                            <span class="badge bg-light text-muted border">Subject Teacher</span>
+                            <span class="badge bg-secondary">Staff</span>
                             {% endif %}
                         </td>
-                        <td class="text-end pe-4">
-                            <a href="{% url 'teacher_profile' t.id %}" class="btn btn-sm btn-outline-dark">VIEW PROFILE</a>
-                        </td>
+                        <td>{% if t.assigned_class %}{{ t.assigned_class }}-{{ t.assigned_section }}{% else %}-{% endif %}</td>
+                        <td><a href="{% url 'teacher_profile' t.id %}" class="btn btn-sm btn-outline-primary">View Profile</a></td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" class="text-center py-5 text-muted">No teachers found.</td></tr>
+                    <tr><td colspan="5" class="text-center">No teachers registered yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<script>
+// Toggle Class Teacher Fields
+const toggle = document.querySelector('[name="is_class_teacher"]');
+const fieldsDiv = document.getElementById('class_teacher_fields');
+
+function checkToggle() {
+    if(toggle && toggle.checked) {
+        fieldsDiv.style.display = 'flex';
+    } else if(fieldsDiv) {
+        fieldsDiv.style.display = 'none';
+    }
+}
+if(toggle) toggle.addEventListener('change', checkToggle);
+window.addEventListener('load', checkToggle);
+
+// Dynamic Formset Logic
+const addButton = document.querySelector('#add_more');
+const totalForms = document.querySelector('[id$="-TOTAL_FORMS"]'); 
+const tableBody = document.querySelector('#assignment_table tbody');
+
+if(addButton) {
+    addButton.addEventListener('click', function() {
+        let formCount = parseInt(totalForms.value);
+        let rows = document.querySelectorAll('.assignment-row');
+        let row = rows[0].cloneNode(true);
+        
+        // Find the prefix (usually 'id_assignments' or similar)
+        let prefix = totalForms.id.replace('-TOTAL_FORMS', '');
+        let formRegex = new RegExp(`${prefix}-(\\d+)-`,'g');
+
+        row.innerHTML = row.innerHTML.replace(formRegex, `${prefix}-${formCount}-`);
+        row.querySelectorAll('select, input').forEach(input => input.value = '');
+        
+        tableBody.appendChild(row);
+        totalForms.value = formCount + 1;
+    });
+}
+
+document.addEventListener('click', function(e) {
+    if(e.target && e.target.classList.contains('remove-row')) {
+        let rows = document.querySelectorAll('.assignment-row');
+        if(rows.length > 1) {
+            e.target.closest('tr').remove();
+            totalForms.value = rows.length - 1;
+        }
+    }
+});
+
+// Re-open modal if validation failed
+window.addEventListener('load', function() {
+    {% if form.errors or formset.errors %}
+    var myModal = new bootstrap.Modal(document.getElementById('addTeacherModal'));
+    myModal.show();
+    {% endif %}
+});
+
+</script>
 {% endblock %}

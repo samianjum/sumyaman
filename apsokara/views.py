@@ -1,8 +1,10 @@
+import sqlite3
 import json
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from .forms import StudentForm, TeacherForm, SubjectAssignmentForm
 from .models import Student, Teacher, Attendance, SchoolNews
 from django.db.models import Count, Q
 
@@ -46,20 +48,35 @@ def mark_attendance_view(request, class_name, section_name, wing_name):
                 from django.core.exceptions import PermissionDenied; raise PermissionDenied()
         except:
             from django.core.exceptions import PermissionDenied; raise PermissionDenied()
+    
     today = timezone.now().date()
     students = Student.objects.filter(student_class=class_name, student_section=section_name, wing__iexact=wing_name)
+    
+    if request.method == 'POST':
+        for s in students:
+            status = request.POST.get(f'status_{s.id}')
+            if status:
+                Attendance.objects.update_or_create(
+                    student=s, 
+                    date=today, 
+                    defaults={'status': status}
+                )
+        return redirect('mark_attendance', class_name=class_name, section_name=section_name, wing_name=wing_name)
+
     attendance_data = []
     for s in students:
         record = Attendance.objects.filter(student=s, date=today).first()
         if record: attendance_data.append(record)
         else: attendance_data.append({'student': s, 'status': 'Not Marked'})
+        
     return render(request, 'hq_admin_custom/classroom_detail.html', {
-        'attendance_data': attendance_data, 'class_name': class_name, 'section_name': section_name,
+        'attendance_data': attendance_data, 'class_name': class_name, 'section_name': section_name, 'wing_name': wing_name,
         'present': Attendance.objects.filter(student__in=students, date=today, status__iexact='Present').count(),
         'absent': Attendance.objects.filter(student__in=students, date=today, status__iexact='Absent').count(),
         'leave': Attendance.objects.filter(student__in=students, date=today, status__iexact='Leave').count(),
         'total_count': students.count(), 'today_date': today
     })
+        
 
 @login_required
 def boys_wing_view(request):
@@ -89,6 +106,22 @@ def girls_wing_view(request):
 
 @login_required
 def student_master_list(request):
+    if request.method == 'POST':
+        form = StudentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('student_master_list')
+        else:
+            # Re-render with errors
+            students_list = Student.objects.all().order_by('student_class', 'full_name')
+            paginator = Paginator(students_list, 50)
+            page_obj = paginator.get_page(request.GET.get('page'))
+            return render(request, 'hq_admin_custom/students_list.html', {
+                'form': form, 'page_obj': page_obj, 'show_modal': True,
+                'wings_list': Student.objects.values_list('wing', flat=True).distinct().order_by('wing'),
+                'classes_list': Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class'),
+            })
+    
     query = request.GET.get('q', '')
     wing_filter = request.GET.get('wing', '')
     class_filter = request.GET.get('class', '')
@@ -96,10 +129,14 @@ def student_master_list(request):
     if query: students_list = students_list.filter(Q(full_name__icontains=query) | Q(roll_number__icontains=query))
     if wing_filter: students_list = students_list.filter(wing=wing_filter)
     if class_filter: students_list = students_list.filter(student_class=class_filter)
+    
     paginator = Paginator(students_list, 50)
     page_obj = paginator.get_page(request.GET.get('page'))
+    
     return render(request, 'hq_admin_custom/students_list.html', {
-        'page_obj': page_obj, 'wings_list': Student.objects.values_list('wing', flat=True).distinct().order_by('wing'),
+        'form': StudentForm(),
+        'page_obj': page_obj, 
+        'wings_list': Student.objects.values_list('wing', flat=True).distinct().order_by('wing'),
         'classes_list': Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class'),
         'selected_wing': wing_filter, 'selected_class': class_filter, 'query': query,
     })
@@ -111,11 +148,19 @@ def student_profile_view(request, student_id):
     t_count = history.count()
     p_count = history.filter(status__iexact='Present').count()
     perc = (p_count / t_count * 100) if t_count > 0 else 0
+    
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT SUM(obtained_marks), SUM(total_marks) FROM student_marks WHERE student_id = %s", [student_id])
+        m_row = cursor.fetchone()
+        t_obt = m_row[0] if m_row[0] is not None else 0
+        t_tot = m_row[1] if m_row[1] is not None else 0
+    
     return render(request, 'hq_admin_custom/student_profile.html', {
         's': s, 'attendance_history': history, 'present_count': p_count,
         'absent_count': history.filter(status__iexact='Absent').count(),
         'leave_count': history.filter(status__iexact='Leave').count(),
-        'total_days': t_count, 'percentage': round(perc, 1),
+        'total_days': t_count, 'percentage': round(perc, 1), 'total_obtained': t_obt, 'total_possible': t_tot,
     })
 
 @login_required
@@ -123,11 +168,32 @@ def teacher_profile_view(request, teacher_id):
     t = get_object_or_404(Teacher, id=teacher_id)
     return render(request, 'hq_admin_custom/teacher_profile.html', {'t': t})
 
-@login_required
-def teacher_master_list(request):
-    return render(request, 'hq_admin_custom/teachers_list.html', {'teachers': Teacher.objects.all()})
 
 @login_required
+def teacher_master_list(request):
+    from .forms import SubjectAssignmentFormSet
+    if request.method == 'POST':
+        form = TeacherForm(request.POST)
+        formset = SubjectAssignmentFormSet(request.POST, prefix='assignments')
+        if form.is_valid() and formset.is_valid():
+            teacher = form.save()
+            assignments = formset.save(commit=False)
+            for assignment in assignments:
+                assignment.teacher = teacher
+                assignment.save()
+            return redirect('teacher_master_list')
+    else:
+        form = TeacherForm()
+        formset = SubjectAssignmentFormSet(prefix='assignments')
+
+    return render(request, 'hq_admin_custom/teachers_list.html', {
+        'teachers': Teacher.objects.all(), 
+        'form': form,
+        'formset': formset,
+        'total_count': Teacher.objects.count()
+    })
+
+
 def global_search(request):
     query = request.GET.get('q', '')
     students = Student.objects.filter(full_name__icontains=query) if query else []
@@ -135,17 +201,11 @@ def global_search(request):
     return render(request, 'hq_admin_custom/search_results.html', {'students': students, 'teachers': teachers, 'query': query})
 
 # --- NEWS MANAGER START ---
-@login_required
+
 @login_required
 def news_manager_view(request):
     today = timezone.now().date()
     if request.method == 'POST':
-        content = request.POST.get('content')
-        target = request.POST.get('target_role')
-        s_date = request.POST.get('start_date')
-        e_date = request.POST.get('end_date')
-        SchoolNews.objects.create(content=content, target_role=target, start_date=s_date, end_date=e_date)
-        return redirect('news_manager')
         n_id = request.POST.get('news_id')
         data = {
             'content': request.POST.get('content'),
@@ -153,26 +213,13 @@ def news_manager_view(request):
             'start_date': request.POST.get('start_date'),
             'end_date': request.POST.get('end_date')
         }
-        if n_id: SchoolNews.objects.filter(id=n_id).update(**data)
+        if n_id:
+            SchoolNews.objects.filter(id=n_id).update(**data)
+        else:
+            SchoolNews.objects.create(**data)
         return redirect('news_manager')
     
-    # Admin ko sab dikhao taake wo manage kar sake
-    active_news = SchoolNews.objects.filter(end_date__gte=today).order_by('-created_at')
-    expired_news = SchoolNews.objects.filter(end_date__lt=today).order_by('-end_date')
-    return render(request, 'hq_admin_custom/news_manager.html', {'active_news': active_news, 'expired_news': expired_news, 'today': today.strftime('%Y-%m-%d')})
-
-    # Logic: Sirf wahi jo aaj ke din active hon (Date filter)
-    all_n = SchoolNews.objects.all().order_by('-created_at')
-    active_news = [n for n in all_n if n.start_date <= today <= n.end_date]
-    expired_news = [n for n in all_n if n.end_date < today]
-
-    return render(request, 'hq_admin_custom/news_manager.html', {
-        'active_news': active_news,
-        'expired_news': expired_news,
-        'today': today.strftime('%Y-%m-%d')
-    })
-
-    # Date logic: Start date aaj ya purani ho, aur End date aaj ya future ki ho
+    # Combined logic: Using ORM filters for efficiency
     active_news = SchoolNews.objects.filter(start_date__lte=today, end_date__gte=today).order_by('-created_at')
     upcoming_news = SchoolNews.objects.filter(start_date__gt=today).order_by('start_date')
     expired_news = SchoolNews.objects.filter(end_date__lt=today).order_by('-end_date')
@@ -188,15 +235,11 @@ def delete_news(request, news_id):
     return redirect('news_manager')
 
 
-import sqlite3
-from django.utils import timezone
 from .models import Student
 
 
 @login_required
 def exam_window_view(request):
-    import sqlite3
-    from django.utils import timezone
     conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
@@ -264,7 +307,6 @@ def create_exam_view(request):
 
 @login_required
 def delete_exam_view(request, exam_id):
-    import sqlite3
     conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
     c = conn.cursor()
     c.execute("DELETE FROM exams WHERE id = ?", (exam_id,))
@@ -278,7 +320,6 @@ def delete_exam_view(request, exam_id):
 
 @login_required
 def toggle_exam_status(request, exam_id):
-    import sqlite3
     from django.shortcuts import redirect
     
     db_path = 'db.sqlite3'
@@ -295,9 +336,8 @@ def toggle_exam_status(request, exam_id):
             new_status = 0 if row[0] == 1 else 1
             c.execute("UPDATE exams SET is_active = ? WHERE id = ?", (new_status, exam_id))
             conn.commit()
-            print(f"--- SUCCESS: Exam {exam_id} set to {new_status} ---")
     except Exception as e:
-        print(f"--- ERROR: {e} ---")
+        pass
     finally:
         conn.close()
     return redirect('exam_window')
@@ -306,7 +346,6 @@ def toggle_exam_status(request, exam_id):
 
 @login_required
 def manage_subjects_view(request, exam_id):
-    import sqlite3
     conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
@@ -347,7 +386,6 @@ def manage_subjects_view(request, exam_id):
 @login_required
 def exam_analytics_view(request, exam_id):
     from django.db import connection
-    import sqlite3
 
     # 1. Fetch Exam Details
     conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
@@ -455,7 +493,6 @@ def exam_analytics_view(request, exam_id):
 
 @login_required
 def exam_class_detail_view(request, exam_id, class_name):
-    import sqlite3
     conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
@@ -658,3 +695,58 @@ def view_student_result(request, student_id, exam_id=None, subject_id=None):
         'student': student, 'exams': exams_list, 'all_results': all_results, 'subject_depth': subject_depth,
         'exam_trend': [ {'exam': ex['name'], 'perc': all_results[ex['id']]['perc']} for ex in exams_list[::-1] ]
     })
+
+
+
+@login_required
+def subject_manager_view(request):
+    from .models import Subject, SubjectAssignment, Teacher, Student
+    from django.contrib import messages
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create_subject':
+            name = request.POST.get('name')
+            if name: Subject.objects.get_or_create(name=name.strip().title())
+            
+        elif action == 'assign_subject':
+            t_id = request.POST.get('teacher_id')
+            s_id = request.POST.get('subject_id')
+            cl = request.POST.get('class')
+            sec = request.POST.get('section')
+            wg = request.POST.get('wing')
+            override = request.POST.get('override') == 'true'
+
+            # Check for existing assignment
+            existing = SubjectAssignment.objects.filter(
+                subject_id=s_id, student_class=cl, section=sec, wing=wg
+            ).first()
+
+            if existing and not override:
+                messages.warning(request, f"Conflict: {existing.subject.name} is already assigned to {existing.teacher.full_name} in {cl}-{sec} ({wg}).")
+                # Store temporary data in session to keep form filled if needed
+                request.session['conflict_data'] = {'t_id': t_id, 's_id': s_id, 'cl': cl, 'sec': sec, 'wg': wg}
+            else:
+                SubjectAssignment.objects.update_or_create(
+                    subject_id=s_id, student_class=cl, section=sec, wing=wg,
+                    defaults={'teacher_id': t_id}
+                )
+                messages.success(request, "Assignment updated successfully.")
+                if 'conflict_data' in request.session: del request.session['conflict_data']
+
+        elif action == 'delete_assignment':
+            a_id = request.POST.get('assignment_id')
+            SubjectAssignment.objects.filter(id=a_id).delete()
+            messages.info(request, "Assignment removed.")
+
+        return redirect('subject_manager')
+
+    context = {
+        'subjects': Subject.objects.all(),
+        'teachers': Teacher.objects.all(),
+        'assignments': SubjectAssignment.objects.select_related('teacher', 'subject').all(),
+        'conflict_data': request.session.get('conflict_data'),
+    }
+    return render(request, 'hq_admin_custom/subject_manager.html', context)
+
