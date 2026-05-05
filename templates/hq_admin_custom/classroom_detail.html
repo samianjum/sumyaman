@@ -69,7 +69,7 @@
         </thead>
         <tbody id="clerkTableBody">
             {% for record in attendance_data %}
-            <tr class="row-link row-hover" ondblclick="window.location.href='/hq-portal/student/profile/{{ record.student.id }}/'">
+            <tr class="row-link row-hover" ondblclick="window.location.href='{% url "student_profile" school_slug record.student.id %}'">
                 <td class="text-center fw-black">{{ record.student.roll_number }}</td>
                 <td>{{ record.student.full_name|upper }}</td>
                 <td>{{ record.student.father_name|upper }}</td>
