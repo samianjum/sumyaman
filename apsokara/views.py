@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .forms import StudentForm, TeacherForm, SubjectAssignmentForm
+from .forms import StudentForm, TeacherForm, SubjectAssignmentForm, SubjectAssignmentFormSet
 from .models import Student, Teacher, Attendance, SchoolNews
 from django.db.models import Count, Q
 
@@ -18,7 +18,7 @@ def hq_dashboard(request, school_slug=None):
     total = Student.objects.count()
     present = Attendance.objects.filter(date=timezone.now().date(), status__iexact='Present').count()
     perc = round((present / total * 100), 1) if total > 0 else 0
-    return render(request, 'hq_admin_custom/dashboard.html', {
+    return render(request, 'hq_admin_custom/dashboard.html', {'school_slug': school_slug, 
         'school_slug': school_slug,
         'total': total,
         'boys': Student.objects.filter(wing__iexact='Boys').count(),
@@ -42,7 +42,7 @@ def attendance_view(request, school_slug=None):
     a = Attendance.objects.filter(date=target_date, status__iexact='Absent').count()
     l = Attendance.objects.filter(date=target_date, status__iexact='Leave').count()
     classes_data = Student.objects.values('student_class', 'student_section', 'wing').annotate(total=Count('id')).order_by('student_class', 'student_section')
-    return render(request, 'hq_admin_custom/attendance.html', {
+    return render(request, 'hq_admin_custom/attendance.html', {'school_slug': school_slug, 
         'classes': classes_data, 'today_date': target_date, 
         'present': p, 'absent': a, 'leave': l, 'total_students': Student.objects.count()
     })
@@ -79,7 +79,7 @@ def mark_attendance_view(request, class_name, section_name, wing_name, school_sl
         if record: attendance_data.append(record)
         else: attendance_data.append({'student': s, 'status': 'Not Marked'})
         
-    return render(request, 'hq_admin_custom/classroom_detail.html', {
+    return render(request, 'hq_admin_custom/classroom_detail.html', {'school_slug': school_slug, 
         'attendance_data': attendance_data, 'class_name': class_name, 'section_name': section_name, 'wing_name': wing_name,
         'present': Attendance.objects.filter(student__in=students, date=today, status__iexact='Present').count(),
         'absent': Attendance.objects.filter(student__in=students, date=today, status__iexact='Absent').count(),
@@ -94,7 +94,7 @@ def boys_wing_view(request, school_slug=None):
         set_current_db(school_slug)
     today = timezone.now().date()
     students = Student.objects.filter(wing__iexact='Boys')
-    return render(request, 'hq_admin_custom/wing_detail.html', {
+    return render(request, 'hq_admin_custom/wing_detail.html', {'school_slug': school_slug, 
         'wing_title': 'BOYS WING HQ', 'wing_slug': 'Boys', 'theme_color': '#1e3a8a',
         'class_sections': students.values('student_class', 'student_section').annotate(total=Count('id')).order_by('student_class'),
         'present': Attendance.objects.filter(date=today, student__wing__iexact='Boys', status__iexact='Present').count(),
@@ -109,7 +109,7 @@ def girls_wing_view(request, school_slug=None):
         set_current_db(school_slug)
     today = timezone.now().date()
     students = Student.objects.filter(wing__iexact='Girls')
-    return render(request, 'hq_admin_custom/wing_detail.html', {
+    return render(request, 'hq_admin_custom/wing_detail.html', {'school_slug': school_slug, 
         'wing_title': 'GIRLS WING HQ', 'wing_slug': 'Girls', 'theme_color': '#701a75',
         'class_sections': students.values('student_class', 'student_section').annotate(total=Count('id')).order_by('student_class'),
         'present': Attendance.objects.filter(date=today, student__wing__iexact='Girls', status__iexact='Present').count(),
@@ -126,13 +126,13 @@ def student_master_list(request, school_slug=None):
         form = StudentForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('student_master_list')
+            return redirect('student_master_list', school_slug=school_slug)
         else:
             # Re-render with errors
             students_list = Student.objects.all().order_by('student_class', 'full_name')
             paginator = Paginator(students_list, 50)
             page_obj = paginator.get_page(request.GET.get('page'))
-            return render(request, 'hq_admin_custom/students_list.html', {
+            return render(request, 'hq_admin_custom/students_list.html', {'school_slug': school_slug, 
                 'form': form, 'page_obj': page_obj, 'show_modal': True,
                 'wings_list': Student.objects.values_list('wing', flat=True).distinct().order_by('wing'),
                 'classes_list': Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class'),
@@ -149,7 +149,7 @@ def student_master_list(request, school_slug=None):
     paginator = Paginator(students_list, 50)
     page_obj = paginator.get_page(request.GET.get('page'))
     
-    return render(request, 'hq_admin_custom/students_list.html', {
+    return render(request, 'hq_admin_custom/students_list.html', {'school_slug': school_slug, 
         'form': StudentForm(),
         'page_obj': page_obj, 
         'wings_list': Student.objects.values_list('wing', flat=True).distinct().order_by('wing'),
@@ -174,7 +174,7 @@ def student_profile_view(request,  student_id, school_slug=None):
         t_obt = m_row[0] if m_row[0] is not None else 0
         t_tot = m_row[1] if m_row[1] is not None else 0
     
-    return render(request, 'hq_admin_custom/student_profile.html', {
+    return render(request, 'hq_admin_custom/student_profile.html', {'school_slug': school_slug, 
         's': s, 'attendance_history': history, 'present_count': p_count,
         'absent_count': history.filter(status__iexact='Absent').count(),
         'leave_count': history.filter(status__iexact='Leave').count(),
@@ -186,43 +186,46 @@ def teacher_profile_view(request,  teacher_id, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
     t = get_object_or_404(Teacher, id=teacher_id)
-    return render(request, 'hq_admin_custom/teacher_profile.html', {'t': t})
+    return render(request, 'hq_admin_custom/teacher_profile.html', {'school_slug': school_slug, 't': t})
 
+
+@login_required
 
 @login_required
 def teacher_master_list(request, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
-    from .forms import SubjectAssignmentFormSet
+    
     if request.method == 'POST':
         form = TeacherForm(request.POST)
         formset = SubjectAssignmentFormSet(request.POST, prefix='assignments')
+        
         if form.is_valid() and formset.is_valid():
             teacher = form.save()
             assignments = formset.save(commit=False)
             for assignment in assignments:
                 assignment.teacher = teacher
                 assignment.save()
-            return redirect('teacher_master_list')
+            return redirect('teacher_master_list', school_slug=school_slug)
     else:
         form = TeacherForm()
         formset = SubjectAssignmentFormSet(prefix='assignments')
 
-    return render(request, 'hq_admin_custom/teachers_list.html', {
-        'teachers': Teacher.objects.all(), 
+    context = {
+        'school_slug': school_slug,
+        'teachers': Teacher.objects.all(),
         'form': form,
         'formset': formset,
         'total_count': Teacher.objects.count()
-    })
-
-
+    }
+    return render(request, 'hq_admin_custom/teachers_list.html', context)
 def global_search(request, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
     query = request.GET.get('q', '')
     students = Student.objects.filter(full_name__icontains=query) if query else []
     teachers = Teacher.objects.filter(full_name__icontains=query) if query else []
-    return render(request, 'hq_admin_custom/search_results.html', {'students': students, 'teachers': teachers, 'query': query})
+    return render(request, 'hq_admin_custom/search_results.html', {'school_slug': school_slug, 'students': students, 'teachers': teachers, 'query': query})
 
 # --- NEWS MANAGER START ---
 
@@ -250,7 +253,7 @@ def news_manager_view(request, school_slug=None):
     upcoming_news = SchoolNews.objects.filter(start_date__gt=today).order_by('start_date')
     expired_news = SchoolNews.objects.filter(end_date__lt=today).order_by('-end_date')
 
-    return render(request, 'hq_admin_custom/news_manager.html', {
+    return render(request, 'hq_admin_custom/news_manager.html', {'school_slug': school_slug, 
         'active_news': active_news,
         'upcoming_news': upcoming_news,
         'expired_news': expired_news,
@@ -310,7 +313,7 @@ def exam_window_view(request, school_slug=None):
     distinct_classes = Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class')
     conn.close()
     
-    return render(request, 'hq_admin_custom/exam_window.html', {
+    return render(request, 'hq_admin_custom/exam_window.html', {'school_slug': school_slug, 
         'running_exams': running_exams,
         'pending_exams': pending_exams,
         'expired_exams': expired_exams,
@@ -400,7 +403,7 @@ def manage_subjects_view(request,  exam_id, school_slug=None):
     c.execute("SELECT name FROM exams WHERE id = ?", (exam_id,))
     exam_name = c.fetchone()[0]
     conn.close()
-    return render(request, 'hq_admin_custom/manage_subjects.html', {'subjects': subjects, 'exam_id': exam_id, 'exam_name': exam_name})
+    return render(request, 'hq_admin_custom/manage_subjects.html', {'school_slug': school_slug, 'subjects': subjects, 'exam_id': exam_id, 'exam_name': exam_name})
 
 
 @login_required
@@ -409,7 +412,7 @@ def delete_assignment_view(request, assignment_id, school_slug=None):
         set_current_db(school_slug)
     from .models import SubjectAssignment
     get_object_or_404(SubjectAssignment, id=assignment_id).delete()
-    return redirect('subject_manager')
+    return redirect('subject_manager', school_slug=school_slug)
 
 @login_required
 def edit_student_view(request, student_id, school_slug=None):
@@ -423,14 +426,14 @@ def edit_student_view(request, student_id, school_slug=None):
             return redirect('student_profile', student_id=student.id)
     else:
         form = StudentForm(instance=student)
-    return render(request, 'hq_admin_custom/edit_student.html', {'form': form, 'student': student})
+    return render(request, 'hq_admin_custom/edit_student.html', {'school_slug': school_slug, 'form': form, 'student': student})
 
 @login_required
 def delete_student_view(request, student_id, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
     get_object_or_404(Student, id=student_id).delete()
-    return redirect('student_master_list')
+    return redirect('student_master_list', school_slug=school_slug)
 
 
 
@@ -527,11 +530,11 @@ def exam_analytics_view(request,  exam_id, school_slug=None):
 
     # Agar AJAX request hai to sirf table return karein
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'hq_admin_custom/includes/analytics_table.html', {'structure': structure, 'exam': {'id': exam_id}})
+        return render(request, 'hq_admin_custom/includes/analytics_table.html', {'school_slug': school_slug, 'structure': structure, 'exam': {'school_slug': school_slug, 'id': exam_id}})
 
 
 
-    return render(request, 'hq_admin_custom/exam_analytics.html', {
+    return render(request, 'hq_admin_custom/exam_analytics.html', {'school_slug': school_slug, 
         'exam': exam, 'stats': stats, 'toppers': toppers, 'structure': structure
     })
 
@@ -580,7 +583,7 @@ def exam_class_detail_view(request,  exam_id, class_name, school_slug=None):
     students = c.fetchall()
     
     conn.close()
-    return render(request, 'hq_admin_custom/exam_class_detail.html', {
+    return render(request, 'hq_admin_custom/exam_class_detail.html', {'school_slug': school_slug, 
         'exam_id': exam_id, 'class_name': class_name, 
         'subject_stats': subject_stats, 'students': students
     })
@@ -670,7 +673,7 @@ def exam_subject_analytics_view(request,  exam_id, subject_id, school_slug=None)
             'color': "success" if avg_val >= 70 else "warning" if avg_val >= 40 else "danger"
         })
 
-    return render(request, 'hq_admin_custom/exam_subject_analytics.html', {
+    return render(request, 'hq_admin_custom/exam_subject_analytics.html', {'school_slug': school_slug, 
         'sub_name': sub_name, 'ex_name': ex_name, 'toppers': all_students[:3],
         'all_students': all_students, 'performance': performance, 'exam_id': exam_id, 'sub_id': subject_id
     })
@@ -751,7 +754,7 @@ def view_student_result(request,  student_id, exam_id=None, subject_id=None, sch
                 'perc': round((t_ob/t_tot*100),1) if t_tot > 0 else 0
             }
 
-    return render(request, 'hq_admin_custom/student_result_view.html', {
+    return render(request, 'hq_admin_custom/student_result_view.html', {'school_slug': school_slug, 
         'student': student, 'exams': exams_list, 'all_results': all_results, 'subject_depth': subject_depth,
         'exam_trend': [ {'exam': ex['name'], 'perc': all_results[ex['id']]['perc']} for ex in exams_list[::-1] ]
     })
@@ -760,6 +763,8 @@ def view_student_result(request,  student_id, exam_id=None, subject_id=None, sch
 
 @login_required
 def subject_manager_view(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     if school_slug:
         set_current_db(school_slug)
     from .models import Subject, SubjectAssignment, Teacher, Student
@@ -802,13 +807,14 @@ def subject_manager_view(request, school_slug=None):
             SubjectAssignment.objects.filter(id=a_id).delete()
             messages.info(request, "Assignment removed.")
 
-        return redirect('subject_manager')
+        return redirect('subject_manager', school_slug=school_slug)
 
     context = {
         'subjects': Subject.objects.all(),
         'teachers': Teacher.objects.all(),
         'assignments': SubjectAssignment.objects.select_related('teacher', 'subject').all(),
         'conflict_data': request.session.get('conflict_data'),
+        'school_slug': school_slug,
     }
     return render(request, 'hq_admin_custom/subject_manager.html', context)
 

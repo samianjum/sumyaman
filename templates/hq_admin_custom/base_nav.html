@@ -8,31 +8,31 @@
     </div>
     
     <div class="nav flex-column mt-4 px-2" style="gap: 5px;">
-        <a href="/hq-portal/" class="nav-btn {% if request.path == '/hq-portal/' %}active{% endif %}">
+        <a href="{% url 'hq_dashboard' school_slug=school_slug %}" class="nav-btn {% if request.resolver_match.url_name == 'hq_dashboard' %}active{% endif %}">
             <i class="fas fa-th-large"></i> <span>Dashboard</span>
         </a>
         
-        <a href="/hq-portal/attendance/" class="nav-btn {% if 'attendance' in request.path %}active{% endif %}">
+        <a href="{% url 'hq_attendance' school_slug=school_slug %}" class="nav-btn {% if 'attendance' in request.path %}active{% endif %}">
             <i class="fas fa-calendar-check"></i> <span>Attendance HQ</span>
         </a>
 
-        <a href="/hq-portal/students/" class="nav-btn {% if 'students' in request.path %}active{% endif %}">
+        <a href="{% url 'student_master_list' school_slug=school_slug %}" class="nav-btn {% if 'students' in request.path %}active{% endif %}">
             <i class="fas fa-user-graduate"></i> <span>Students List</span>
         </a>
 
-        <a href="/hq-portal/teachers/" class="nav-btn {% if 'teachers' in request.path %}active{% endif %}">
+        <a href="{% url 'teacher_master_list' school_slug=school_slug %}" class="nav-btn {% if 'teachers' in request.path %}active{% endif %}">
             <i class="fas fa-chalkboard-teacher"></i> <span>Teachers List</span>
         </a>
 
-        <a href="/hq-portal/exams/" class="nav-btn {% if 'exams' in request.path %}active{% endif %}">
+        <a href="{% url 'exam_window' school_slug=school_slug %}" class="nav-btn {% if 'exams' in request.path %}active{% endif %}">
             <i class="fas fa-file-invoice"></i> <span>Exams Portal</span>
         </a>
  
-        <a href="/hq-portal/news-manager/" class="nav-btn {% if 'news' in request.path %}active{% endif %}">
+        <a href="{% url 'news_manager' school_slug=school_slug %}" class="nav-btn {% if 'news' in request.path %}active{% endif %}">
             <i class="fas fa-bullhorn"></i> <span>News Updates</span>
         </a>
 
-        <a href="/hq-portal/subjects/" class="nav-btn {% if 'subjects' in request.path %}active{% endif %}">
+        <a href="{% url 'subject_manager' school_slug=school_slug %}" class="nav-btn {% if 'subjects' in request.path %}active{% endif %}">
             <i class="fas fa-book"></i> <span>Subject Assignment</span>
         </a>
 
@@ -42,7 +42,7 @@
             <i class="fas fa-cog text-warning"></i> <span>System Admin</span>
         </a>
         
-        <a href="/logout/" class="nav-btn text-danger mt-auto">
+        <a href="/admin/logout/" class="nav-btn text-danger mt-auto">
             <i class="fas fa-power-off"></i> <span>Sign Out</span>
         </a>
     </div>

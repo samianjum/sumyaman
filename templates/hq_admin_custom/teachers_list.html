@@ -124,7 +124,7 @@
                             {% endif %}
                         </td>
                         <td>{% if t.assigned_class %}{{ t.assigned_class }}-{{ t.assigned_section }}{% else %}-{% endif %}</td>
-                        <td><a href="{% url 'teacher_profile' t.id %}" class="btn btn-sm btn-outline-primary">View Profile</a></td>
+                        <td><a href="{% url 'teacher_profile' school_slug t.id %}" class="btn btn-sm btn-outline-primary">View Profile</a></td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="5" class="text-center">No teachers registered yet.</td></tr>
@@ -160,6 +160,7 @@ if(addButton) {
         let formCount = parseInt(totalForms.value);
         let rows = document.querySelectorAll('.assignment-row');
         let row = rows[0].cloneNode(true);
+        row.classList.remove('d-none'); // Just in case first row is hidden
         
         // Find the prefix (usually 'id_assignments' or similar)
         let prefix = totalForms.id.replace('-TOTAL_FORMS', '');

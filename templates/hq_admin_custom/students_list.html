@@ -83,7 +83,7 @@
                         <td><span class="fw-semibold">{{ s.student_class }}</span> <small class="text-muted">({{ s.student_section }})</small></td>
                         <td class="small">{{ s.b_form }}</td>
                         <td class="text-center">
-                            <a href="{% url 'student_profile' s.id %}" class="btn btn-sm btn-dark px-3 rounded-pill shadow-sm">View Profile</a>
+                            <a href="{% url 'student_profile' school_slug s.id %}" class="btn btn-sm btn-dark px-3 rounded-pill shadow-sm">View Profile</a>
                         </td>
                     </tr>
                     {% empty %}

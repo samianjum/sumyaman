@@ -70,7 +70,7 @@
         <h5 class="fw-bold mb-0 text-muted"><i class="fas fa-chart-pie me-2"></i>School-Wide Attendance Analytics</h5>
         <div class="d-flex gap-2 align-items-center">
             <span class="small fw-bold text-muted text-uppercase">Data Context:</span>
-            <a href="{% url 'hq_attendance' %}" class="btn btn-sm btn-dark px-3">TODAY</a>
+            <a href="{% url 'hq_attendance' school_slug=school_slug %}" class="btn btn-sm btn-dark px-3">TODAY</a>
             <form method="GET" class="d-flex gap-2"><input type="date" name="date" class="form-control form-control-sm w-auto" value="{{ today_date|date:"Y-m-d" }}" onchange="this.form.submit()"></form>
         </div>
     </div>
@@ -84,7 +84,7 @@
 
 <div class="row g-4">
     <div class="col-md-6">
-        <a href="{% url 'boys_wing' %}" class="wing-card">
+        <a href="{% url 'boys_wing' school_slug=school_slug %}" class="wing-card">
             <i class="fas fa-mars"></i>
             <h3>BOYS WING</h3>
             <p class="text-muted">Explore boys' section from Junior to Senior levels. Manage records by class and section.</p>
@@ -92,7 +92,7 @@
         </a>
     </div>
     <div class="col-md-6">
-        <a href="{% url 'girls_wing' %}" class="wing-card">
+        <a href="{% url 'girls_wing' school_slug=school_slug %}" class="wing-card">
             <i class="fas fa-venus"></i>
             <h3>GIRLS WING</h3>
             <p class="text-muted">Access girls' academic records, daily attendance trends, and class-wise reporting.</p>
