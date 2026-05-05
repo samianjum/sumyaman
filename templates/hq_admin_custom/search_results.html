@@ -9,7 +9,7 @@
         </div>
         <div class="d-flex gap-2">
             <input type="text" id="tableFilter" class="form-control form-control-sm border-0 bg-light px-3" placeholder="Live filter results..." style="width: 250px; border-radius: 20px;">
-            <a href="/hq-portal/" class="btn btn-sm btn-dark px-3" style="border-radius: 20px;">Exit</a>
+            <a href="{% url 'hq_dashboard' school_slug %}" class="btn btn-sm btn-dark px-3" style="border-radius: 20px;">Exit</a>
         </div>
     </div>
 
@@ -46,7 +46,7 @@
                         <td class="font-monospace small">{{ s.b_form|default:"---" }}</td>
                         <td><span class="badge" style="background: var(--hq-accent);">{{ s.wing }}</span></td>
                         <td class="text-end pe-4">
-                            <a href="/hq-portal/student/profile/{{ s.id }}/" class="btn btn-sm btn-outline-dark fw-bold">PROFILE</a>
+                            <a href="{% url 'student_profile' school_slug s.id %}" class="btn btn-sm btn-outline-dark fw-bold">PROFILE</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -80,7 +80,7 @@
                         <td>{{ t.assigned_class }}-{{ t.assigned_section }} ({{ t.assigned_wing }})</td>
                         <td>{{ t.contact }}</td>
                         <td class="text-end pe-4">
-                            <a href="/hq-portal/teacher/profile/{{ t.id }}/" class="btn btn-sm btn-dark fw-bold">MANAGE</a>
+                            <a href="{% url 'teacher_profile' school_slug t.id %}" class="btn btn-sm btn-dark fw-bold">MANAGE</a>
                         </td>
                     </tr>
                     {% endfor %}
