@@ -1,0 +1,20 @@
+
+        <h2>Super Admin - School Management</h2>
+        <a href="{% url 'create_school' %}">Add New School</a>
+        <table border="1" style="width:100%; margin-top:20px;">
+            <tr>
+                <th>School Name</th>
+                <th>Slug</th>
+                <th>Database File</th>
+                <th>Action</th>
+            </tr>
+            {% for school in schools %}
+            <tr>
+                <td>{{ school.name }}</td>
+                <td>{{ school.slug }}</td>
+                <td>{{ school.db_name }}</td>
+                <td><a href="/s/{{ school.slug }}/">Visit Portal</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+        

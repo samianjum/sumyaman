@@ -1,3 +1,5 @@
+from sumyaman_pro.router import set_current_db
+from django.conf import settings
 import sqlite3
 import json
 from django.core.paginator import Paginator
@@ -9,22 +11,28 @@ from .models import Student, Teacher, Attendance, SchoolNews
 from django.db.models import Count, Q
 
 @login_required
-def hq_dashboard(request):
+def hq_dashboard(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     from .models import Attendance
     total = Student.objects.count()
     present = Attendance.objects.filter(date=timezone.now().date(), status__iexact='Present').count()
     perc = round((present / total * 100), 1) if total > 0 else 0
     return render(request, 'hq_admin_custom/dashboard.html', {
+        'school_slug': school_slug,
         'total': total,
         'boys': Student.objects.filter(wing__iexact='Boys').count(),
         'girls': Student.objects.filter(wing__iexact='Girls').count(),
         'faculty_count': Teacher.objects.count(),
         'present': present,
         'perc': perc,
+        'total_students': total,
     })
 
 @login_required
-def attendance_view(request):
+def attendance_view(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     date_str = request.GET.get('date', timezone.now().date().strftime('%Y-%m-%d'))
     try:
         target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -40,7 +48,9 @@ def attendance_view(request):
     })
 
 @login_required
-def mark_attendance_view(request, class_name, section_name, wing_name):
+def mark_attendance_view(request, class_name, section_name, wing_name, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     if not request.user.is_superuser:
         try:
             teacher = request.user.teacher
@@ -79,7 +89,9 @@ def mark_attendance_view(request, class_name, section_name, wing_name):
         
 
 @login_required
-def boys_wing_view(request):
+def boys_wing_view(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     today = timezone.now().date()
     students = Student.objects.filter(wing__iexact='Boys')
     return render(request, 'hq_admin_custom/wing_detail.html', {
@@ -92,7 +104,9 @@ def boys_wing_view(request):
     })
 
 @login_required
-def girls_wing_view(request):
+def girls_wing_view(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     today = timezone.now().date()
     students = Student.objects.filter(wing__iexact='Girls')
     return render(request, 'hq_admin_custom/wing_detail.html', {
@@ -105,7 +119,9 @@ def girls_wing_view(request):
     })
 
 @login_required
-def student_master_list(request):
+def student_master_list(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     if request.method == 'POST':
         form = StudentForm(request.POST)
         if form.is_valid():
@@ -142,7 +158,9 @@ def student_master_list(request):
     })
 
 @login_required
-def student_profile_view(request, student_id):
+def student_profile_view(request,  student_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     s = get_object_or_404(Student, id=student_id)
     history = Attendance.objects.filter(student=s).order_by('-date')
     t_count = history.count()
@@ -164,13 +182,17 @@ def student_profile_view(request, student_id):
     })
 
 @login_required
-def teacher_profile_view(request, teacher_id):
+def teacher_profile_view(request,  teacher_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     t = get_object_or_404(Teacher, id=teacher_id)
     return render(request, 'hq_admin_custom/teacher_profile.html', {'t': t})
 
 
 @login_required
-def teacher_master_list(request):
+def teacher_master_list(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     from .forms import SubjectAssignmentFormSet
     if request.method == 'POST':
         form = TeacherForm(request.POST)
@@ -194,7 +216,9 @@ def teacher_master_list(request):
     })
 
 
-def global_search(request):
+def global_search(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     query = request.GET.get('q', '')
     students = Student.objects.filter(full_name__icontains=query) if query else []
     teachers = Teacher.objects.filter(full_name__icontains=query) if query else []
@@ -203,7 +227,9 @@ def global_search(request):
 # --- NEWS MANAGER START ---
 
 @login_required
-def news_manager_view(request):
+def news_manager_view(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     today = timezone.now().date()
     if request.method == 'POST':
         n_id = request.POST.get('news_id')
@@ -230,7 +256,9 @@ def news_manager_view(request):
         'expired_news': expired_news,
         'today': today.strftime('%Y-%m-%d')
     })
-def delete_news(request, news_id):
+def delete_news(request,  news_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     get_object_or_404(SchoolNews, id=news_id).delete()
     return redirect('news_manager')
 
@@ -239,8 +267,10 @@ from .models import Student
 
 
 @login_required
-def exam_window_view(request):
-    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
+def exam_window_view(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
+    conn = sqlite3.connect(connection.settings_dict['NAME'], timeout=20)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
@@ -290,14 +320,16 @@ def exam_window_view(request):
 
 
 @login_required
-def create_exam_view(request):
+def create_exam_view(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     if request.method == 'POST':
         name = request.POST.get('exam_name')
         group = request.POST.get('class_group')
         s_date = request.POST.get('start_date')
         e_date = request.POST.get('end_date')
         if name and group and s_date and e_date:
-            conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
+            conn = sqlite3.connect(connection.settings_dict['NAME'], timeout=20)
             c = conn.cursor()
             c.execute("INSERT INTO exams (name, class_group, start_date, end_date) VALUES (?, ?, ?, ?)", 
                       (name, group, s_date, e_date))
@@ -306,8 +338,10 @@ def create_exam_view(request):
     return redirect('exam_window')
 
 @login_required
-def delete_exam_view(request, exam_id):
-    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
+def delete_exam_view(request,  exam_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
+    conn = sqlite3.connect(connection.settings_dict['NAME'], timeout=20)
     c = conn.cursor()
     c.execute("DELETE FROM exams WHERE id = ?", (exam_id,))
     # Saath hi us exam ke saare marks bhi delete ho jayein (Cleanup)
@@ -319,10 +353,12 @@ def delete_exam_view(request, exam_id):
 
 
 @login_required
-def toggle_exam_status(request, exam_id):
+def toggle_exam_status(request,  exam_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     from django.shortcuts import redirect
     
-    db_path = 'db.sqlite3'
+    db_path = connection.settings_dict['NAME']
     conn = sqlite3.connect(db_path, timeout=30)
     try:
         conn.execute('PRAGMA journal_mode=WAL;')
@@ -345,8 +381,10 @@ def toggle_exam_status(request, exam_id):
 
 
 @login_required
-def manage_subjects_view(request, exam_id):
-    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3', timeout=20)
+def manage_subjects_view(request,  exam_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
+    conn = sqlite3.connect(connection.settings_dict['NAME'], timeout=20)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     if request.method == 'POST':
@@ -364,31 +402,47 @@ def manage_subjects_view(request, exam_id):
     conn.close()
     return render(request, 'hq_admin_custom/manage_subjects.html', {'subjects': subjects, 'exam_id': exam_id, 'exam_name': exam_name})
 
-@login_required
-
 
 @login_required
+def delete_assignment_view(request, assignment_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
+    from .models import SubjectAssignment
+    get_object_or_404(SubjectAssignment, id=assignment_id).delete()
+    return redirect('subject_manager')
 
 @login_required
+def edit_student_view(request, student_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
+    student = get_object_or_404(Student, id=student_id)
+    if request.method == 'POST':
+        form = StudentForm(request.POST, instance=student)
+        if form.is_valid():
+            form.save()
+            return redirect('student_profile', student_id=student.id)
+    else:
+        form = StudentForm(instance=student)
+    return render(request, 'hq_admin_custom/edit_student.html', {'form': form, 'student': student})
 
 @login_required
+def delete_student_view(request, student_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
+    get_object_or_404(Student, id=student_id).delete()
+    return redirect('student_master_list')
+
+
+
 
 @login_required
-
-@login_required
-
-@login_required
-
-@login_required
-
-
-
-@login_required
-def exam_analytics_view(request, exam_id):
+def exam_analytics_view(request,  exam_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     from django.db import connection
 
     # 1. Fetch Exam Details
-    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
+    conn = sqlite3.connect(connection.settings_dict['NAME'])
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute("SELECT * FROM exams WHERE id = ?", (exam_id,))
@@ -492,8 +546,10 @@ def exam_analytics_view(request, exam_id):
 
 
 @login_required
-def exam_class_detail_view(request, exam_id, class_name):
-    conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
+def exam_class_detail_view(request,  exam_id, class_name, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
+    conn = sqlite3.connect(connection.settings_dict['NAME'])
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
@@ -540,7 +596,9 @@ def exam_class_detail_view(request, exam_id, class_name):
 
 
 @login_required
-def exam_subject_analytics_view(request, exam_id, subject_id):
+def exam_subject_analytics_view(request,  exam_id, subject_id, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     from django.db import connection
     
     with connection.cursor() as cursor:
@@ -632,7 +690,9 @@ def exam_subject_analytics_view(request, exam_id, subject_id):
 @login_required
 
 @login_required
-def view_student_result(request, student_id, exam_id=None, subject_id=None):
+def view_student_result(request,  student_id, exam_id=None, subject_id=None, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     from django.db import connection
     student = get_object_or_404(Student, id=student_id)
     
@@ -699,7 +759,9 @@ def view_student_result(request, student_id, exam_id=None, subject_id=None):
 
 
 @login_required
-def subject_manager_view(request):
+def subject_manager_view(request, school_slug=None):
+    if school_slug:
+        set_current_db(school_slug)
     from .models import Subject, SubjectAssignment, Teacher, Student
     from django.contrib import messages
 

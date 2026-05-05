@@ -1,0 +1,1265 @@
+### Directory Structure:
+./
+    assign_everything.py
+    approve_leaves.py
+    teacher_api.py
+    update_views_pro.py
+    clean_main.py
+    mobile_app_broken_last.py
+    main_app.py
+    install_trading_chart.py
+    backend_fix.py
+    api_bridge.py
+    db_bridge.py
+    strict_patcher.py
+    ultimate_html_nav.py
+    class_teacher_api.py
+    diary_engine.py
+    mobile_app.py
+    evolve_home.py
+    student_module.py
+    app.py
+    check_data.py
+    main_app_backup.py
+    student_result.py
+    news_utility.py
+    add_smart_stats.py
+    repair.py
+    debug_analytics.py
+    update_views.py
+    x.py
+    security_vault.py
+    check_db.py
+    update_growth_logic.py
+    face_lock.py
+    final_diary_remover.py
+    multi_user_stress.py
+    main.py
+    database_logic.py
+    dashboard_patcher.py
+    surgical_update.py
+    smart_attendance.py
+    total_recovery.py
+    auth_gate.py
+    check_leaves.py
+    debug_login.py
+    leave_engine.py
+    notification_system.py
+    j.py
+    engine_room.py
+    auth_engine.py
+    auto_fix.py
+    security_patch.py
+    apply_leaves.py
+    speed_tester.py
+    replace_donut_with_bars.py
+    manage.py
+    marks_patch.py
+    install_modern_insights.py
+    face_engine.py
+    install_growth_insights.py
+    update_chart_peer.py
+    leave_approvals.py
+    marks_engine.py
+    add_donut_analytics.py
+    attendance_system.py
+    leave_apply.py
+    mega_data_injector.py
+    face_handler.py
+    wipe_old_logic.py
+    finalize_module.py
+    leave_utils.py
+    debug_db.py
+    install_smart_analytics.py
+    insight_patcher.py
+    mobile_app_backup_fresh.py
+    scanner.py
+    portal/
+        .dart_tool/
+            dartpad/
+            flutter_build/
+                b2bdbdae010bc732fdfad53e473292a0/
+                    main.dart.js
+        android/
+            app/
+                src/
+                    debug/
+                    main/
+                        kotlin/
+                            com/
+                                example/
+                                    aps_portal_v2/
+                        res/
+                            mipmap-xhdpi/
+                            mipmap-mdpi/
+                            drawable-v21/
+                            mipmap-xxxhdpi/
+                            values/
+                            mipmap-hdpi/
+                            values-night/
+                            drawable/
+                            mipmap-xxhdpi/
+                    profile/
+            gradle/
+                wrapper/
+        test/
+        linux/
+            runner/
+            flutter/
+        macos/
+            Runner.xcodeproj/
+                project.xcworkspace/
+                    xcshareddata/
+                xcshareddata/
+                    xcschemes/
+            Runner.xcworkspace/
+                xcshareddata/
+            Flutter/
+            RunnerTests/
+            Runner/
+                Base.lproj/
+                Assets.xcassets/
+                    AppIcon.appiconset/
+                Configs/
+        web/
+            index.html
+            assets/
+            icons/
+        windows/
+            runner/
+                resources/
+            flutter/
+        ios/
+            Runner.xcodeproj/
+                project.xcworkspace/
+                    xcshareddata/
+                xcshareddata/
+                    xcschemes/
+            Runner.xcworkspace/
+                xcshareddata/
+            Flutter/
+            RunnerTests/
+            Runner/
+                Base.lproj/
+                Assets.xcassets/
+                    LaunchImage.imageset/
+                    AppIcon.appiconset/
+        lib/
+        build/
+            flutter_assets/
+                fonts/
+                packages/
+                    cupertino_icons/
+                        assets/
+                shaders/
+            native_hooks/
+            web/
+                main.dart.js
+                index.html
+                flutter_service_worker.js
+                flutter_bootstrap.js
+                flutter.js
+                canvaskit/
+                    skwasm.js
+                    skwasm_heavy.js
+                    canvaskit.js
+                    chromium/
+                        canvaskit.js
+                assets/
+                    fonts/
+                    packages/
+                        cupertino_icons/
+                            assets/
+                    shaders/
+                icons/
+            24501d12620956aaafa5508378d873d1/
+            d40c935f6ba0856c81d2035446846d61/
+    old_versions_backup/
+        mobile_app_broken_last.py
+        diary_engine.py
+        main_app_backup.py
+    apsokara/
+        __init__.py
+        forms.py
+        student_views.py
+        views_new.py
+        views.py
+        urls.py
+        models.py
+        admin.py
+        utils.py
+        tests.py
+        apps.py
+        search_logic.py
+        dashboard_views.py
+        teacher_views.py
+        logic/
+            class_teacher_modules.py
+            teacher_modules.py
+            student_modules.py
+            attendance_logic.py
+        migrations/
+            0002_academicsession_classlock_enrollment.py
+            __init__.py
+            0001_initial.py
+            0004_remove_classlock_session_remove_enrollment_session_and_more.py
+            0003_promotionaudit_promotionsettings.py
+        templatetags/
+            __init__.py
+            dict_utils.py
+        templates/
+            attendance_dashboard.html
+            promotion_center.html
+            apsokara/
+                header_snippet.html
+            hq_admin_custom/
+                student_list.html
+                news_manager.html
+                exam_analytics.html
+                teacher_list.html
+            admin/
+                custom_index.html
+                apsokara/
+                    attendance/
+                        change_list.html
+        services/
+            __init__.py
+            exam_metrics.py
+            analytics.py
+            integrity_checks.py
+            lifecycle.py
+            hierarchy.py
+    static/
+        marks_v3.js
+        finalize.js
+        student_view.js
+        sw.js
+        diary_uploads/
+        js/
+            attendance_v2.js
+            db.js
+            dexie.js
+            hq_search.js
+        images/
+        uploads/
+            profile_pics/
+            leaves/
+        admin/
+            js/
+                teacher_toggle.js
+    fixes/
+        fix_queries.py
+        bring_attendance_back.py
+        fix_attendance_final.py
+        fix_leave_timestamp.py
+        inject_attendance_logic.py
+        final_leave_fix.py
+        fix_duplicate_keys.py
+        final_leave_check_fix.py
+        ultimate_fix.py
+        fix_pandas_logic.py
+        final_role_fix.py
+        final_fix.py
+        fix_index_final.py
+        fix_final.py
+        fix_keys_safe.py
+        fix_leave_history.py
+        final_display_fix.py
+        rebuild_file.py
+        fix_student_login.py
+        fix_app_final.py
+        fix_leave_func.py
+        force_attendance.py
+        fix_streamlit.py
+        fix_attendance_tab.py
+        fix_indent_and_keys.py
+        ultimate_key_fix.py
+        fix_leave_query.py
+        final_sync.py
+        final_touch.py
+        fix_role.py
+        kill_duplicate.py
+        fix_sidebar.py
+        fix_my_design.py
+        fix_db_final.py
+        fix_final_duplicate.py
+    old_fixes_trash/
+        fix_queries.py
+        bring_attendance_back.py
+        fix_attendance_final.py
+        fix_leave_timestamp.py
+        inject_attendance_logic.py
+        final_leave_fix.py
+        fix_duplicate_keys.py
+        final_leave_check_fix.py
+        ultimate_fix.py
+        fix_pandas_logic.py
+        final_role_fix.py
+        final_fix.py
+        fix_index_final.py
+        fix_final.py
+        fix_keys_safe.py
+        fix_brackets.py
+        fix_leave_history.py
+        final_display_fix.py
+        rebuild_file.py
+        fix_student_login.py
+        fix_app_final.py
+        fix_leave_func.py
+        force_attendance.py
+        fix_streamlit.py
+        fix_attendance_tab.py
+        fix_indent_and_keys.py
+        ultimate_key_fix.py
+        fix_leave_query.py
+        final_sync.py
+        final_touch.py
+        fix_role.py
+        kill_duplicate.py
+        fix_sidebar.py
+        fix_my_design.py
+        fix_db_final.py
+        fix_final_duplicate.py
+    .axis_backups/
+        marks_v3.js
+        mobile_app.py
+        db.js
+        student_view.js
+    templates/
+        classroom_detail.html
+        apsokara/
+            boys_wing_attendance.html
+            student_profile.html
+            wing_attendance_base.html
+            student_profile_placeholder.html
+            attendance_dashboard.html
+            classroom_view.html
+            girls_wing_attendance.html
+            classroom_detail.html
+        hq_admin_custom/
+            subject_manager.html
+            exam_window.html
+            dashboard.html
+            student_profile.html
+            base_nav.html
+            attendance.html
+            exam_card_partial.html
+            teacher_profile.html
+            base.html
+            exam_list_row_partial.html
+            news_manager.html
+            exam_subject_analytics.html
+            exam_class_detail.html
+            exam_analytics.html
+            add_student.html
+            teachers_list.html
+            promotion_center.html
+            wing_detail.html
+            student_result_view.html
+            search_results.html
+            students_list.html
+            manage_subjects.html
+            classroom_detail.html
+            includes/
+                analytics_table.html
+        admin/
+            index.html
+            class_detail.html
+    hq_admin/
+        attendance_pro.py
+        __init__.py
+        student_pro.py
+    uploads/
+        diary/
+    staticfiles/
+        diary_uploads/
+        images/
+        uploads/
+            leaves/
+        admin/
+            js/
+                theme.js
+                urlify.js
+                SelectBox.js
+                prepopulate_init.js
+                actions.js
+                popup_response.js
+                cancel.js
+                core.js
+                autocomplete.js
+                inlines.js
+                nav_sidebar.js
+                prepopulate.js
+                calendar.js
+                change_form.js
+                jquery.init.js
+                filters.js
+                SelectFilter2.js
+                teacher_toggle.js
+                vendor/
+                    jquery/
+                        jquery.js
+                        jquery.min.js
+                    xregexp/
+                        xregexp.js
+                        xregexp.min.js
+                    select2/
+                        select2.full.min.js
+                        select2.full.js
+                        i18n/
+                            lt.js
+                            sr.js
+                            ro.js
+                            ne.js
+                            tk.js
+                            hsb.js
+                            hu.js
+                            it.js
+                            et.js
+                            bn.js
+                            pt.js
+                            pt-BR.js
+                            fi.js
+                            th.js
+                            es.js
+                            sk.js
+                            hy.js
+                            de.js
+                            sr-Cyrl.js
+                            fr.js
+                            lv.js
+                            en.js
+                            af.js
+                            dsb.js
+                            ca.js
+                            hi.js
+                            cs.js
+                            sv.js
+                            hr.js
+                            vi.js
+                            id.js
+                            ps.js
+                            km.js
+                            mk.js
+                            az.js
+                            da.js
+                            bs.js
+                            zh-TW.js
+                            he.js
+                            tr.js
+                            uk.js
+                            nb.js
+                            zh-CN.js
+                            nl.js
+                            ru.js
+                            is.js
+                            sq.js
+                            sl.js
+                            ko.js
+                            fa.js
+                            gl.js
+                            bg.js
+                            ja.js
+                            pl.js
+                            ms.js
+                            eu.js
+                            el.js
+                            ka.js
+                            ar.js
+                admin/
+                    DateTimeShortcuts.js
+                    RelatedObjectLookups.js
+            img/
+            css/
+                vendor/
+                    select2/
+    home/
+        sami/
+            sumyaman_FINAL_BACKUP_JAN_23/
+                main_app.py
+                db_bridge.py
+                diary_engine.py
+                news_utility.py
+                check_leaves.py
+                leave_engine.py
+                auth_engine.py
+                manage.py
+                leave_approvals.py
+                attendance_system.py
+                leave_apply.py
+                debug_db.py
+                apsokara/
+                    __init__.py
+                    views.py
+                    urls.py
+                    models.py
+                    admin.py
+                    tests.py
+                    views_custom.py
+                    apps.py
+                    logic/
+                        class_teacher_modules.py
+                        teacher_modules.py
+                        student_modules.py
+                        attendance_logic.py
+                    migrations/
+                        __init__.py
+                        0001_initial.py
+                    templates/
+                        apsokara/
+                            header_snippet.html
+                        admin/
+                            custom_index.html
+                            apsokara/
+                                attendance/
+                                    change_list.html
+                    services/
+                        __init__.py
+                        exam_metrics.py
+                        analytics.py
+                        integrity_checks.py
+                        lifecycle.py
+                        hierarchy.py
+                static/
+                    diary_uploads/
+                    images/
+                templates/
+                    apsokara/
+                        boys_wing_attendance.html
+                        student_profile.html
+                        base_admin.html
+                        filter_js.html
+                        wing_attendance_base.html
+                        toolbar_snippet.html
+                        student_profile_placeholder.html
+                        attendance_dashboard.html
+                        admin_attendance.html
+                        custom_admin.html
+                        classroom_view.html
+                        girls_wing_attendance.html
+                        classroom_detail.html
+                    admin/
+                        custom_index.html
+                        index.html
+                        class_detail.html
+                        apsokara/
+                            archive.html
+                            promotion_console.html
+                            attendance/
+                                change_list.html
+                            examwindow/
+                                section_view.html
+                                create_exam.html
+                                result_card.html
+                                student_profile.html
+                                section_archive.html
+                                command_center.html
+                                exam_analytics.html
+                                change_list.html
+                                section_exams.html
+                                master_navigator.html
+                                search_results.html
+                        aps/
+                            command_center_main.html
+                            command_center_view.html
+                            aoig_dashboard.html
+    sumyaman_pro/
+        asgi.py
+        __init__.py
+        urls.py
+        settings.py
+        wsgi.py
+    recovery_zone/
+        attendance_system.py
+        home/
+            sami/
+                sumyaman_FINAL_BACKUP_JAN_23/
+                    main_app.py
+                    db_bridge.py
+                    diary_engine.py
+                    news_utility.py
+                    check_leaves.py
+                    leave_engine.py
+                    auth_engine.py
+                    manage.py
+                    leave_approvals.py
+                    attendance_system.py
+                    leave_apply.py
+                    debug_db.py
+                    apsokara/
+                        __init__.py
+                        views.py
+                        urls.py
+                        models.py
+                        admin.py
+                        tests.py
+                        views_custom.py
+                        apps.py
+                        logic/
+                            class_teacher_modules.py
+                            teacher_modules.py
+                            student_modules.py
+                            attendance_logic.py
+                        migrations/
+                            __init__.py
+                            0001_initial.py
+                        templates/
+                            apsokara/
+                                header_snippet.html
+                            admin/
+                                custom_index.html
+                                apsokara/
+                                    attendance/
+                                        change_list.html
+                        services/
+                            __init__.py
+                            exam_metrics.py
+                            analytics.py
+                            integrity_checks.py
+                            lifecycle.py
+                            hierarchy.py
+                    static/
+                        diary_uploads/
+                        images/
+                    templates/
+                        apsokara/
+                            boys_wing_attendance.html
+                            student_profile.html
+                            base_admin.html
+                            filter_js.html
+                            wing_attendance_base.html
+                            toolbar_snippet.html
+                            student_profile_placeholder.html
+                            attendance_dashboard.html
+                            admin_attendance.html
+                            custom_admin.html
+                            classroom_view.html
+                            girls_wing_attendance.html
+                            classroom_detail.html
+                        admin/
+                            custom_index.html
+                            index.html
+                            class_detail.html
+                            apsokara/
+                                archive.html
+                                promotion_console.html
+                                attendance/
+                                    change_list.html
+                                examwindow/
+                                    section_view.html
+                                    create_exam.html
+                                    result_card.html
+                                    student_profile.html
+                                    section_archive.html
+                                    command_center.html
+                                    exam_analytics.html
+                                    change_list.html
+                                    section_exams.html
+                                    master_navigator.html
+                                    search_results.html
+                            aps/
+                                command_center_main.html
+                                command_center_view.html
+                                aoig_dashboard.html
+    recovery_temp/
+        home/
+            sami/
+                sumyaman_FINAL_BACKUP_JAN_23/
+                    main_app.py
+                    db_bridge.py
+                    diary_engine.py
+                    news_utility.py
+                    check_leaves.py
+                    leave_engine.py
+                    auth_engine.py
+                    manage.py
+                    leave_approvals.py
+                    attendance_system.py
+                    leave_apply.py
+                    debug_db.py
+                    apsokara/
+                        __init__.py
+                        views.py
+                        urls.py
+                        models.py
+                        admin.py
+                        tests.py
+                        views_custom.py
+                        apps.py
+                        logic/
+                            class_teacher_modules.py
+                            teacher_modules.py
+                            student_modules.py
+                            attendance_logic.py
+                        migrations/
+                            __init__.py
+                        templates/
+                            apsokara/
+                                header_snippet.html
+                            admin/
+                                custom_index.html
+                                apsokara/
+                                    attendance/
+                                        change_list.html
+                        services/
+                            __init__.py
+                            exam_metrics.py
+                            analytics.py
+                            integrity_checks.py
+                            lifecycle.py
+                            hierarchy.py
+                    static/
+                        diary_uploads/
+                        images/
+                    templates/
+                        apsokara/
+                            boys_wing_attendance.html
+                            student_profile.html
+                            base_admin.html
+                            filter_js.html
+                            wing_attendance_base.html
+                            toolbar_snippet.html
+                            student_profile_placeholder.html
+                            attendance_dashboard.html
+                            admin_attendance.html
+                            custom_admin.html
+                            classroom_view.html
+                            girls_wing_attendance.html
+                            classroom_detail.html
+                        admin/
+                            custom_index.html
+                            index.html
+                            class_detail.html
+                            apsokara/
+                                archive.html
+                                promotion_console.html
+                                attendance/
+                                    change_list.html
+                                examwindow/
+                                    section_view.html
+                                    create_exam.html
+                                    result_card.html
+                                    student_profile.html
+                                    section_archive.html
+                                    command_center.html
+                                    exam_analytics.html
+                                    change_list.html
+                                    section_exams.html
+                                    master_navigator.html
+                                    search_results.html
+                            aps/
+                                command_center_main.html
+                                command_center_view.html
+                                aoig_dashboard.html
+    .streamlit/
+
+### Key File Analysis:
+
+--- Analyzing: ./main_app.py ---
+from notification_system import render_notification_ui
+from leave_utils import check_on_leave
+import sys, os; sys.path.append(os.getcwd()); sys.path.append(os.path.join(os.getcwd(), "apsokara/logic"))
+from apsokara.logic.teacher_modules import render_marks_entry
+from apsokara.logic.student_modules import render_my_result
+from apsokara.logic.class_teacher_modules import render_final_upload
+from apsokara.logic.teacher_modules import render_marks_entry
+from apsokara.logic.student_modules import render_my_result
+from news_utility import render_news_ticker
+import streamlit as st
+from news_utility import render_news_ticker
+import base64
+import datetime
+import base64
+import sqlite3
+import pandas as pd
+import plotly.graph_objects as go # Donut chart ke liye
+def check_on_leave(student_id):
+def get_pending_count(u):
+def display_notifications():
+def display_ticker():
+def get_base64(file_path):
+def get_history_df(student_id):
+def get_student_overall_stats(student_id):
+def check_attendance_state(t_class, t_sec, t_wing):
+def save_attendance(attendance_data, t_class, t_sec, is_edit=False):
+def fetch_user_data(user_id, dob_val, user_type):
+def get_daily_analytics(t_class, t_sec, t_wing):
+def show_dashboard():
+def show_login():
+import streamlit_javascript as st_js
+
+--- Analyzing: ./mobile_app.py ---
+from student_result import init_student_routes
+from finalize_module import init_finalize_routes
+from flask import send_file, send_from_directory, make_response, send_from_directory, Flask, render_template_string, request, jsonify, session
+import os, sqlite3, datetime, pytz
+from functools import wraps
+def login_required(f):
+from teacher_api import init_teacher_routes
+from marks_engine import init_marks_routes
+def update_profile_pic():
+def serve_app_logo():
+def get_school_logo():
+def index():
+def api_login():
+def check_lock():
+def students_marking():
+def sync_attendance():
+def api_archive():
+def api_intel():
+def student_detailed_stats(sid):
+def logout():
+def diary_init_teacher():
+def diary_post_new():
+def diary_fetch_list():
+def diary_unread_status():
+def serve_uploads(filename):
+def submit_leave_v2():
+def list_leaves_v2():
+def leave_action_v2():
+def serve_sw():
+def get_leave_stats_v2():
+def add_header(response):
+
+--- Analyzing: ./manage.py ---
+import os
+import sys
+def main():
+
+--- Analyzing: ./apsokara/models.py ---
+from django.db import models
+from django.utils import timezone
+class Subject(models.Model):
+class Teacher(models.Model):
+class Student(models.Model):
+class SubjectAssignment(models.Model):
+class Attendance(models.Model):
+class StudentLeave(models.Model):
+class SchoolNews(models.Model):
+
+--- Analyzing: ./static/js/db.js ---
+
+--- Analyzing: ./.axis_backups/mobile_app.py ---
+from student_result import init_student_routes
+from finalize_module import init_finalize_routes
+from flask import send_file, send_from_directory, make_response, send_from_directory, Flask, render_template_string, request, jsonify, session
+import os, sqlite3, datetime, pytz
+from functools import wraps
+def login_required(f):
+from teacher_api import init_teacher_routes
+from marks_engine import init_marks_routes
+def update_profile_pic():
+def serve_app_logo():
+def get_school_logo():
+def index():
+def api_login():
+def check_lock():
+def students_marking():
+def sync_attendance():
+def api_archive():
+def api_intel():
+def student_detailed_stats(sid):
+def logout():
+def diary_init_teacher():
+def diary_post_new():
+def diary_fetch_list():
+def diary_unread_status():
+def serve_uploads(filename):
+def submit_leave_v2():
+def list_leaves_v2():
+def leave_action_v2():
+def serve_sw():
+def get_leave_stats_v2():
+def add_header(response):
+
+--- Analyzing: ./.axis_backups/db.js ---
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/charset_normalizer/models.py ---
+from __future__ import annotations
+from encodings.aliases import aliases
+from json import dumps
+from re import sub
+from typing import Any, Iterator, List, Tuple
+from .constant import RE_POSSIBLE_ENCODING_INDICATION, TOO_BIG_SEQUENCE
+from .utils import iana_name, is_multi_byte_encoding, unicode_range
+class CharsetMatch:
+class CharsetMatches:
+class CliDetectionResult:
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/requests/models.py ---
+import datetime
+import encodings.idna  # noqa: F401
+from io import UnsupportedOperation
+from urllib3.exceptions import (
+from urllib3.fields import RequestField
+from urllib3.filepost import encode_multipart_formdata
+from urllib3.util import parse_url
+from ._internal_utils import to_native_string, unicode_is_ascii
+from .auth import HTTPBasicAuth
+from .compat import (
+from .compat import json as complexjson
+from .cookies import _copy_cookie_jar, cookiejar_from_dict, get_cookie_header
+from .exceptions import (
+from .exceptions import JSONDecodeError as RequestsJSONDecodeError
+from .exceptions import SSLError as RequestsSSLError
+from .hooks import default_hooks
+from .status_codes import codes
+from .structures import CaseInsensitiveDict
+from .utils import (
+class RequestEncodingMixin:
+class RequestHooksMixin:
+class Request(RequestHooksMixin):
+class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+class Response:
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/pip/_vendor/requests/models.py ---
+import datetime
+import encodings.idna  # noqa: F401
+from io import UnsupportedOperation
+from pip._vendor.urllib3.exceptions import (
+from pip._vendor.urllib3.fields import RequestField
+from pip._vendor.urllib3.filepost import encode_multipart_formdata
+from pip._vendor.urllib3.util import parse_url
+from ._internal_utils import to_native_string, unicode_is_ascii
+from .auth import HTTPBasicAuth
+from .compat import (
+from .compat import json as complexjson
+from .compat import urlencode, urlsplit, urlunparse
+from .cookies import _copy_cookie_jar, cookiejar_from_dict, get_cookie_header
+from .exceptions import (
+from .exceptions import JSONDecodeError as RequestsJSONDecodeError
+from .exceptions import MissingSchema
+from .exceptions import SSLError as RequestsSSLError
+from .exceptions import StreamConsumedError
+from .hooks import default_hooks
+from .status_codes import codes
+from .structures import CaseInsensitiveDict
+from .utils import (
+class RequestEncodingMixin:
+class RequestHooksMixin:
+class Request(RequestHooksMixin):
+class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+class Response:
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/db/migrations/operations/models.py ---
+from copy import copy
+from django.db import models
+from django.db.migrations.operations.base import Operation, OperationCategory
+from django.db.migrations.state import ModelState
+from django.db.migrations.utils import field_references, resolve_relation
+from django.db.models.options import normalize_together
+from django.utils.copy import replace
+from django.utils.functional import cached_property
+from .fields import AddField, AlterField, FieldOperation, RemoveField, RenameField
+def _check_for_duplicates(arg_name, objs):
+class ModelOperation(Operation):
+class CreateModel(ModelOperation):
+class DeleteModel(ModelOperation):
+class RenameModel(ModelOperation):
+class ModelOptionOperation(ModelOperation):
+class AlterModelTable(ModelOptionOperation):
+class AlterModelTableComment(ModelOptionOperation):
+class AlterTogetherOptionOperation(ModelOptionOperation):
+class AlterUniqueTogether(AlterTogetherOptionOperation):
+class AlterIndexTogether(AlterTogetherOptionOperation):
+class AlterOrderWithRespectTo(ModelOptionOperation):
+class AlterModelOptions(ModelOptionOperation):
+class AlterModelManagers(ModelOptionOperation):
+class IndexOperation(Operation):
+class AddIndex(IndexOperation):
+class RemoveIndex(IndexOperation):
+class RenameIndex(IndexOperation):
+class AddConstraint(IndexOperation):
+class RemoveConstraint(IndexOperation):
+class AlterConstraint(IndexOperation):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/contenttypes/models.py ---
+from collections import defaultdict
+from django.apps import apps
+from django.db import models
+from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
+class ContentTypeManager(models.Manager):
+class ContentType(models.Model):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/gis/db/backends/base/models.py ---
+from django.contrib.gis import gdal
+from django.utils.functional import cached_property
+class SpatialRefSysMixin:
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/gis/db/backends/spatialite/models.py ---
+from django.contrib.gis.db.backends.base.models import SpatialRefSysMixin
+from django.db import models
+class SpatialiteGeometryColumns(models.Model):
+class SpatialiteSpatialRefSys(models.Model, SpatialRefSysMixin):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/gis/db/backends/oracle/models.py ---
+from django.contrib.gis.db import models
+from django.contrib.gis.db.backends.base.models import SpatialRefSysMixin
+class OracleGeometryColumns(models.Model):
+class OracleSpatialRefSys(models.Model, SpatialRefSysMixin):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/gis/db/backends/postgis/models.py ---
+from django.contrib.gis.db.backends.base.models import SpatialRefSysMixin
+from django.db import models
+class PostGISGeometryColumns(models.Model):
+class PostGISSpatialRefSys(models.Model, SpatialRefSysMixin):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/sites/models.py ---
+import string
+from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.db import models
+from django.db.models.signals import pre_delete, pre_save
+from django.http.request import split_domain_port
+from django.utils.translation import gettext_lazy as _
+def _simple_domain_name_validator(value):
+class SiteManager(models.Manager):
+class Site(models.Model):
+def clear_site_cache(sender, **kwargs):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/redirects/models.py ---
+from django.contrib.sites.models import Site
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+class Redirect(models.Model):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/flatpages/models.py ---
+from django.contrib.sites.models import Site
+from django.db import models
+from django.urls import NoReverseMatch, get_script_prefix, reverse
+from django.utils.encoding import iri_to_uri
+from django.utils.translation import gettext_lazy as _
+class FlatPage(models.Model):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/auth/models.py ---
+from collections.abc import Iterable
+from django.apps import apps
+from django.contrib import auth
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.hashers import make_password
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
+from django.db import models
+from django.db.models.manager import EmptyManager
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from .validators import UnicodeUsernameValidator
+def update_last_login(sender, user, **kwargs):
+class PermissionManager(models.Manager):
+class Permission(models.Model):
+class GroupManager(models.Manager):
+class Group(models.Model):
+class UserManager(BaseUserManager):
+def _user_get_permissions(user, obj, from_name):
+def _user_has_perm(user, perm, obj):
+def _user_has_module_perms(user, app_label):
+class PermissionsMixin(models.Model):
+class AbstractUser(AbstractBaseUser, PermissionsMixin):
+class User(AbstractUser):
+class AnonymousUser:
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/admin/models.py ---
+import json
+from django.conf import settings
+from django.contrib.admin.utils import quote
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
+from django.urls import NoReverseMatch, reverse
+from django.utils import timezone
+from django.utils.text import get_text_list
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
+class LogEntryManager(models.Manager):
+class LogEntry(models.Model):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/contrib/sessions/models.py ---
+from django.contrib.sessions.base_session import AbstractBaseSession, BaseSessionManager
+class SessionManager(BaseSessionManager):
+class Session(AbstractBaseSession):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/forms/models.py ---
+from itertools import chain
+from django.core.exceptions import (
+from django.core.validators import ProhibitNullCharactersValidator
+from django.db.models.utils import AltersData
+from django.forms.fields import ChoiceField, Field
+from django.forms.forms import BaseForm, DeclarativeFieldsMetaclass
+from django.forms.formsets import BaseFormSet, formset_factory
+from django.forms.utils import ErrorList
+from django.forms.widgets import (
+from django.utils.choices import BaseChoiceIterator
+from django.utils.hashable import make_hashable
+from django.utils.text import capfirst, get_text_list
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
+def construct_instance(form, instance, fields=None, exclude=None):
+def model_to_dict(instance, fields=None, exclude=None):
+def apply_limit_choices_to_to_formfield(formfield):
+def fields_for_model(
+class ModelFormOptions:
+class ModelFormMetaclass(DeclarativeFieldsMetaclass):
+class BaseModelForm(BaseForm, AltersData):
+class ModelForm(BaseModelForm, metaclass=ModelFormMetaclass):
+def modelform_factory(
+class BaseModelFormSet(BaseFormSet, AltersData):
+def modelformset_factory(
+class BaseInlineFormSet(BaseModelFormSet):
+def _get_foreign_key(parent_model, model, fk_name=None, can_fail=False):
+def inlineformset_factory(
+class InlineForeignKeyField(Field):
+class ModelChoiceIteratorValue:
+class ModelChoiceIterator(BaseChoiceIterator):
+class ModelChoiceField(ChoiceField):
+class ModelMultipleChoiceField(ModelChoiceField):
+def modelform_defines_fields(form_class):
+
+--- Analyzing: ./venv/lib/python3.13/site-packages/django/conf/app_template/models.py-tpl ---
+from django.db import models
+
+--- Analyzing: ./home/sami/sumyaman_FINAL_BACKUP_JAN_23/main_app.py ---
+import sys, os; sys.path.append(os.getcwd()); sys.path.append(os.path.join(os.getcwd(), "apsokara/logic"))
+from apsokara.logic.teacher_modules import render_marks_entry
+from apsokara.logic.student_modules import render_my_result
+from apsokara.logic.class_teacher_modules import render_final_upload
+from apsokara.logic.teacher_modules import render_marks_entry
+from apsokara.logic.student_modules import render_my_result
+from news_utility import render_news_ticker
+import streamlit as st
+import base64
+import datetime
+import base64
+import sqlite3
+import pandas as pd
+import plotly.graph_objects as go # Donut chart ke liye
+def check_on_leave(student_id):
+def get_pending_count(u):
+def display_notifications():
+def display_ticker():
+def get_base64(file_path):
+def get_history_df(student_id):
+def get_student_overall_stats(student_id):
+def check_attendance_state(t_class, t_sec, t_wing):
+def save_attendance(attendance_data, t_class, t_sec, is_edit=False):
+def fetch_user_data(user_id, dob_val, role):
+def get_daily_analytics(t_class, t_sec, t_wing):
+def show_dashboard():
+def show_login():
+def logout():
+
+--- Analyzing: ./home/sami/sumyaman_FINAL_BACKUP_JAN_23/manage.py ---
+import os
+import sys
+def main():
+
+--- Analyzing: ./home/sami/sumyaman_FINAL_BACKUP_JAN_23/apsokara/models.py ---
+from django.db import models
+class Teacher(models.Model):
+class Student(models.Model):
+class Subject(models.Model):
+class SubjectAssignment(models.Model):
+class Complain(models.Model):
+class Attendance(models.Model):
+class SchoolNotice(models.Model):
+class StudentLeave(models.Model):
+class SchoolArchive(Student):
+class StudentPromotion(Student):
+class ExamWindow(models.Model):
+
+--- Analyzing: ./recovery_zone/home/sami/sumyaman_FINAL_BACKUP_JAN_23/main_app.py ---
+import sys, os; sys.path.append(os.getcwd()); sys.path.append(os.path.join(os.getcwd(), "apsokara/logic"))
+from apsokara.logic.teacher_modules import render_marks_entry
+from apsokara.logic.student_modules import render_my_result
+from apsokara.logic.class_teacher_modules import render_final_upload
+from apsokara.logic.teacher_modules import render_marks_entry
+from apsokara.logic.student_modules import render_my_result
+from news_utility import render_news_ticker
+import streamlit as st
+import base64
+import datetime
+import base64
+import sqlite3
+import pandas as pd
+import plotly.graph_objects as go # Donut chart ke liye
+def check_on_leave(student_id):
+def get_pending_count(u):
+def display_notifications():
+def display_ticker():
+def get_base64(file_path):
+def get_history_df(student_id):
+def get_student_overall_stats(student_id):
+def check_attendance_state(t_class, t_sec, t_wing):
+def save_attendance(attendance_data, t_class, t_sec, is_edit=False):
+def fetch_user_data(user_id, dob_val, role):
+def get_daily_analytics(t_class, t_sec, t_wing):
+def show_dashboard():
+def show_login():
+def logout():
+
+--- Analyzing: ./recovery_zone/home/sami/sumyaman_FINAL_BACKUP_JAN_23/manage.py ---
+import os
+import sys
+def main():
+
+--- Analyzing: ./recovery_zone/home/sami/sumyaman_FINAL_BACKUP_JAN_23/apsokara/models.py ---
+from django.db import models
+class Teacher(models.Model):
+class Student(models.Model):
+class Subject(models.Model):
+class SubjectAssignment(models.Model):
+class Complain(models.Model):
+class Attendance(models.Model):
+class SchoolNotice(models.Model):
+class StudentLeave(models.Model):
+class SchoolArchive(Student):
+class StudentPromotion(Student):
+class ExamWindow(models.Model):
+
+--- Analyzing: ./recovery_temp/home/sami/sumyaman_FINAL_BACKUP_JAN_23/main_app.py ---
+import sys, os; sys.path.append(os.getcwd()); sys.path.append(os.path.join(os.getcwd(), "apsokara/logic"))
+from apsokara.logic.teacher_modules import render_marks_entry
+from apsokara.logic.student_modules import render_my_result
+from apsokara.logic.class_teacher_modules import render_final_upload
+from apsokara.logic.teacher_modules import render_marks_entry
+from apsokara.logic.student_modules import render_my_result
+from news_utility import render_news_ticker
+import streamlit as st
+import base64
+import datetime
+import base64
+import sqlite3
+import pandas as pd
+import plotly.graph_objects as go # Donut chart ke liye
+def check_on_leave(student_id):
+def get_pending_count(u):
+def display_notifications():
+def display_ticker():
+def get_base64(file_path):
+def get_history_df(student_id):
+def get_student_overall_stats(student_id):
+def check_attendance_state(t_class, t_sec, t_wing):
+def save_attendance(attendance_data, t_class, t_sec, is_edit=False):
+def fetch_user_data(user_id, dob_val, role):
+def get_daily_analytics(t_class, t_sec, t_wing):
+def show_dashboard():
+def show_login():
+def logout():
+
+--- Analyzing: ./recovery_temp/home/sami/sumyaman_FINAL_BACKUP_JAN_23/manage.py ---
+import os
+import sys
+def main():
+
+--- Analyzing: ./recovery_temp/home/sami/sumyaman_FINAL_BACKUP_JAN_23/apsokara/models.py ---
+from django.db import models
+class Teacher(models.Model):
+class Student(models.Model):
+class Subject(models.Model):
+class SubjectAssignment(models.Model):
+class Complain(models.Model):
+class Attendance(models.Model):
+class SchoolNotice(models.Model):
+class StudentLeave(models.Model):
+class SchoolArchive(Student):
+class StudentPromotion(Student):
+class ExamWindow(models.Model):

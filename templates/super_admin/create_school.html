@@ -1,0 +1,18 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Create School</title></head>
+<body>
+    <h2>Create New School Tenant</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <p>School Name: <input type="text" name="name" required></p>
+        <p>Slug (URL): <input type="text" name="slug" required placeholder="e.g. aps"></p>
+        <hr>
+        <h3>School Admin Credentials</h3>
+        <p>Admin Username: <input type="text" name="admin_user" required></p>
+        <p>Admin Password: <input type="password" name="admin_pass" required></p>
+        <button type="submit">Create School & Admin</button>
+    </form>
+</body>
+</html>

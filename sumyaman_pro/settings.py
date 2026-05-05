@@ -12,7 +12,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'apsokara', 
+    'apsokara',
+    'super_admin', 
 ]
 
 MIDDLEWARE = [
@@ -21,6 +22,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'sumyaman_pro.middleware.TenantMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -55,7 +57,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_URL = 'static/'
 # Agar static files use karni hain to ye line bhi honi chahiye:
 STATICFILES_DIRS = [BASE_DIR / "static"]
-LOGOUT_REDIRECT_URL = '/admin/login/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # --- HQ ADMIN EXTRA SECURITY LAYER ---
@@ -86,4 +87,9 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Strict'
 
 # 4. Agar hacker SQL Injection try kare toh Django built-in protection active hai.
-LOGIN_URL = '/admin/login/'
+
+DATABASE_ROUTERS = ['sumyaman_pro.router.TenantRouter']
+
+# Dynamic Login/Logout
+LOGIN_URL = '/hq-admin/login/'
+LOGOUT_REDIRECT_URL = '/hq-admin/login/'
