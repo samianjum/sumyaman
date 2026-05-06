@@ -2,7 +2,7 @@
     <div class="sidebar-header">
         
         <div class="dropdown">
-            <div class="sidebar-logo-main shadow-sm dropdown-toggle" data-bs-toggle="dropdown" style="cursor: pointer; background-image: url('{% if current_school.logo %}{{ current_school.logo.url }}{% else %}/static/sami.png{% endif %}');"></div>
+            <div class="sidebar-logo-main shadow-sm dropdown-toggle" data-bs-toggle="dropdown" style="cursor: pointer; background-image: url('{% if current_school.logo %}{{ current_school.logo.url }}{% else %}/static/logo.png{% endif %}');"></div>
             <ul class="dropdown-menu dropdown-menu-dark">
                 <li>
                     <form action="/s/{{ school_slug }}/update-logo/" method="POST" enctype="multipart/form-data" class="px-3 py-2">

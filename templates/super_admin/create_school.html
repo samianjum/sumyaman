@@ -1,18 +1,63 @@
 
 <!DOCTYPE html>
-<html>
-<head><title>Create School</title></head>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Register School | Super Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --main-blue: #1e3a8a; }
+        body { background: var(--bs-tertiary-bg); height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .form-card { width: 100%; max-width: 500px; }
+    </style>
+</head>
 <body>
-    <h2>Create New School Tenant</h2>
-    <form method="POST">
-        {% csrf_token %}
-        <p>School Name: <input type="text" name="name" required></p>
-        <p>Slug (URL): <input type="text" name="slug" required placeholder="e.g. aps"></p>
-        <hr>
-        <h3>School Admin Credentials</h3>
-        <p>Admin Username: <input type="text" name="admin_user" required></p>
-        <p>Admin Password: <input type="password" name="admin_pass" required></p>
-        <button type="submit">Create School & Admin</button>
-    </form>
+
+<div class="form-card px-3">
+    <div class="text-center mb-4">
+        <img src="/static/logo.png" height="50" class="mb-2">
+        <h3 class="fw-bold">Register School</h3>
+    </div>
+    
+    <div class="card shadow">
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">School Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="Army Public School" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">School Slug (URL Part)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">/s/</span>
+                        <input type="text" name="slug" class="form-control" placeholder="okara" required>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                <h6 class="text-uppercase small fw-bold text-primary mb-3">Admin Credentials</h6>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Superuser Username</label>
+                    <input type="text" name="admin_user" class="form-control form-control-sm" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Superuser Password</label>
+                    <input type="password" name="admin_pass" class="form-control form-control-sm" required>
+                </div>
+                
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check-circle me-2"></i>Provision Tenant
+                    </button>
+                    <a href="{% url 'super_admin_dashboard' %}" class="btn btn-link btn-sm mt-2 text-muted">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
