@@ -123,8 +123,10 @@ def girls_wing_view(request, school_slug=None):
 def student_master_list(request, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
+    
+    current_school = get_object_or_404(SchoolClient, slug=school_slug)
+    
     if request.method == 'POST':
-        current_school = get_object_or_404(SchoolClient, slug=school_slug)
         form = StudentForm(request.POST, school_type=current_school.school_type)
         if form.is_valid():
             form.save()
@@ -134,9 +136,9 @@ def student_master_list(request, school_slug=None):
             students_list = Student.objects.all().order_by('student_class', 'full_name')
             paginator = Paginator(students_list, 50)
             page_obj = paginator.get_page(request.GET.get('page'))
-            return render(request, 'hq_admin_custom/students_list.html', {'school_slug': school_slug, 
+            return render(request, 'hq_admin_custom/students_list.html', {'school_slug': school_slug, 'school_type': current_school.school_type, 
                 'form': form, 'page_obj': page_obj, 'show_modal': True,
-                'wings_list': Student.objects.values_list('wing', flat=True).distinct().order_by('wing'),
+                'wings_list': Student.objects.values_list('wing', flat=True).exclude(wing='None').distinct().order_by('wing'),
                 'classes_list': Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class'),
             })
     
@@ -151,10 +153,10 @@ def student_master_list(request, school_slug=None):
     paginator = Paginator(students_list, 50)
     page_obj = paginator.get_page(request.GET.get('page'))
     
-    return render(request, 'hq_admin_custom/students_list.html', {'school_slug': school_slug, 
-        'form': StudentForm(),
+    return render(request, 'hq_admin_custom/students_list.html', {'school_slug': school_slug, 'school_type': current_school.school_type, 
+        'form': StudentForm(school_type=current_school.school_type),
         'page_obj': page_obj, 
-        'wings_list': Student.objects.values_list('wing', flat=True).distinct().order_by('wing'),
+        'wings_list': Student.objects.values_list('wing', flat=True).exclude(wing='None').distinct().order_by('wing'),
         'classes_list': Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class'),
         'selected_wing': wing_filter, 'selected_class': class_filter, 'query': query,
     })
@@ -431,13 +433,14 @@ def edit_student_view(request, student_id, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
     student = get_object_or_404(Student, id=student_id)
+    current_school = get_object_or_404(SchoolClient, slug=school_slug)
     if request.method == 'POST':
-        form = StudentForm(request.POST, instance=student)
+        form = StudentForm(request.POST, instance=student, school_type=current_school.school_type)
         if form.is_valid():
             form.save()
             return redirect('student_profile', student_id=student.id)
     else:
-        form = StudentForm(instance=student)
+        form = StudentForm(instance=student, school_type=current_school.school_type)
     return render(request, 'hq_admin_custom/edit_student.html', {'school_slug': school_slug, 'form': form, 'student': student})
 
 @login_required

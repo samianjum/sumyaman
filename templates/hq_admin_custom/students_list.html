@@ -22,7 +22,7 @@
     </div>
 
     <div class="filter-section no-print">
-        <form method="GET" method="GET" class="row g-3">
+        <form method="GET" class="row g-3">
             <div class="col-md-4">
                 <label class="small fw-bold text-muted">Search Name, Roll, or B-Form</label>
                 <div class="input-group">
@@ -30,6 +30,8 @@
                     <input type="text" name="q" class="form-control bg-light border-start-0" placeholder="Type to search..." value="{{ query }}">
                 </div>
             </div>
+            
+            {% if school_type == "wing-based" %}
             <div class="col-md-2">
                 <label class="small fw-bold text-muted">Filter Wing</label>
                 <select name="wing" class="form-select bg-light">
@@ -39,6 +41,8 @@
                     {% endfor %}
                 </select>
             </div>
+            {% endif %}
+
             <div class="col-md-2">
                 <label class="small fw-bold text-muted">Filter Class</label>
                 <select name="class" class="form-select bg-light">
@@ -63,7 +67,7 @@
                         <th>Roll No</th>
                         <th>Student Name</th>
                         <th>Father's Name</th>
-                        <th>Wing</th>
+                        {% if school_type == "wing-based" %}<th class="text-center">Wing</th>{% endif %}
                         <th>Class & Sec</th>
                         <th>B-Form</th>
                         <th class="text-center">Action</th>
@@ -75,11 +79,13 @@
                         <td class="fw-bold text-primary">#{{ s.roll_number }}</td>
                         <td class="fw-bold">{{ s.full_name|upper }}</td>
                         <td class="text-muted">{{ s.father_name }}</td>
-                        <td>
+                        {% if school_type == "wing-based" %}
+                        <td class="text-center">
                             <span class="badge-wing {% if s.wing == 'Boys' %}bg-primary-subtle text-primary border border-primary{% else %}bg-danger-subtle text-danger border border-danger{% endif %}">
                                 {{ s.wing|upper }}
                             </span>
                         </td>
+                        {% endif %}
                         <td><span class="fw-semibold">{{ s.student_class }}</span> <small class="text-muted">({{ s.student_section }})</small></td>
                         <td class="small">{{ s.b_form }}</td>
                         <td class="text-center">
@@ -87,7 +93,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="7" class="text-center py-5 text-muted">No students found matching your criteria.</td></tr>
+                    <tr><td colspan="{% if school_type == 'wing-based' %}7{% else %}6{% endif %}" class="text-center py-5 text-muted">No students found matching your criteria.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -100,9 +106,7 @@
                     {% if page_obj.has_previous %}
                     <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&wing={{ selected_wing }}&class={{ selected_class }}">Previous</a></li>
                     {% endif %}
-                    
                     <li class="page-item active"><span class="page-link px-4">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
-
                     {% if page_obj.has_next %}
                     <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&wing={{ selected_wing }}&class={{ selected_class }}">Next</a></li>
                     {% endif %}
@@ -120,8 +124,6 @@
                 <h5 class="modal-title fw-bold">Register New Student</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            
-            
             <form method="POST">
                 {% csrf_token %}
                 <div class="modal-body p-4">
@@ -133,7 +135,7 @@
                     <div class="row g-3">
                         {% for field in form %}
                         <div class="{% if field.name == 'address' or field.name == 'parents_phone' %}col-md-12{% elif field.name == 'student_class' or field.name == 'student_section' or field.name == 'religion' %}col-md-4{% else %}col-md-6{% endif %}">
-                            <label class="fw-bold small {% if field.errors %}text-danger{% endif %}">{{ field.label }}</label>
+                            {% if not field.is_hidden %}<label class="fw-bold small {% if field.errors %}text-danger{% endif %}">{{ field.label }}</label>{% endif %}
                             {{ field }}
                             {% if field.errors %}
                                 <script>document.getElementsByName("{{ field.name }}")[0].classList.add("is-invalid");</script>
@@ -162,4 +164,3 @@
     });
 </script>
 {% endblock %}
-
