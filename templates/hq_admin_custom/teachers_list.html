@@ -49,13 +49,15 @@
                             <div id="class_teacher_fields" style="display: none;" class="row g-3 mt-1 border p-3 bg-light rounded">
                                 <div class="col-md-4">{{ form.assigned_class.label_tag }} {{ form.assigned_class }}<div class="text-danger small">{% for error in form.assigned_class.errors %}{{ error }}{% endfor %}</div></div>
                                 <div class="col-md-4">{{ form.assigned_section.label_tag }} {{ form.assigned_section }}<div class="text-danger small">{% for error in form.assigned_section.errors %}{{ error }}{% endfor %}</div></div>
-                                <div class="col-md-4">{{ form.assigned_wing.label_tag }} {{ form.assigned_wing }}<div class="text-danger small">{% for error in form.assigned_wing.errors %}{{ error }}{% endfor %}</div></div>
+                                {% if current_school.school_type == 'wing-based' %}
+<div class="col-md-4">{{ form.assigned_wing.label_tag }} {{ form.assigned_wing }}<div class="text-danger small">{% for error in form.assigned_wing.errors %}{{ error }}{% endfor %}</div></div>
+{% else %}<div class='d-none'>{{ form.assigned_wing }}</div>{% endif %}
                             </div>
                         </div>
 
                         <h4 class="mt-4 border-bottom pb-2">Subject Assignments</h4>
                         <div id="formset_wrapper" class="border p-3 rounded bg-white">
-                            {{ formset.management_form }}
+                            <div id="management-form-container">{{ formset.management_form }}</div>
 
                             {% if formset.non_form_errors %}
                             <div class="alert alert-warning py-1 small">
@@ -72,7 +74,7 @@
                                     <table class="table align-middle" id="assignment_table">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Subject</th><th>Class</th><th>Section</th><th>Wing</th><th>Action</th>
+                                        <th>Subject</th><th>Class</th><th>Section</th>{% if current_school.school_type == 'wing-based' %}<th>Wing</th>{% endif %}<th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -81,7 +83,7 @@
                                         <td>{{ sub_form.subject }}<div class="text-danger sx-small" style="font-size: 0.75rem;">{{ sub_form.subject.errors }}</div></td>
                                         <td>{{ sub_form.student_class }}<div class="text-danger sx-small" style="font-size: 0.75rem;">{{ sub_form.student_class.errors }}</div></td>
                                         <td>{{ sub_form.section }}<div class="text-danger sx-small" style="font-size: 0.75rem;">{{ sub_form.section.errors }}</div></td>
-                                        <td>{{ sub_form.wing }}<div class="text-danger sx-small" style="font-size: 0.75rem;">{{ sub_form.wing.errors }}</div></td>
+                                        {% if current_school.school_type == 'wing-based' %}<td>{{ sub_form.wing }}{% else %}<td class='d-none'>{{ sub_form.wing }}{% endif %}<div class="text-danger sx-small" style="font-size: 0.75rem;">{{ sub_form.wing.errors }}</div></td>
                                         <td><button type="button" class="btn btn-outline-danger btn-sm remove-row">Remove</button></td>
                                     </tr>
                                     {% endfor %}
@@ -142,7 +144,7 @@ const fieldsDiv = document.getElementById('class_teacher_fields');
 
 function checkToggle() {
     if(toggle && toggle.checked) {
-        fieldsDiv.style.display = 'flex';
+        fieldsDiv.style.display = 'block';
     } else if(fieldsDiv) {
         fieldsDiv.style.display = 'none';
     }
@@ -163,7 +165,7 @@ if(addButton) {
         row.classList.remove('d-none'); // Just in case first row is hidden
         
         // Find the prefix (usually 'id_assignments' or similar)
-        let prefix = totalForms.id.replace('-TOTAL_FORMS', '');
+        let prefix = 'assignments';
         let formRegex = new RegExp(`${prefix}-(\\d+)-`,'g');
 
         row.innerHTML = row.innerHTML.replace(formRegex, `${prefix}-${formCount}-`);

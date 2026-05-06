@@ -44,7 +44,17 @@ class StudentForm(forms.ModelForm):
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
+        self.school_type = kwargs.pop('school_type', 'co-ed')
         super().__init__(*args, **kwargs)
+        if self.school_type == 'co-ed':
+            if 'wing' in self.fields:
+                self.fields['wing'].widget = forms.HiddenInput()
+                self.fields['wing'].required = False
+                self.fields['wing'].initial = 'None'
+            if 'assigned_wing' in self.fields:
+                self.fields['assigned_wing'].widget = forms.HiddenInput()
+                self.fields['assigned_wing'].required = False
+                self.fields['assigned_wing'].initial = 'None'
         for name, field in self.fields.items():
             if not isinstance(field.widget, (forms.Select, forms.DateInput, forms.Textarea)):
                 field.widget.attrs.update({'class': 'form-control'})
@@ -93,7 +103,8 @@ class TeacherForm(forms.ModelForm):
         if is_class_teacher:
             if not a_class: self.add_error('assigned_class', "Class is required.")
             if not section: self.add_error('assigned_section', "Section is required.")
-            if wing == 'None' or not wing: self.add_error('assigned_wing', "Wing is required.")
+            if self.school_type == 'wing-based' and (not wing or wing == 'None'):
+                self.add_error('assigned_wing', "Wing is required.")
             
             existing = Teacher.objects.filter(
                 is_class_teacher=True,
@@ -107,12 +118,24 @@ class TeacherForm(forms.ModelForm):
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
+        self.school_type = kwargs.pop('school_type', 'co-ed')
         super().__init__(*args, **kwargs)
+        if self.school_type == 'co-ed':
+            if 'wing' in self.fields:
+                self.fields['wing'].widget = forms.HiddenInput()
+                self.fields['wing'].required = False
+                self.fields['wing'].initial = 'None'
+            if 'assigned_wing' in self.fields:
+                self.fields['assigned_wing'].widget = forms.HiddenInput()
+                self.fields['assigned_wing'].required = False
+                self.fields['assigned_wing'].initial = 'None'
         for name, field in self.fields.items():
             if name == 'is_class_teacher':
                 field.widget.attrs.update({'class': 'form-check-input'})
             else:
                 field.widget.attrs.update({'class': 'form-control'})
+
+
 
 class SubjectAssignmentForm(forms.ModelForm):
     student_class = forms.ChoiceField(choices=CLASS_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
@@ -122,31 +145,24 @@ class SubjectAssignmentForm(forms.ModelForm):
         model = SubjectAssignment
         fields = ['subject', 'student_class', 'section', 'wing']
 
+    def __init__(self, *args, **kwargs):
+        self.school_type = kwargs.pop('school_type', 'co-ed')
+        super().__init__(*args, **kwargs)
+        if self.school_type == 'co-ed':
+            self.fields['wing'].initial = 'None'
+            self.fields['wing'].required = False
+            self.fields['wing'].widget = forms.HiddenInput()
+        else:
+            self.fields['wing'].widget.attrs.update({'class': 'form-control'})
+
     def clean(self):
         cleaned_data = super().clean()
-        subject = cleaned_data.get('subject')
-        s_class = cleaned_data.get('student_class')
-        section = cleaned_data.get('section')
         wing = cleaned_data.get('wing')
-        
-        # Explicitly check for missing fields in table
-        if not subject: self.add_error('subject', "Required.")
-        if not s_class: self.add_error('student_class', "Required.")
-        if not section: self.add_error('section', "Required.")
-        if not wing or wing == 'None': self.add_error('wing', "Required.")
-
-        if all([subject, s_class, section, wing]) and wing != 'None':
-            duplicate = SubjectAssignment.objects.filter(
-                subject=subject,
-                student_class=s_class,
-                section=section,
-                wing=wing
-            ).exclude(pk=self.instance.pk).first()
-
-            if duplicate:
-                raise ValidationError(f"Conflict: {duplicate.teacher.full_name} is already teaching {subject} in {s_class}-{section} ({wing}).")
+        if self.school_type == 'co-ed':
+            cleaned_data['wing'] = 'None'
+        elif not wing:
+            cleaned_data['wing'] = 'None'
         return cleaned_data
-
 SubjectAssignmentFormSet = inlineformset_factory(
     Teacher, SubjectAssignment, form=SubjectAssignmentForm, extra=1, can_delete=True
 )

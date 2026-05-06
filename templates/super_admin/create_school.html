@@ -24,6 +24,15 @@
         <div class="card-body p-4">
             <form method="POST">
                 {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label">School System Type</label>
+                    <select name="school_type" class="form-select" required>
+                        <option value="co-ed">Co-Education (No Wings)</option>
+                        <option value="wing-based">Wing Based (Boys/Girls Sections)</option>
+                    </select>
+                    <small class="text-muted">This affects how attendance and sections are managed.</small>
+                </div>
                 <div class="mb-3">
                     <label class="form-label">School Name</label>
                     <input type="text" name="name" class="form-control" placeholder="Army Public School" required>

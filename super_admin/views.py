@@ -13,6 +13,7 @@ def create_school(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         slug = request.POST.get('slug').lower().replace(' ', '_')
+        school_type = request.POST.get('school_type')
         admin_user = request.POST.get('admin_user')
         admin_pass = request.POST.get('admin_pass')
         
@@ -26,7 +27,7 @@ def create_school(request):
         # Save record in Main DB
         school = SchoolClient.objects.get_or_create(
             slug=slug, 
-            defaults={'name': name, 'db_name': db_name}
+            defaults={'name': name, 'db_name': db_name, 'school_type': school_type}
         )
 
         # Inject DB config temporarily

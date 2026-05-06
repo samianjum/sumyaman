@@ -29,7 +29,7 @@ class Teacher(models.Model):
 class Student(models.Model):
     RELIGION_CHOICES = [('Islam', 'Islam'), ('Christianity', 'Christianity'), ('Other', 'Other')]
     PROVINCE_CHOICES = [('Punjab', 'Punjab'), ('Sindh', 'Sindh'), ('KPK', 'KPK'), ('Balochistan', 'Balochistan'), ('Gilgit', 'Gilgit'), ('AJK', 'AJK')]
-    WING_CHOICES = [('Boys', 'Boys'), ('Girls', 'Girls')]
+    WING_CHOICES = [('None', 'None'), ('Boys', 'Boys'), ('Girls', 'Girls')]
 
     # Basic Info
     full_name = models.CharField(max_length=100)
@@ -58,7 +58,7 @@ class SubjectAssignment(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     student_class = models.CharField(max_length=10)
     section = models.CharField(max_length=10)
-    wing = models.CharField(max_length=10, choices=[('Boys', 'Boys'), ('Girls', 'Girls')])
+    wing = models.CharField(max_length=10, choices=Student.WING_CHOICES, blank=True, null=True, default='None')
 
     class Meta:
         unique_together = ('subject', 'student_class', 'section', 'wing')

@@ -7,18 +7,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .forms import StudentForm, TeacherForm, SubjectAssignmentForm, SubjectAssignmentFormSet
+from super_admin.models import SchoolClient
 from .models import Student, Teacher, Attendance, SchoolNews
 from django.db.models import Count, Q
 
 @login_required
 def hq_dashboard(request, school_slug=None):
+    current_school = get_object_or_404(SchoolClient, slug=school_slug) if school_slug else None
     if school_slug:
         set_current_db(school_slug)
     from .models import Attendance
     total = Student.objects.count()
     present = Attendance.objects.filter(date=timezone.now().date(), status__iexact='Present').count()
     perc = round((present / total * 100), 1) if total > 0 else 0
-    return render(request, 'hq_admin_custom/dashboard.html', {'school_slug': school_slug, 
+    return render(request, 'hq_admin_custom/dashboard.html', {
         'school_slug': school_slug,
         'total': total,
         'boys': Student.objects.filter(wing__iexact='Boys').count(),
@@ -26,7 +28,6 @@ def hq_dashboard(request, school_slug=None):
         'faculty_count': Teacher.objects.count(),
         'present': present,
         'perc': perc,
-        'total_students': total,
     })
 
 @login_required
@@ -73,11 +74,11 @@ def mark_attendance_view(request, class_name, section_name, wing_name, school_sl
                 )
         return redirect('mark_attendance', class_name=class_name, section_name=section_name, wing_name=wing_name)
 
-    attendance_data = []
-    for s in students:
-        record = Attendance.objects.filter(student=s, date=today).first()
-        if record: attendance_data.append(record)
-        else: attendance_data.append({'student': s, 'status': 'Not Marked'})
+    attendance_records = {a.student_id: a for a in Attendance.objects.filter(student__in=students, date=today)}
+    attendance_data = [
+        attendance_records.get(s.id, {'student': s, 'status': 'Not Marked'}) 
+        for s in students
+    ]
         
     return render(request, 'hq_admin_custom/classroom_detail.html', {'school_slug': school_slug, 
         'attendance_data': attendance_data, 'class_name': class_name, 'section_name': section_name, 'wing_name': wing_name,
@@ -123,7 +124,8 @@ def student_master_list(request, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
     if request.method == 'POST':
-        form = StudentForm(request.POST)
+        current_school = get_object_or_404(SchoolClient, slug=school_slug)
+        form = StudentForm(request.POST, school_type=current_school.school_type)
         if form.is_valid():
             form.save()
             return redirect('student_master_list', school_slug=school_slug)
@@ -192,13 +194,18 @@ def teacher_profile_view(request,  teacher_id, school_slug=None):
 @login_required
 
 @login_required
+
+@login_required
 def teacher_master_list(request, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
     
+    current_school = get_object_or_404(SchoolClient, slug=school_slug)
+    show_modal = False
+
     if request.method == 'POST':
-        form = TeacherForm(request.POST)
-        formset = SubjectAssignmentFormSet(request.POST, prefix='assignments')
+        form = TeacherForm(request.POST, school_type=current_school.school_type)
+        formset = SubjectAssignmentFormSet(request.POST, prefix='assignments', form_kwargs={'school_type': current_school.school_type})
         
         if form.is_valid() and formset.is_valid():
             teacher = form.save()
@@ -207,16 +214,21 @@ def teacher_master_list(request, school_slug=None):
                 assignment.teacher = teacher
                 assignment.save()
             return redirect('teacher_master_list', school_slug=school_slug)
+        else:
+            # If validation fails, keep the modal open to show errors
+            show_modal = True
     else:
-        form = TeacherForm()
-        formset = SubjectAssignmentFormSet(prefix='assignments')
+        form = TeacherForm(school_type=current_school.school_type)
+        formset = SubjectAssignmentFormSet(prefix='assignments', form_kwargs={'school_type': current_school.school_type})
 
     context = {
         'school_slug': school_slug,
         'teachers': Teacher.objects.all(),
         'form': form,
         'formset': formset,
-        'total_count': Teacher.objects.count()
+        'total_count': Teacher.objects.count(),
+        'current_school': current_school,
+        'show_modal': show_modal  # Key fix for frontend
     }
     return render(request, 'hq_admin_custom/teachers_list.html', context)
 def global_search(request, school_slug=None):
