@@ -39,6 +39,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'sumyaman_pro.context_processors.school_context',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -93,3 +94,6 @@ DATABASE_ROUTERS = ['sumyaman_pro.router.TenantRouter']
 # Dynamic Login/Logout
 LOGIN_URL = '/hq-admin/login/'
 LOGOUT_REDIRECT_URL = '/hq-admin/login/'
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")

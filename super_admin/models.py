@@ -2,7 +2,8 @@ from django.db import models
 
 class SchoolClient(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True) # e.g. 'bbc'
+    slug = models.SlugField(unique=True)
+    logo = models.ImageField(upload_to="school_logos/", null=True, blank=True) # e.g. 'bbc'
     db_name = models.CharField(max_length=100, unique=True) # e.g. 'bbc_school.sqlite3'
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

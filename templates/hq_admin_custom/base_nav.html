@@ -1,7 +1,28 @@
 <div class="sidebar shadow">
     <div class="sidebar-header">
-        <div class="sidebar-logo-main shadow-sm"></div>
-        <h5 class="fw-bold mb-0 text-white" style="letter-spacing: 1px;">APS OKARA ADMIN</h5>
+        
+        <div class="dropdown">
+            <div class="sidebar-logo-main shadow-sm dropdown-toggle" data-bs-toggle="dropdown" style="cursor: pointer; background-image: url('{% if current_school.logo %}{{ current_school.logo.url }}{% else %}/static/sami.png{% endif %}');"></div>
+            <ul class="dropdown-menu dropdown-menu-dark">
+                <li>
+                    <form action="/s/{{ school_slug }}/update-logo/" method="POST" enctype="multipart/form-data" class="px-3 py-2">
+                        {% csrf_token %}
+                        <input type="file" name="logo" class="form-control form-control-sm mb-2" onchange="this.form.submit()">
+                        <small class="text-muted">Change Logo</small>
+                    </form>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form action="/s/{{ school_slug }}/update-logo/" method="POST" class="px-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="remove" value="1">
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Remove Logo</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+        
+        <h5 class="fw-bold mb-0 text-white" style="letter-spacing: 1px;">{{ current_school.name|upper }} ADMIN</h5>
         <div class="online-indicator mt-2">
             <span class="dot"></span> <small class="text-uppercase" style="font-size: 0.65rem; color: #CAD2C5; letter-spacing: 1px;">System Active</small>
         </div>

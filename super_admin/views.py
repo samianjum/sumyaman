@@ -50,3 +50,26 @@ def create_school(request):
         return redirect('super_admin_dashboard')
     
     return render(request, 'super_admin/create_school.html')
+
+
+from django.http import JsonResponse
+def update_school_logo(request, school_slug):
+    if request.method == "POST":
+        try:
+            school = SchoolClient.objects.get(slug=school_slug)
+            if "remove" in request.POST:
+                if school.logo:
+                    school.logo.delete()
+                school.logo = None
+            elif request.FILES.get("logo"):
+                school.logo = request.FILES["logo"]
+            school.save()
+        except Exception as e:
+            print(f"Logo update error: {e}")
+        
+        # Success ke baad wapis usi page pe bhejna jahan se request ayi thi
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            return redirect(referer)
+        return redirect(f'/s/{school_slug}/')
+    return JsonResponse({"error": "Invalid request"})
