@@ -1,0 +1,196 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+        --primary: #2563eb;
+        --surface: #ffffff;
+        --background: #f8fafc;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+    }
+
+    body { font-family: 'Inter', sans-serif; background-color: var(--background); color: var(--text-main); }
+
+    /* Compact Navigation/Title Header */
+    .top-nav-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding: 10px 0;
+    }
+
+    .title-group h1 { font-size: 1.5rem; font-weight: 800; margin: 0; color: var(--text-main); }
+    .title-group p { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+
+    /* Action Row: Search & Date */
+    .action-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .search-container { flex-grow: 1; position: relative; }
+    .search-container i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-input { 
+        width: 100%; 
+        padding: 10px 10px 10px 35px; 
+        border-radius: 8px; 
+        border: 1px solid var(--border); 
+        outline: none; 
+        font-size: 0.9rem;
+    }
+
+    .date-picker-ui {
+        background: white;
+        border: 1px solid var(--border);
+        padding: 8px 16px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    .date-picker-ui input { border: none; outline: none; color: var(--primary); cursor: pointer; }
+
+    /* Dashboard Grid (Summary Cards) */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    .summary-card {
+        background: white;
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+    .summary-card label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; }
+    .summary-card .val { font-size: 1.4rem; font-weight: 800; }
+
+    /* Main Section List (Compact Mode) */
+    .sections-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+    }
+
+    .section-box {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        text-decoration: none !important;
+        transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .section-box:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+
+    .sec-icon { 
+        width: 45px; height: 45px; 
+        background: #f1f5f9; 
+        border-radius: 10px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    .sec-details h3 { font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text-main); }
+    .sec-details p { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px;
+        background: #f1f5f9;
+        border-radius: 12px;
+        border: 2px dashed #cbd5e1;
+    }
+</style>
+
+<div class="top-nav-bar">
+    <div class="title-group">
+        <h1>Class {{ class_name }} Overview</h1>
+        <p>Real-time attendance registry and section tracking</p>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="summary-grid">
+    <div class="summary-card">
+        <label>Total Enrolled</label>
+        <div class="val">{{ total_students|default:"0" }}</div>
+    </div>
+    <div class="summary-card" style="border-top: 3px solid #10b981;">
+        <label>Present Today</label>
+        <div class="val text-success">{{ total_present|default:"0" }}</div>
+    </div>
+    <div class="summary-card" style="border-top: 3px solid #f43f5e;">
+        <label>Absent</label>
+        <div class="val text-danger">{{ total_absent|default:"0" }}</div>
+    </div>
+    <div class="summary-card" style="border-top: 3px solid #f59e0b;">
+        <label>On Leave</label>
+        <div class="val text-warning">{{ total_leave|default:"0" }}</div>
+    </div>
+</div>
+
+<!-- Search and Date Filters -->
+<div class="action-row">
+    <div class="search-container">
+        <i class="fas fa-search"></i>
+        <input type="text" id="sectionSearch" class="search-input" placeholder="Quick find section (e.g. Section A)...">
+    </div>
+    <form method="GET">
+        <div class="date-picker-ui">
+            <i class="fas fa-calendar-day"></i>
+            <input type="date" name="date" value="{{ selected_date|default:today_date }}" onchange="this.form.submit()">
+        </div>
+    </form>
+</div>
+
+<div class="sections-container" id="sectionList">
+    {% for sec in sections %}
+    <a href="{% url 'mark_attendance' school_slug=school_slug class_name=class_name section_name=sec.student_section wing_name=sec.wing %}" class="section-box" data-name="{{ sec.student_section }}">
+        <div class="sec-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="sec-details">
+            <h3>Section {{ sec.student_section }}</h3>
+            <p>{{ sec.total }} Enrolled Students</p>
+        </div>
+        <i class="fas fa-chevron-right ms-auto text-muted" style="font-size: 0.8rem;"></i>
+    </a>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-folder-open mb-3 text-muted" style="font-size: 2rem;"></i>
+        <h5 class="fw-bold">No Sections Found</h5>
+        <p class="text-muted small">Please verify the class configuration in the administrative panel.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    // Quick search logic
+    document.getElementById('sectionSearch').addEventListener('input', function(e) {
+        let term = e.target.value.toLowerCase();
+        let items = document.querySelectorAll('.section-box');
+        items.forEach(item => {
+            let name = item.getAttribute('data-name').toLowerCase();
+            item.style.display = name.includes(term) ? 'flex' : 'none';
+        });
+    });
+</script>
+
+{% endblock %}

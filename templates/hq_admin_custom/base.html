@@ -60,6 +60,34 @@
         
         .main-wrapper { margin-left: 260px; padding-top: 70px; }
         .content-body { padding: 35px; }
+    
+        /* Attendance & Section Selection Cards */
+        .section-title { font-size: 1.4rem; font-weight: 700; color: var(--hq-primary); margin-bottom: 25px; border-left: 5px solid var(--hq-accent); padding-left: 15px; }
+        .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .class-card-wrapper { perspective: 1000px; }
+        .class-card { 
+            display: flex; background: #fff; border: 1px solid var(--hq-border); border-radius: 12px; 
+            padding: 20px; text-decoration: none !important; color: inherit; transition: all 0.3s ease;
+            position: relative; overflow: hidden; height: 110px; align-items: center;
+        }
+        .class-card:hover { transform: translateY(-5px); border-color: var(--hq-accent); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .class-icon-box { 
+            width: 60px; height: 60px; background: var(--hq-bg); border-radius: 10px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 1px solid var(--hq-border); margin-right: 20px;
+        }
+        .c-num { font-size: 1.5rem; font-weight: 800; color: var(--hq-primary); line-height: 1; }
+        .c-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--hq-accent); }
+        .class-info { flex: 1; }
+        .c-title { font-size: 1.1rem; font-weight: 700; color: var(--hq-primary); margin-bottom: 4px; }
+        .c-meta { font-size: 0.8rem; color: #64748b; font-weight: 500; }
+        .view-overlay { 
+            position: absolute; bottom: 0; left: 0; right: 0; background: var(--hq-accent); 
+            color: white; font-size: 0.7rem; font-weight: 700; text-align: center;
+            padding: 4px; transform: translateY(100%); transition: 0.3s;
+        }
+        .class-card:hover .view-overlay { transform: translateY(0); }
+
     </style>
 </head>
 <body>

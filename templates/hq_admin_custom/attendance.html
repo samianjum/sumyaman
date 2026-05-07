@@ -284,7 +284,7 @@
     {% regroup classes by student_class as class_list %}
     {% for class_group in class_list %}
     <div class="class-card-wrapper" data-class="{{ class_group.grouper }}">
-        <a href="#" class="class-card">
+        <a href="{% url 'class_sections' school_slug=school_slug class_name=class_group.grouper %}" class="class-card">
             <div class="class-icon-box">
                 <span class="c-num">{{ class_group.grouper }}</span>
                 <span class="c-label">Class</span>

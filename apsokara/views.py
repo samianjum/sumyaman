@@ -844,3 +844,39 @@ def subject_manager_view(request, school_slug=None):
     }
     return render(request, 'hq_admin_custom/subject_manager.html', context)
 
+
+
+from datetime import date
+from django.db.models import Count, Q
+
+
+@login_required
+def class_sections_view(request, school_slug, class_name):
+    if school_slug:
+        set_current_db(school_slug)
+    selected_date_str = request.GET.get('date')
+    from django.utils import timezone
+    selected_date = timezone.now().date()
+    if selected_date_str:
+        try:
+            from datetime import datetime
+            selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+
+    sections = Student.objects.filter(student_class=class_name).values('student_section', 'wing').annotate(total=Count('id')).order_by('student_section')
+    total_students = Student.objects.filter(student_class=class_name).count()
+    attendance_qs = Attendance.objects.filter(student__student_class=class_name, date=selected_date)
+
+    context = {
+        'school_slug': school_slug,
+        'class_name': class_name,
+        'sections': sections,
+        'today_date': timezone.now().date().isoformat(),
+        'selected_date': selected_date.isoformat(),
+        'total_students': total_students,
+        'total_present': attendance_qs.filter(status__iexact='Present').count(),
+        'total_absent': attendance_qs.filter(status__iexact='Absent').count(),
+        'total_leave': attendance_qs.filter(status__iexact='Leave').count(),
+    }
+    return render(request, 'hq_admin_custom/section_selection.html', context)
