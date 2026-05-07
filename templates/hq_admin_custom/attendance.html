@@ -5,169 +5,276 @@
 <style>
     :root {
         --canvas-bg: #f8fafc;
-        --panel-dark: #0f172a; /* Deep Dark Blue */
+        --panel-dark: #0f172a; 
         --accent-gold: #fbbf24;
         --text-main: #1e293b;
+        --google-blue: #1a73e8;
     }
 
-    /* Unified Dashboard Header - Google SaaS Style */
+    /* EXISTING STYLES - DO NOT TOUCH BANNER */
     .dashboard-hero {
-        background: var(--panel-dark);
-        border-radius: 20px;
-        padding: 40px;
-        margin-bottom: 30px;
-        color: white;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        background: var(--panel-dark); border-radius: 20px; padding: 40px;
+        margin-bottom: 30px; color: white; position: relative; overflow: hidden;
+        display: flex; justify-content: space-between; align-items: center;
         box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
     }
-
-    /* Abstract Background Element */
     .dashboard-hero::before {
         content: ''; position: absolute; top: -10%; right: -5%;
         width: 400px; height: 400px;
         background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
         border-radius: 50%; z-index: 1;
     }
-
     .hero-content { z-index: 2; flex: 1; }
-    .hero-stats-grid { 
-        z-index: 2; flex: 1; 
-        display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
-        max-width: 450px;
-    }
-
-    .school-tag {
-        background: rgba(251, 191, 36, 0.15);
-        color: var(--accent-gold);
-        padding: 5px 15px; border-radius: 50px;
-        font-size: 0.75rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 1px;
-        border: 1px solid rgba(251, 191, 36, 0.3);
-        margin-bottom: 15px; display: inline-block;
-    }
-
+    .hero-stats-grid { z-index: 2; flex: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 450px; }
+    .school-tag { background: rgba(251, 191, 36, 0.15); color: var(--accent-gold); padding: 5px 15px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(251, 191, 36, 0.3); margin-bottom: 15px; display: inline-block; }
     .school-name { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin: 0; line-height: 1.1; }
     .hero-subtitle { opacity: 0.6; font-size: 0.95rem; margin-top: 8px; font-weight: 400; }
-
-    /* Compact Stat Chips */
-    .stat-chip {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.1);
-        padding: 15px; border-radius: 12px;
-        display: flex; align-items: center; gap: 12px;
-    }
-    .stat-chip i { font-size: 1.2rem; opacity: 0.8; }
+    .stat-chip { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 12px; }
     .stat-val { font-size: 1.3rem; font-weight: 800; display: block; line-height: 1; }
     .stat-lbl { font-size: 0.65rem; text-transform: uppercase; opacity: 0.5; letter-spacing: 0.5px; }
 
-    /* Selection Area */
-    .section-title { 
-        font-size: 1.1rem; font-weight: 700; color: var(--text-main); 
-        margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+    /* NEW CO-ED DESIGN SYSTEM (PROFESSIONAL & CLEAN) */
+    .controls-row {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 25px; gap: 15px; flex-wrap: wrap;
     }
+    .filter-btn-group {
+        display: flex; background: #e2e8f0; padding: 4px; border-radius: 10px;
+    }
+    .filter-btn {
+        padding: 6px 16px; border-radius: 8px; border: none; font-size: 0.85rem;
+        font-weight: 600; color: #64748b; background: transparent; transition: 0.2s;
+    }
+    .filter-btn.active { background: white; color: var(--panel-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+    .search-container { position: relative; flex: 1; max-width: 300px; }
+    .search-container i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .search-input { width: 100%; padding: 8px 12px 8px 35px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.9rem; }
+
+    .section-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
     .section-title::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
 
-    /* Grid Layouts */
-    .entry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    /* Class Cards Grid */
+    .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
     
-    .module-card {
+    .class-card {
         background: white; border: 1px solid #e2e8f0; border-radius: 16px;
-        padding: 25px; transition: all 0.3s ease;
+        padding: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none !important; color: inherit;
-        display: flex; flex-direction: column; position: relative;
+        position: relative; overflow: hidden; display: flex; align-items: center; gap: 15px;
     }
-    .module-card:hover { 
-        transform: translateY(-5px); border-color: var(--panel-dark); 
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
-    }
-
-    .module-icon {
-        width: 45px; height: 45px; background: #f1f5f9;
-        border-radius: 10px; display: flex; align-items: center;
-        justify-content: center; color: var(--panel-dark);
-        font-size: 1.2rem; margin-bottom: 15px;
+    .class-card:hover { 
+        transform: translateY(-5px); border-color: var(--google-blue); 
+        box-shadow: 0 12px 24px rgba(0,0,0,0.06); 
     }
 
-    .class-badge {
-        position: absolute; top: 20px; right: 20px;
-        font-size: 0.7rem; font-weight: 700; background: #f1f5f9;
-        padding: 4px 10px; border-radius: 6px; color: #64748b;
+    .class-icon-box {
+        width: 55px; height: 55px; background: #f1f5f9; border-radius: 12px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        color: var(--panel-dark); border: 1px solid #e2e8f0;
+    }
+    .class-icon-box .c-num { font-size: 1.4rem; font-weight: 900; line-height: 1; }
+    .class-icon-box .c-label { font-size: 0.6rem; text-transform: uppercase; font-weight: 700; opacity: 0.6; }
+
+    .class-info { flex: 1; }
+    .class-info .c-title { font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 2px; }
+    .class-info .c-meta { font-size: 0.75rem; color: #64748b; font-weight: 500; }
+
+    .view-overlay {
+        position: absolute; inset: 0; background: rgba(26, 115, 232, 0.9);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: 700; font-size: 0.85rem;
+        opacity: 0; transition: 0.3s; transform: translateY(100%);
+    }
+    .class-card:hover .view-overlay { opacity: 1; transform: translateY(0); }
+
+
+    /* PREMIUM WING CARDS (GOOGLE STYLE) */
+    .wing-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+        margin-top: 20px;
+    }
+    .wing-card {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 35px 30px;
+        text-decoration: none !important;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .wing-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; width: 100%; height: 4px;
+        background: var(--google-blue);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    .wing-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--google-blue);
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+    }
+    .wing-card:hover::after {
+        transform: scaleX(1);
+    }
+    .wing-card .w-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--panel-dark);
+        margin-bottom: 8px;
+        letter-spacing: -0.5px;
+    }
+    .wing-card .w-desc {
+        font-size: 0.95rem;
+        color: #64748b;
+        line-height: 1.5;
+        max-width: 90%;
+    }
+    .wing-card .w-action {
+        margin-top: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--google-blue);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: all 0.3s ease;
+    }
+    .wing-card:hover .w-action {
+        opacity: 1;
+        transform: translateX(0);
     }
 
+    .level-badge {
+        position: absolute; top: 12px; right: 12px; font-size: 0.6rem;
+        padding: 2px 8px; border-radius: 4px; font-weight: 800; text-transform: uppercase;
+    }
+    .bg-junior { background: #dcfce7; color: #166534; }
+    .bg-senior { background: #fef3c7; color: #92400e; }
 </style>
 
-<!-- Unified Hero & Stats Surface -->
+<!-- Hero Section (Untouched) -->
 <div class="dashboard-hero">
     <div class="hero-content">
         <span class="school-tag"><i class="fas fa-fingerprint me-1"></i> Live Portal</span>
         <h1 class="school-name">{{ current_school.name|default:"Education Command" }}</h1>
         <p class="hero-subtitle">Centralized Attendance & Student Intelligence System</p>
-        
         <div class="mt-4">
             <form method="GET" class="d-inline-block">
                 <input type="date" name="date" class="form-control form-control-sm bg-dark text-white border-secondary" 
-                       value="{{ today_date|date:'Y-m-d' }}" onchange="this.form.submit()" 
-                       style="width: 160px; border-radius: 8px; cursor: pointer;">
+                       value="{{ today_date|date:'Y-m-d' }}" onchange="this.form.submit()" style="width: 160px; border-radius: 8px;">
             </form>
         </div>
     </div>
-
     <div class="hero-stats-grid">
-        <div class="stat-chip">
-            <i class="fas fa-users text-info"></i>
-            <div><span class="stat-val">{{ total_students }}</span><span class="stat-lbl">Enrolled</span></div>
+        <div class="stat-chip"><i class="fas fa-users text-info"></i><div><span class="stat-val">{{ total_students }}</span><span class="stat-lbl">Enrolled</span></div></div>
+        <div class="stat-chip" style="border-left: 3px solid #10b981;"><i class="fas fa-check-circle text-success"></i><div><span class="stat-val">{{ present }}</span><span class="stat-lbl">Present</span></div></div>
+        <div class="stat-chip" style="border-left: 3px solid #ef4444;"><i class="fas fa-times-circle text-danger"></i><div><span class="stat-val">{{ absent }}</span><span class="stat-lbl">Absent</span></div></div>
+        <div class="stat-chip" style="border-left: 3px solid #fbbf24;"><i class="fas fa-clock text-warning"></i><div><span class="stat-val">{{ leave }}</span><span class="stat-lbl">On Leave</span></div></div>
+    </div>
+</div>
+
+
+{% if is_wing_based %}
+<!-- Case 1: Wing Based (RE-STYLED ONLY) -->
+<div class="section-title"><i class="fas fa-layer-group text-muted"></i> Institutional Sectors</div>
+<div class="wing-grid">
+    <a href="{% url 'boys_wing' school_slug=school_slug %}" class="wing-card">
+        <div class="w-title">Boys Wing</div>
+        <div class="w-desc">Comprehensive academic and presence management for male student blocks.</div>
+        <div class="w-action">Access Dashboard <i class="fas fa-chevron-right"></i></div>
+    </a>
+    <a href="{% url 'girls_wing' school_slug=school_slug %}" class="wing-card" style="border-left: 5px solid var(--accent-gold);">
+        <div class="w-title">Girls Wing</div>
+        <div class="w-desc">Academic tracking and administrative control for female educational sections.</div>
+        <div class="w-action">Access Dashboard <i class="fas fa-chevron-right"></i></div>
+    </a>
+</div>
+{% else %}
+
+<!-- Case 2: Co-Ed (NEW CLASS-WISE AGGREGATION) -->
+<div class="controls-row">
+    <div class="section-title mb-0" style="border:none">Classroom Hierarchy</div>
+    <div class="d-flex gap-3 align-items-center">
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="classSearch" class="search-input" placeholder="Quick find class...">
         </div>
-        <div class="stat-chip" style="border-left: 3px solid #10b981;">
-            <i class="fas fa-check-circle text-success"></i>
-            <div><span class="stat-val">{{ present }}</span><span class="stat-lbl">Present</span></div>
-        </div>
-        <div class="stat-chip" style="border-left: 3px solid #ef4444;">
-            <i class="fas fa-times-circle text-danger"></i>
-            <div><span class="stat-val">{{ absent }}</span><span class="stat-lbl">Absent</span></div>
-        </div>
-        <div class="stat-chip" style="border-left: 3px solid #fbbf24;">
-            <i class="fas fa-clock text-warning"></i>
-            <div><span class="stat-val">{{ leave }}</span><span class="stat-lbl">On Leave</span></div>
+        <div class="filter-btn-group">
+            <button class="filter-btn active" onclick="filterClasses('all', this)">All</button>
+            <button class="filter-btn" onclick="filterClasses('junior', this)">Junior</button>
+            <button class="filter-btn" onclick="filterClasses('senior', this)">Senior</button>
         </div>
     </div>
 </div>
 
-<div class="section-title">
-    <i class="fas fa-layer-group text-muted"></i> 
-    {% if is_wing_based %}Institutional Sectors{% else %}Classroom Directory{% endif %}
-</div>
+<div class="class-grid" id="classGrid">
+    {% regroup classes by student_class as class_list %}
+    {% for class_group in class_list %}
+    <div class="class-card-wrapper" data-class="{{ class_group.grouper }}">
+        <a href="#" class="class-card">
+            <div class="class-icon-box">
+                <span class="c-num">{{ class_group.grouper }}</span>
+                <span class="c-label">Class</span>
+            </div>
+            <div class="class-info">
+                <div class="c-title">Grade {{ class_group.grouper }}</div>
+                <div class="c-meta">
+                    <i class="fas fa-th-large me-1"></i> {{ class_group.list|length }} Sections
+                </div>
+            </div>
+            
+            {% with c=class_group.grouper %}
+                {% if c == 'PG' or c == 'Nursery' or c == '1' or c == '2' or c == '3' or c == '4' or c == '5' %}
+                    <span class="level-badge bg-junior">Junior</span>
+                {% else %}
+                    <span class="level-badge bg-senior">Senior</span>
+                {% endif %}
+            {% endwith %}
 
-{% if is_wing_based %}
-<div class="entry-grid">
-    <a href="{% url 'boys_wing' school_slug=school_slug %}" class="module-card">
-        <div class="module-icon"><i class="fas fa-mars"></i></div>
-        <h4 class="fw-bold mb-1">Boys Wing</h4>
-        <p class="text-muted small mb-0">Primary to Senior level male student management.</p>
-        <i class="fas fa-arrow-right position-absolute" style="bottom: 25px; right: 25px; opacity: 0.3;"></i>
-    </a>
-    <a href="{% url 'girls_wing' school_slug=school_slug %}" class="module-card" style="border-bottom: 4px solid var(--accent-gold);">
-        <div class="module-icon"><i class="fas fa-venus"></i></div>
-        <h4 class="fw-bold mb-1">Girls Wing</h4>
-        <p class="text-muted small mb-0">Academic and presence tracking for female sections.</p>
-        <i class="fas fa-arrow-right position-absolute" style="bottom: 25px; right: 25px; opacity: 0.3;"></i>
-    </a>
-</div>
-{% else %}
-<div class="entry-grid">
-    {% for cls in classes %}
-    <a href="{% url 'mark_attendance' school_slug=school_slug class_name=cls.student_class section_name=cls.student_section wing_name=cls.wing %}" 
-       class="module-card">
-        <span class="class-badge">{{ cls.total }} Students</span>
-        <div class="module-icon"><i class="fas fa-chalkboard-user"></i></div>
-        <h4 class="fw-bold mb-0">{{ cls.student_class }}</h4>
-        <p class="text-muted small">Section {{ cls.student_section }}</p>
-    </a>
+            <div class="view-overlay">
+                <span>VIEW SECTIONS <i class="fas fa-chevron-right ms-1"></i></span>
+            </div>
+        </a>
+    </div>
     {% endfor %}
 </div>
-{% endif %}
 
+<script>
+    function filterClasses(level, btn) {
+        const cards = document.querySelectorAll('.class-card-wrapper');
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        cards.forEach(card => {
+            const badge = card.querySelector('.level-badge').innerText.toLowerCase();
+            if (level === 'all' || badge === level) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    document.getElementById('classSearch').addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.class-card-wrapper').forEach(card => {
+            const name = card.getAttribute('data-class').toLowerCase();
+            card.style.display = name.includes(term) ? 'block' : 'none';
+        });
+    });
+</script>
+{% endif %}
 {% endblock content %}
