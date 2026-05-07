@@ -1,3 +1,9 @@
+import os
+
+# Path to your attendance template
+template_path = 'templates/hq_admin_custom/attendance.html'
+
+patch_code = """
 {% extends 'hq_admin_custom/base.html' %}
 {% block title %}Attendance HQ | APS OKARA{% endblock title %}
 
@@ -11,7 +17,7 @@
         border-left: 8px solid var(--hq-accent);
     }
     .hq-institutional-banner::after {
-        content: '\f19c'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+        content: '\\f19c'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
         position: absolute; right: -20px; bottom: -20px; font-size: 18rem;
         opacity: 0.05; transform: rotate(-15deg);
     }
@@ -113,3 +119,9 @@
 </div>
 {% endif %}
 {% endblock content %}
+"""
+
+with open(template_path, 'w') as f:
+    f.write(patch_code.strip())
+
+print(f"FIX APPLIED: {template_path} now respects is_wing_based logic.")

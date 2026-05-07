@@ -43,9 +43,14 @@ def attendance_view(request, school_slug=None):
     a = Attendance.objects.filter(date=target_date, status__iexact='Absent').count()
     l = Attendance.objects.filter(date=target_date, status__iexact='Leave').count()
     classes_data = Student.objects.values('student_class', 'student_section', 'wing').annotate(total=Count('id')).order_by('student_class', 'student_section')
-    return render(request, 'hq_admin_custom/attendance.html', {'school_slug': school_slug, 
+    
+    is_wing_based = Student.objects.filter(wing__in=['Boys', 'Girls']).exists()
+    return render(request, 'hq_admin_custom/attendance.html', {
+        'school_slug': school_slug, 
         'classes': classes_data, 'today_date': target_date, 
-        'present': p, 'absent': a, 'leave': l, 'total_students': Student.objects.count()
+        'present': p, 'absent': a, 'leave': l, 
+        'total_students': Student.objects.count(),
+        'is_wing_based': is_wing_based
     })
 
 @login_required
