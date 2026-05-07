@@ -48,7 +48,7 @@
             <div class="student-meta">
                 <span>S/O: <strong>{{ s.father_name }}</strong></span>
                 <span class="meta-tag"><i class="fas fa-school me-1"></i> {{ s.student_class }} - {{ s.student_section }}</span>
-                <span class="meta-tag"><i class="fas fa-users me-1"></i> {{ s.wing|upper }} WING</span>
+                {% if s.wing and s.wing != "None" %}<span class="meta-tag"><i class="fas fa-users me-1"></i> {{ s.wing|upper }} WING</span>{% endif %}
                 <span class="meta-tag"><i class="fas fa-hashtag me-1"></i> {{ s.roll_number }}</span>
             </div>
         </div>
@@ -75,7 +75,7 @@
             <div class="detail-item"><span class="detail-label">Nationality</span><span class="detail-value">{{ s.nationality }}</span></div>
             <div class="detail-item"><span class="detail-label">Province</span><span class="detail-value">{{ s.province }}</span></div>
             <div class="detail-item"><span class="detail-label">Guardian Phone</span><span class="detail-value">{{ s.parents_phone }}</span></div>
-            <div class="detail-item"><span class="detail-label">Wing Type</span><span class="detail-value">{{ s.wing }}</span></div>
+            {% if s.wing and s.wing != "None" %}<div class="detail-item"><span class="detail-label">Wing Type</span><span class="detail-value">{{ s.wing }}</span></div>{% endif %}
             <div class="detail-item" style="grid-column: span 4;"><span class="detail-label">Home Address</span><span class="detail-value">{{ s.address }}</span></div>
         </div>
     </div>
