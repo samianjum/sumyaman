@@ -1,136 +1,184 @@
 import os
 
-# Path to your attendance template
 template_path = 'templates/hq_admin_custom/attendance.html'
 
 patch_code = """
 {% extends 'hq_admin_custom/base.html' %}
-{% block title %}Attendance HQ | {{ current_school.name|default:"Institution" }}{% endblock title %}
+{% block title %}Dashboard | {{ current_school.name|default:"Management" }}{% endblock title %}
 
 {% block content %}
 <style>
-    /* Premium Institutional Banner */
-    .hq-institutional-banner {
-        background: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%);
-        color: white; border-radius: 15px; padding: 50px 40px; margin-bottom: 30px;
-        position: relative; overflow: hidden; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        border-bottom: 4px solid var(--hq-accent);
+    :root {
+        --canvas-bg: #f8fafc;
+        --panel-dark: #0f172a; /* Deep Dark Blue */
+        --accent-gold: #fbbf24;
+        --text-main: #1e293b;
     }
 
-    /* Abstract UI Decorations (The "Google" Look) */
-    .hq-institutional-banner::before {
-        content: ''; position: absolute; top: -50px; right: -50px;
-        width: 250px; height: 250px; background: rgba(255,255,255,0.03);
-        border-radius: 50%;
-    }
-    .hq-institutional-banner::after {
-        content: '\\f19c'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
-        position: absolute; right: 30px; bottom: -10px; font-size: 12rem;
-        opacity: 0.07; transform: rotate(-10deg);
+    /* Unified Dashboard Header - Google SaaS Style */
+    .dashboard-hero {
+        background: var(--panel-dark);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
     }
 
-    .banner-badge {
-        background: var(--hq-accent); color: var(--hq-primary);
-        padding: 4px 12px; border-radius: 50px; font-size: 0.7rem;
-        font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    /* Abstract Background Element */
+    .dashboard-hero::before {
+        content: ''; position: absolute; top: -10%; right: -5%;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+        border-radius: 50%; z-index: 1;
+    }
+
+    .hero-content { z-index: 2; flex: 1; }
+    .hero-stats-grid { 
+        z-index: 2; flex: 1; 
+        display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+        max-width: 450px;
+    }
+
+    .school-tag {
+        background: rgba(251, 191, 36, 0.15);
+        color: var(--accent-gold);
+        padding: 5px 15px; border-radius: 50px;
+        font-size: 0.75rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1px;
+        border: 1px solid rgba(251, 191, 36, 0.3);
         margin-bottom: 15px; display: inline-block;
     }
 
-    .hub-section { background: white; border: 1px solid var(--hq-border); border-radius: 15px; padding: 30px; margin-bottom: 30px; }
-    .hub-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--hq-bg); padding-bottom: 20px; margin-bottom: 25px; }
-    
-    .ana-card-alt { text-align: center; padding: 20px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }
-    .ana-num { font-size: 2rem; font-weight: 800; display: block; color: var(--hq-primary); }
-    .ana-label-alt { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    .school-name { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin: 0; line-height: 1.1; }
+    .hero-subtitle { opacity: 0.6; font-size: 0.95rem; margin-top: 8px; font-weight: 400; }
 
-    /* Wing/Co-Ed Cards */
-    .wing-card, .coed-class-card {
-        background: white; border: 1px solid var(--hq-border);
-        border-radius: 15px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        text-decoration: none !important; color: inherit; display: block;
+    /* Compact Stat Chips */
+    .stat-chip {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 15px; border-radius: 12px;
+        display: flex; align-items: center; gap: 12px;
     }
-    .wing-card:hover, .coed-class-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-color: var(--hq-accent); }
-    .wing-card { padding: 40px; position: relative; overflow: hidden; }
-    .wing-card i { font-size: 3.5rem; color: var(--hq-accent); margin-bottom: 20px; }
-    .go-btn { position: absolute; bottom: 0; right: 0; background: var(--hq-primary); color: white; padding: 10px 25px; border-radius: 15px 0 0 0; font-size: 0.8rem; font-weight: bold; }
+    .stat-chip i { font-size: 1.2rem; opacity: 0.8; }
+    .stat-val { font-size: 1.3rem; font-weight: 800; display: block; line-height: 1; }
+    .stat-lbl { font-size: 0.65rem; text-transform: uppercase; opacity: 0.5; letter-spacing: 0.5px; }
 
-    .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
-    .coed-class-card { padding: 25px; text-align: center; border-top: 5px solid var(--hq-primary); }
+    /* Selection Area */
+    .section-title { 
+        font-size: 1.1rem; font-weight: 700; color: var(--text-main); 
+        margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+
+    /* Grid Layouts */
+    .entry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    
+    .module-card {
+        background: white; border: 1px solid #e2e8f0; border-radius: 16px;
+        padding: 25px; transition: all 0.3s ease;
+        text-decoration: none !important; color: inherit;
+        display: flex; flex-direction: column; position: relative;
+    }
+    .module-card:hover { 
+        transform: translateY(-5px); border-color: var(--panel-dark); 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+    }
+
+    .module-icon {
+        width: 45px; height: 45px; background: #f1f5f9;
+        border-radius: 10px; display: flex; align-items: center;
+        justify-content: center; color: var(--panel-dark);
+        font-size: 1.2rem; margin-bottom: 15px;
+    }
+
+    .class-badge {
+        position: absolute; top: 20px; right: 20px;
+        font-size: 0.7rem; font-weight: 700; background: #f1f5f9;
+        padding: 4px 10px; border-radius: 6px; color: #64748b;
+    }
+
 </style>
 
-<div class="hq-institutional-banner">
-    <div class="position-relative" style="z-index: 2;">
-        <span class="banner-badge"><i class="fas fa-bolt me-1"></i> Live Monitoring</span>
-        <h1 class="fw-black text-uppercase mb-1" style="font-size: 2.8rem; letter-spacing: -1px;">
-            {{ current_school.name|default:"Central Intelligence" }}
-        </h1>
-        <p class="opacity-75 fs-5 fw-light">
-            Integrated Attendance & Analytics <span class="mx-2">|</span> HQ Control Panel
-        </p>
+<!-- Unified Hero & Stats Surface -->
+<div class="dashboard-hero">
+    <div class="hero-content">
+        <span class="school-tag"><i class="fas fa-fingerprint me-1"></i> Live Portal</span>
+        <h1 class="school-name">{{ current_school.name|default:"Education Command" }}</h1>
+        <p class="hero-subtitle">Centralized Attendance & Student Intelligence System</p>
+        
+        <div class="mt-4">
+            <form method="GET" class="d-inline-block">
+                <input type="date" name="date" class="form-control form-control-sm bg-dark text-white border-secondary" 
+                       value="{{ today_date|date:'Y-m-d' }}" onchange="this.form.submit()" 
+                       style="width: 160px; border-radius: 8px; cursor: pointer;">
+            </form>
+        </div>
+    </div>
+
+    <div class="hero-stats-grid">
+        <div class="stat-chip">
+            <i class="fas fa-users text-info"></i>
+            <div><span class="stat-val">{{ total_students }}</span><span class="stat-lbl">Enrolled</span></div>
+        </div>
+        <div class="stat-chip" style="border-left: 3px solid #10b981;">
+            <i class="fas fa-check-circle text-success"></i>
+            <div><span class="stat-val">{{ present }}</span><span class="stat-lbl">Present</span></div>
+        </div>
+        <div class="stat-chip" style="border-left: 3px solid #ef4444;">
+            <i class="fas fa-times-circle text-danger"></i>
+            <div><span class="stat-val">{{ absent }}</span><span class="stat-lbl">Absent</span></div>
+        </div>
+        <div class="stat-chip" style="border-left: 3px solid #fbbf24;">
+            <i class="fas fa-clock text-warning"></i>
+            <div><span class="stat-val">{{ leave }}</span><span class="stat-lbl">On Leave</span></div>
+        </div>
     </div>
 </div>
 
-<!-- Analytics Section -->
-<div class="hub-section">
-    <div class="hub-header">
-        <h5 class="fw-bold mb-0 text-muted"><i class="fas fa-chart-line me-2"></i>Daily Statistics</h5>
-        <form method="GET" class="d-flex gap-2">
-            <input type="date" name="date" class="form-control form-control-sm w-auto" value="{{ today_date|date:'Y-m-d' }}" onchange="this.form.submit()">
-        </form>
-    </div>
-    <div class="row g-3">
-        <div class="col-md-3"><div class="ana-card-alt"><span class="ana-num">{{ total_students }}</span><span class="ana-label-alt">Total Strength</span></div></div>
-        <div class="col-md-3"><div class="ana-card-alt" style="border-bottom: 4px solid #10b981;"><span class="ana-num text-success">{{ present }}</span><span class="ana-label-alt">Present Today</span></div></div>
-        <div class="col-md-3"><div class="ana-card-alt" style="border-bottom: 4px solid #ef4444;"><span class="ana-num text-danger">{{ absent }}</span><span class="ana-label-alt">Absent</span></div></div>
-        <div class="col-md-3"><div class="ana-card-alt" style="border-bottom: 4px solid #f59e0b;"><span class="ana-num text-warning">{{ leave }}</span><span class="ana-label-alt">On Leave</span></div></div>
-    </div>
+<div class="section-title">
+    <i class="fas fa-layer-group text-muted"></i> 
+    {% if is_wing_based %}Institutional Sectors{% else %}Classroom Directory{% endif %}
 </div>
 
 {% if is_wing_based %}
-<!-- Case 1: Wing Based -->
-<div class="row g-4">
-    <div class="col-md-6">
-        <a href="{% url 'boys_wing' school_slug=school_slug %}" class="wing-card">
-            <i class="fas fa-person-arrow-up-from-line"></i>
-            <h3 class="fw-black">BOYS WING</h3>
-            <p class="text-muted">Manage academic presence and records for the Boys section.</p>
-            <div class="go-btn">ACCESS SECTOR <i class="fas fa-chevron-right ms-1"></i></div>
-        </a>
-    </div>
-    <div class="col-md-6">
-        <a href="{% url 'girls_wing' school_slug=school_slug %}" class="wing-card">
-            <i class="fas fa-person-dress"></i>
-            <h3 class="fw-black">GIRLS WING</h3>
-            <p class="text-muted">Access girls' wing monitoring and attendance trends.</p>
-            <div class="go-btn" style="background: var(--hq-accent); color: var(--hq-primary);">ACCESS SECTOR <i class="fas fa-chevron-right ms-1"></i></div>
-        </a>
-    </div>
+<div class="entry-grid">
+    <a href="{% url 'boys_wing' school_slug=school_slug %}" class="module-card">
+        <div class="module-icon"><i class="fas fa-mars"></i></div>
+        <h4 class="fw-bold mb-1">Boys Wing</h4>
+        <p class="text-muted small mb-0">Primary to Senior level male student management.</p>
+        <i class="fas fa-arrow-right position-absolute" style="bottom: 25px; right: 25px; opacity: 0.3;"></i>
+    </a>
+    <a href="{% url 'girls_wing' school_slug=school_slug %}" class="module-card" style="border-bottom: 4px solid var(--accent-gold);">
+        <div class="module-icon"><i class="fas fa-venus"></i></div>
+        <h4 class="fw-bold mb-1">Girls Wing</h4>
+        <p class="text-muted small mb-0">Academic and presence tracking for female sections.</p>
+        <i class="fas fa-arrow-right position-absolute" style="bottom: 25px; right: 25px; opacity: 0.3;"></i>
+    </a>
 </div>
 {% else %}
-<!-- Case 2: Co-Ed -->
-<div class="hub-section">
-    <div class="hub-header">
-        <h5 class="fw-bold mb-0"><i class="fas fa- chalkboard me-2"></i>Classroom Directory</h5>
-    </div>
-    <div class="class-grid">
-        {% for cls in classes %}
-        <a href="{% url 'mark_attendance' school_slug=school_slug class_name=cls.student_class section_name=cls.student_section wing_name=cls.wing %}" 
-           class="coed-class-card">
-            <div class="h3 fw-black mb-0">{{ cls.student_class }}</div>
-            <div class="fw-bold text-muted small text-uppercase">Section {{ cls.student_section }}</div>
-            <div class="mt-3 pt-2 border-top small text-muted">
-                <i class="fas fa-fingerprint me-1"></i> {{ cls.total }} Enrolled
-            </div>
-        </a>
-        {% endfor %}
-    </div>
+<div class="entry-grid">
+    {% for cls in classes %}
+    <a href="{% url 'mark_attendance' school_slug=school_slug class_name=cls.student_class section_name=cls.student_section wing_name=cls.wing %}" 
+       class="module-card">
+        <span class="class-badge">{{ cls.total }} Students</span>
+        <div class="module-icon"><i class="fas fa-chalkboard-user"></i></div>
+        <h4 class="fw-bold mb-0">{{ cls.student_class }}</h4>
+        <p class="text-muted small">Section {{ cls.student_section }}</p>
+    </a>
+    {% endfor %}
 </div>
 {% endif %}
+
 {% endblock content %}
 """
 
 with open(template_path, 'w') as f:
     f.write(patch_code.strip())
 
-print("SUCCESS: Dynamic Banner & Branding applied. Hardcoded names removed.")
+print("SUCCESS: SaaS UI Overhaul Complete. Unified Hero & Compact Grid applied.")
