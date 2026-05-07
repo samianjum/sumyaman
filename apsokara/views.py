@@ -777,13 +777,19 @@ def view_student_result(request,  student_id, exam_id=None, subject_id=None, sch
 
 
 @login_required
+
 def subject_manager_view(request, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
-    if school_slug:
-        set_current_db(school_slug)
+    
     from .models import Subject, SubjectAssignment, Teacher, Student
+    from super_admin.models import SchoolClient
     from django.contrib import messages
+    from django.shortcuts import get_object_or_404, render, redirect
+
+    # Get school type from main DB to handle wing logic
+    current_school = get_object_or_404(SchoolClient.objects.using('default'), slug=school_slug)
+    is_wing_based = current_school.school_type == 'wing-based'
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -797,17 +803,16 @@ def subject_manager_view(request, school_slug=None):
             s_id = request.POST.get('subject_id')
             cl = request.POST.get('class')
             sec = request.POST.get('section')
-            wg = request.POST.get('wing')
+            # If co-ed, force wing to 'None'
+            wg = request.POST.get('wing') if is_wing_based else 'None'
             override = request.POST.get('override') == 'true'
 
-            # Check for existing assignment
             existing = SubjectAssignment.objects.filter(
                 subject_id=s_id, student_class=cl, section=sec, wing=wg
             ).first()
 
             if existing and not override:
-                messages.warning(request, f"Conflict: {existing.subject.name} is already assigned to {existing.teacher.full_name} in {cl}-{sec} ({wg}).")
-                # Store temporary data in session to keep form filled if needed
+                messages.warning(request, f"Conflict: {existing.subject.name} already assigned to {existing.teacher.full_name} in {cl}-{sec}.")
                 request.session['conflict_data'] = {'t_id': t_id, 's_id': s_id, 'cl': cl, 'sec': sec, 'wg': wg}
             else:
                 SubjectAssignment.objects.update_or_create(
@@ -830,6 +835,7 @@ def subject_manager_view(request, school_slug=None):
         'assignments': SubjectAssignment.objects.select_related('teacher', 'subject').all(),
         'conflict_data': request.session.get('conflict_data'),
         'school_slug': school_slug,
+        'is_wing_based': is_wing_based,
     }
     return render(request, 'hq_admin_custom/subject_manager.html', context)
 

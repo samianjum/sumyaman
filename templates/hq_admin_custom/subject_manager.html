@@ -61,12 +61,14 @@
                                 <label class="small fw-bold text-muted">SEC</label>
                                 <input name="section" class="form-control border-0 shadow-sm" style="background: #f1f5f9;" placeholder="A" required>
                             </div>
+                            {% if is_wing_based %}
                             <div class="col-4">
                                 <label class="small fw-bold text-muted">WING</label>
                                 <select name="wing" class="form-select border-0 shadow-sm" style="background: #f1f5f9;">
                                     <option>Boys</option><option>Girls</option>
                                 </select>
                             </div>
+                            {% endif %}
                         </div>
                         <button class="btn w-100 fw-bold shadow-sm mt-2 text-white" style="background: var(--hq-accent);">UPDATE ASSIGNMENT</button>
                     </form>
@@ -83,7 +85,7 @@
                             <th class="py-3 px-4 small fw-bold">SUBJECT</th>
                             <th class="py-3 small fw-bold">TEACHER</th>
                             <th class="py-3 small fw-bold">CLASS</th>
-                            <th class="py-3 small fw-bold">WING</th>
+                            {% if is_wing_based %}<th class="py-3 small fw-bold">WING</th>{% endif %}
                             <th class="py-3 text-center small fw-bold">ACTION</th>
                         </tr>
                     </thead>
@@ -93,7 +95,7 @@
                             <td class="py-3 px-4 fw-bold" style="color: var(--hq-primary);">{{a.subject.name}}</td>
                             <td class="py-3">{{a.teacher.full_name}}</td>
                             <td class="py-3"><span class="badge bg-light text-dark border">{{a.student_class}}-{{a.section}}</span></td>
-                            <td class="py-3">{{a.wing}}</td>
+                            {% if is_wing_based %}<td class="py-3">{{a.wing}}</td>{% endif %}
                             <td class="py-3 text-center">
                                 <form method="POST" style="display:inline;"> {% csrf_token %}
                                     <input type="hidden" name="action" value="delete_assignment">
@@ -103,7 +105,7 @@
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="5" class="text-center py-5 text-muted">No assignments found yet.</td></tr>
+                        <tr><td {% if is_wing_based %}colspan="5"{% else %}colspan="4"{% endif %} class="text-center py-5 text-muted">No assignments found yet.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
