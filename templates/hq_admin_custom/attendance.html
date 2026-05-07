@@ -163,6 +163,66 @@
     }
     .bg-junior { background: #dcfce7; color: #166534; }
     .bg-senior { background: #fef3c7; color: #92400e; }
+
+    /* PROFESSIONAL CLEAN CARDS (GOOGLE/SaaS STYLE) */
+    .class-card, .wing-card {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+        transition: all 0.25s ease-in-out !important;
+    }
+
+    /* Subtle Hover Effect - No Hacky Colors */
+    .class-card:hover, .wing-card:hover {
+        transform: translateY(-4px) !important;
+        border-color: var(--google-blue) !important;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05) !important;
+    }
+
+    /* Class Icon Box - Minimalist Blue */
+    .class-icon-box {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        color: var(--panel-dark) !important;
+    }
+    .class-card:hover .class-icon-box {
+        background: #eff6ff !important;
+        border-color: #bfdbfe !important;
+        color: var(--google-blue) !important;
+    }
+
+    /* Wing Card specific clean-up */
+    .wing-card {
+        padding: 30px !important;
+    }
+    .wing-card .w-title {
+        color: var(--panel-dark) !important;
+        font-size: 1.25rem !important;
+    }
+    .wing-card .w-desc {
+        color: #64748b !important;
+    }
+    
+    /* Reveal Action on Hover */
+    .w-action {
+        color: var(--google-blue) !important;
+        font-weight: 600 !important;
+        margin-top: 15px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        font-size: 0.85rem !important;
+        opacity: 0.7;
+    }
+
+    /* Overlay refinement */
+    .view-overlay {
+        background: rgba(255, 255, 255, 0.95) !important;
+        color: var(--google-blue) !important;
+        border-top: 1px solid #eff6ff !important;
+        backdrop-filter: blur(4px);
+    }
+
 </style>
 
 <!-- Hero Section (Untouched) -->
