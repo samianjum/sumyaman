@@ -8,7 +8,61 @@ app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.secret_key = "aps_okara_ultimate_final_v3"
 
 # --- CONFIG ---
-DB_PATH = 'db.sqlite3'
+# --- Dynamic Multi-Tenancy Inject ---
+import os
+def get_db_path():
+    try:
+        from flask import request, session
+        # Check if we are inside a request
+        host = request.host.split(':')[0]
+        subdomain = host.split('.')[0]
+        tenant = request.args.get('t') or (subdomain if subdomain not in ['localhost', '127', 'www'] else (session.get('tenant') or request.headers.get('X-Tenant')))
+        if tenant:
+            path = os.path.join('tenants', f'{tenant}_school.sqlite3')
+            if os.path.exists(path): return path
+    except RuntimeError:
+        pass # Not in request context
+    
+    # Fallback logic for startup or unknown tenants
+    if os.path.exists('tenants'):
+        dbs = [f for f in os.listdir('tenants') if f.endswith('.sqlite3')]
+        if dbs: return os.path.join('tenants', dbs[0])
+    return 'db.sqlite3'
+# --- DYNAMIC MULTI-TENANCY START ---
+from flask import g
+import os
+
+def get_db_path():
+    try:
+        from flask import request, session
+        # Check if we are inside a request
+        host = request.host.split(':')[0]
+        subdomain = host.split('.')[0]
+        tenant = request.args.get('t') or (subdomain if subdomain not in ['localhost', '127', 'www'] else (session.get('tenant') or request.headers.get('X-Tenant')))
+        if tenant:
+            path = os.path.join('tenants', f'{tenant}_school.sqlite3')
+            if os.path.exists(path): return path
+    except RuntimeError:
+        pass # Not in request context
+    
+    # Fallback logic for startup or unknown tenants
+    if os.path.exists('tenants'):
+        dbs = [f for f in os.listdir('tenants') if f.endswith('.sqlite3')]
+        if dbs: return os.path.join('tenants', dbs[0])
+    return 'db.sqlite3'
+def get_db_conn():
+    if 'db' not in g:
+        g.db = sqlite3.connect(get_db_path())
+        g.db.row_factory = sqlite3.Row
+    return g.db
+
+@app.teardown_appcontext
+def close_db(error):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
+# --- DYNAMIC MULTI-TENANCY END ---
+ # Keep for legacy, but we use get_db_path()
 PK_TZ = pytz.timezone("Asia/Karachi")
 
 def login_required(f):
@@ -22,10 +76,10 @@ def login_required(f):
     return decorated_function
 from teacher_api import init_teacher_routes
 from marks_engine import init_marks_routes
-init_finalize_routes(app, DB_PATH)
+init_finalize_routes(app, get_db_path)  # Brackets removed
 init_teacher_routes(app, login_required)
 init_marks_routes(app, login_required)
-init_student_routes(app, DB_PATH)
+init_student_routes(app, get_db_path)  # Brackets removed
 
 
 @app.route('/api/update-profile-pic', methods=['POST'])
@@ -37,7 +91,7 @@ def update_profile_pic():
         user = session['user']
         table = 'apsokara_student' if user['role'] == 'Student' else 'apsokara_teacher'
         
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(get_db_path())
         if action == 'upload':
             img_data = data.get('image')
             if not img_data: return jsonify({'error': 'No image'}), 400
@@ -72,7 +126,7 @@ def update_profile_pic():
     
     table = "apsokara_student" if role == "Student" else "apsokara_teacher"
     
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cur = conn.cursor()
     try:
         if action == 'upload':
@@ -1001,7 +1055,7 @@ window.safeLogout = async function(e) {
                 loginBtn.disabled = true;
                 loginBtn.innerText = "⏳ AUTHENTICATING...";
 
-                const res = await fetch('/api/login', {
+                const res = await fetch('/api/login' + window.location.search, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -2548,10 +2602,19 @@ def index():
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.json
-    print(f'SAVE ATTEMPT -> EID: {data.get("eid")}, SID: {data.get("sid")}')
-    uid, dob, role = str(data.get('uid', '')).strip(), str(data.get('dob', '')).strip(), data.get('role', 'Student')
+    # Frontend sends 'uid', 'dob', 'role'. Correcting the print and variables:
+    uid = str(data.get('uid', '')).strip()
+    dob = str(data.get('dob', '')).strip()
+    role = data.get('role', 'Student')
+    
+    # Auto-save tenant in session if passed in URL
+    if request.args.get('t'):
+        session['tenant'] = request.args.get('t')
+        
+    print(f'🔑 LOGIN ATTEMPT -> Role: {role}, UID: {uid}, DB: {get_db_path()}')
+    
     uid_int = int(uid) if uid.isdigit() else -1
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     if role == "Student":
@@ -2605,7 +2668,7 @@ def api_login():
 def check_lock():
     u = session['user']
     today = datetime.datetime.now(PK_TZ).date().isoformat()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     # Check max edit count for this class today
     res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a 
                         JOIN apsokara_student s ON a.student_id = s.id 
@@ -2622,7 +2685,7 @@ def students_marking():
     if u['role'] != 'Teacher' or not u.get('is_class_teacher'):
         return jsonify({"students": [], "error": "Unauthorized"}), 403
     today = datetime.datetime.now(PK_TZ).date().isoformat()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     
     # Query checking both attendance table AND approved leaves for today
@@ -2652,7 +2715,7 @@ def sync_attendance():
         u = session['user']
         today = datetime.datetime.now(PK_TZ).date().isoformat()
         
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(get_db_path())
         for item in attendance_list:
             # Check if record already exists
             existing = conn.execute("SELECT id, edit_count FROM apsokara_attendance WHERE student_id=? AND date=?", 
@@ -2679,7 +2742,7 @@ def sync_attendance():
 def api_archive():
     date = request.args.get('date')
     u = session['user']
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     
@@ -2724,7 +2787,7 @@ def api_intel():
     u = session['user']
     if u['role'] == 'Student':
         return jsonify({"flags": [], "error": "Access Denied"}), 403
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres 
                         FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id 
@@ -2740,7 +2803,7 @@ def api_intel():
 @app.route('/api/student-detailed-stats/<int:sid>')
 @login_required
 def student_detailed_stats(sid):
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     stats = conn.execute("SELECT COUNT(*) as total_days, SUM(CASE WHEN status='Present' THEN 1 ELSE 0 END) as presents, SUM(CASE WHEN status='Absent' THEN 1 ELSE 0 END) as absents, SUM(CASE WHEN status='Leave' THEN 1 ELSE 0 END) as leaves FROM apsokara_attendance WHERE student_id = ?", (sid,)).fetchone()
     history = conn.execute("SELECT date, status FROM apsokara_attendance WHERE student_id = ? ORDER BY date DESC LIMIT 15", (sid,)).fetchall()
@@ -2765,7 +2828,7 @@ def diary_init_teacher():
     u = session['user']
     if u['role'] != 'Teacher': return jsonify({'error': 'Unauthorized'}), 403
     
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     # Get unique assignments for this teacher
     query = """
@@ -2803,7 +2866,7 @@ def diary_post_new():
         is_scheduled = 1 if data.get('schedule_date') else 0
         post_date = data.get('schedule_date') if is_scheduled else datetime.datetime.now().strftime('%Y-%m-%d')
         full_ts = f"{post_date} {datetime.datetime.now().strftime('%I:%M %p')}"
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(get_db_path())
         conn.execute("INSERT INTO apsokara_dailydiary (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                      (u['id'], u['full_name'], target_class, target_section, target_wing, subject, content_text, full_ts, is_scheduled, ",".join(file_paths)))
         conn.commit()
@@ -2815,7 +2878,7 @@ def diary_post_new():
 @login_required
 def diary_fetch_list():
     u = session['user']
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     
@@ -2847,7 +2910,7 @@ def diary_unread_status():
     u = session.get('user')
     if not u or u.get('role') != 'Student': return jsonify({'count': 0, 'latest_id': 0})
     last_seen = request.args.get('last_seen', 0, type=int)
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
     query = "SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?"
     row = conn.execute(query, (s_class, s_sec, s_wing, s_wing, last_seen)).fetchone()
@@ -2882,7 +2945,7 @@ def submit_leave_v2():
             file_path = f"static/uploads/leaves/{fname}"
     
     try:
-        with sqlite3.connect(DB_PATH) as conn:
+        with sqlite3.connect(get_db_path()) as conn:
             # Improved Logic: Handle both Form and JSON for Offline/Online Sync
             data = request.form if request.form else (request.get_json() if request.is_json else {})
             
@@ -2922,7 +2985,7 @@ def submit_leave_v2():
 def list_leaves_v2():
     u = session['user']
     role = u.get('role')
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     
     if role == 'Student':
@@ -2949,7 +3012,7 @@ def leave_action_v2():
     
     d = request.json
     try:
-        with sqlite3.connect(DB_PATH) as conn:
+        with sqlite3.connect(get_db_path()) as conn:
             conn.execute("UPDATE apsokara_studentleave SET status=? WHERE id=? AND class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')", 
                         (d['status'], d['id'], u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing')))
         return jsonify({'success': True})
@@ -2960,7 +3023,7 @@ def leave_action_v2():
 
 
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(get_db_path())
         count = conn.execute("""SELECT COUNT(*) FROM apsokara_studentleave 
                              WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND status='Pending'""",
                              (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchone()[0]
@@ -2984,7 +3047,7 @@ def get_leave_stats_v2():
         return jsonify({'pending': 0, 'today': 0, 'done': 0})
     try:
         import sqlite3
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(get_db_path())
         c, s, w = u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing')
         
         # Pending for this teacher only

@@ -6,7 +6,14 @@ app = Flask(__name__)
 app.secret_key = "aps_okara_ultimate_final_v3"
 
 # --- CONFIG ---
-DB_PATH = 'db.sqlite3'
+
+from flask import session
+def get_db_path():
+    # Agar user login hai aur uska school ID session mein hai
+    if 'school_id' in session:
+        return f"databases/{session['school_id']}.sqlite3"
+    return 'db.sqlite3' # Default fallback
+
 PK_TZ = pytz.timezone("Asia/Karachi")
 
 def login_required(f):
@@ -144,7 +151,7 @@ def api_login():
     data = request.json
     uid, dob, role = str(data.get('uid', '')).strip(), str(data.get('dob', '')).strip(), data.get('role', 'Student')
     uid_int = int(uid) if uid.isdigit() else -1
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     if role == "Student":
