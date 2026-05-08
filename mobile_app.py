@@ -2615,14 +2615,14 @@ def api_login():
         
     print(f'🔑 LOGIN ATTEMPT -> Role: {role}, UID: {uid}, DB: {get_db_path()}')
     
-    uid_int = int(uid) if uid.isdigit() else -1
+    # uid_int removed for strict login
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     if role == "Student":
-        cur.execute("SELECT * FROM apsokara_student WHERE (b_form=? OR id=? OR roll_number=?) AND dob=?", (uid, uid_int, uid, dob))
+        cur.execute("SELECT * FROM apsokara_student WHERE b_form=? AND dob=?", (uid, dob))
     else:
-        cur.execute("SELECT * FROM apsokara_teacher WHERE (cnic=? OR id=?) AND dob=?", (uid, uid_int, dob))
+        cur.execute("SELECT * FROM apsokara_teacher WHERE cnic=? AND dob=?", (uid, dob))
     user = cur.fetchone()
     
     if user:
