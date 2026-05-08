@@ -175,12 +175,12 @@ window.safeLogout = async function(e) {
         const ping = await fetch('/app_logo', { method: 'HEAD', cache: 'no-store' });
         if (ping.ok) {
             localStorage.clear();
-            window.location.replace('/logout');
+            window.location.replace('/logout' + window.location.search);
         } else {
             throw new Error();
         }
     } catch (err) {
-        showToast("❌ SERVER UNREACHABLE: Logout blocked!", "error");
+        localStorage.clear(); window.location.replace("/logout" + window.location.search);
     }
     return false;
 };
@@ -198,7 +198,7 @@ window.safeLogout = async function(e) {
         
         if (confirm("Are you sure you want to logout?")) {
             localStorage.clear();
-            window.location.replace('/logout');
+            window.location.replace('/logout' + window.location.search);
         }
     }
 
@@ -1075,7 +1075,7 @@ window.safeLogout = async function(e) {
                     localStorage.setItem("isLoggedIn", "true"); 
                     showToast("✅ Login Successful! Redirecting...", "success");
                     if(window.location.pathname === "/login" || window.location.pathname === "/") { 
-                        window.location.replace("/?login=" + Date.now()); 
+                        window.location.replace("/?login=" + Date.now() + (window.location.search.includes("t=") ? "&" + window.location.search.substring(1) : "")); 
                     } 
                 } else {
                     showToast("❌ Login Failed: " + (data.error || "Invalid Credentials"), "error");
@@ -2594,6 +2594,8 @@ def get_school_logo():
 
 @app.route('/')
 def index():
+    t_param = request.args.get('t')
+    if t_param: session['tenant'] = t_param
     resp = make_response(render_template_string(HTML_TEMPLATE, logged_in='user' in session, user=session.get('user')))
     if not request.path.startswith('/static/'): resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
@@ -2812,8 +2814,15 @@ def student_detailed_stats(sid):
 
 @app.route('/logout')
 def logout():
+    # School ID bacha lo pehle
+    t = session.get('tenant') or request.args.get('t')
     session.clear()
-    response = make_response('<script>localStorage.clear(); window.location.replace("/?v=" + Date.now());</script>')
+    if t: session['tenant'] = t # Wapis daal do taake database path sahi rahe
+    
+    target_url = f"/?t={t}" if t else "/"
+    js_code = f'<script>localStorage.clear(); window.location.replace("{target_url}");</script>'
+    
+    response = make_response(js_code)
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     return response
 
