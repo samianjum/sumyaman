@@ -447,6 +447,42 @@ window.safeLogout = async function(e) {
             from { border-color: #ef4444; box-shadow: 0 0 5px #ef4444; } 
             to { border-color: #fca5a5; box-shadow: 0 0 20px #ef4444; } 
         }
+
+    /* --- PROFESSIONAL DUAL THEME SYSTEM --- */
+    :root {
+        --bg-light: #F9FAFB; --card-light: #FFFFFF; --text-p-light: #111827; --text-s-light: #6B7280;
+        --bg-dark: #0B1220; --card-dark: #111827; --text-p-dark: #FFFFFF; --text-s-dark: rgba(255,255,255,0.65);
+        --accent: #2563EB;
+    }
+
+    .login-wrapper { transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 40px 24px; }
+    
+    /* Light Mode Classes */
+    .theme-light { background-color: var(--bg-light); color: var(--text-p-light); }
+    .theme-light .auth-card { background: var(--card-light); border: 1px solid #E5E7EB; }
+    .theme-light .input-field { background: #F3F4F6; color: #111827; border: 1px solid transparent; }
+    .theme-light .input-label { color: #374151; }
+    .theme-light .secondary-text { color: var(--text-s-light); }
+
+    /* Dark Mode Classes */
+    .theme-dark { background-color: var(--bg-dark); color: var(--text-p-dark); }
+    .theme-dark .auth-card { background: var(--card-dark); border: 1px solid rgba(255,255,255,0.06); }
+    .theme-dark .input-field { background: #1F2937; color: #FFFFFF; border: 1px solid transparent; }
+    .theme-dark .input-label { color: rgba(255,255,255,0.8); }
+    .theme-dark .secondary-text { color: var(--text-s-dark); }
+
+    .auth-card { width: 100%; max-width: 380px; border-radius: 24px; padding: 32px 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .input-field { width: 100%; height: 52px; border-radius: 12px; padding: 0 16px; font-size: 16px; transition: all 0.2s; margin-top: 6px; }
+    .input-field:focus { border-color: var(--accent); outline: none; }
+    .login-btn { width: 100%; height: 52px; background: var(--accent); color: white; border-radius: 16px; font-weight: 700; font-size: 15px; transition: transform 0.1s; }
+    .login-btn:active { transform: scale(0.98); }
+    
+    .role-switcher { background: rgba(0,0,0,0.1); padding: 4px; border-radius: 12px; display: flex; gap: 4px; }
+    .role-opt { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .role-active { background: var(--accent); color: white !important; }
+
+    .theme-toggle { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 10px; display: flex; items-center: center; justify-content: center; cursor: pointer; background: rgba(128,128,128,0.1); }
+
 </style>
 <script src="/static/student_view.js"></script>
 
@@ -565,35 +601,71 @@ window.safeLogout = async function(e) {
     <div id="toast-container"></div>
     <div class="app-shell">
         
+        
         {% if not logged_in %}
-        <div class="app-body flex flex-col items-center px-10 h-full justify-between pt-6 pb-12" style="background: #0B132B; color: white;">
-            <div class="mt-0 flex flex-col items-center">
-                <div class="w-20 h-20 mb-2">
-                    <img src="{{ branding.logo }}" class="w-full h-full object-contain filter brightness-125" alt="{{ branding.name }}">
-                </div>
-                <h1 class="text-2xl font-black tracking-[0.4em] text-white">{{ branding.name }}</h1>
+        <div id="loginPage" class="theme-dark login-wrapper">
+            <div class="theme-toggle" onclick="toggleAuthTheme()">
+                <span id="themeIcon">☀️</span>
             </div>
 
-            <div class="w-full space-y-12">
-                <div class="flex justify-center gap-10">
-                    <div onclick="setRole('Student')" id="sBtn" class="tab-text cursor-pointer tab-active">STUDENT<div id="sInd" class="tab-indicator"></div></div>
-                    <div onclick="setRole('Teacher')" id="tBtn" class="tab-text cursor-pointer">STAFF<div id="tInd" class="tab-indicator hidden"></div></div>
+            <div class="text-center">
+                <div class="w-[72px] h-[72px] rounded-full bg-white border border-gray-200 flex items-center justify-center mx-auto mb-4 overflow-hidden shadow-sm">
+                    <img src="{{ branding.logo }}" class="w-[80%] h-[80%] object-contain" alt="Logo">
                 </div>
-
-                <div class="space-y-6">
-                    <input type="text" id="uid" placeholder="ID / B-FORM" class="w-full axis-input text-sm">
-                    <input type="date" id="dob" value="2010-01-01" class="w-full axis-input text-sm opacity-50">
-                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight">{{ branding.name }}</h1>
+                <p class="secondary-text text-sm mt-1">Secure Student Portal</p>
             </div>
 
-            <div class="w-full mb-4">
-                <button onclick="doLogin()" class="w-full bg-[#6FFFE9] text-[#0B132B] py-4 rounded-full font-black text-[12px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-[0_10px_30px_-10px_rgba(111,255,233,0.4)]">
-                    ENTER TERMINAL
-                </button>
-                <p class="text-[9px] font-bold tracking-[0.3em] uppercase opacity-50 text-center mt-12">© 2026 {{ branding.footer }}</p>
+            <div class="auth-card space-y-6">
+                <div class="role-switcher">
+                    <div id="sBtn" onclick="setRole('Student')" class="role-opt role-active">STUDENT</div>
+                    <div id="tBtn" onclick="setRole('Teacher')" class="role-opt secondary-text">STAFF</div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="input-label text-xs font-semibold ml-1 uppercase tracking-wider">User ID / B-Form</label>
+                        <input type="text" id="uid" placeholder="Enter your ID" class="input-field">
+                    </div>
+                    <div>
+                        <label class="input-label text-xs font-semibold ml-1 uppercase tracking-wider">Date of Birth</label>
+                        <input type="date" id="dob" class="input-field">
+                    </div>
+                </div>
+
+                <button onclick="doLogin()" class="login-btn uppercase tracking-widest">Sign In</button>
             </div>
+
+            <p class="text-[10px] font-medium uppercase tracking-[0.2em] opacity-40">© 2026 {{ branding.footer }}</p>
         </div>
+
+        <script>
+            function toggleAuthTheme() {
+                const p = document.getElementById('loginPage');
+                const i = document.getElementById('themeIcon');
+                if(p.classList.contains('theme-dark')) {
+                    p.classList.replace('theme-dark', 'theme-light');
+                    i.innerText = '🌙';
+                } else {
+                    p.classList.replace('theme-light', 'theme-dark');
+                    i.innerText = '☀️';
+                }
+            }
+            function setRole(role) {
+                document.getElementById('sBtn').classList.toggle('role-active', role==='Student');
+                document.getElementById('tBtn').classList.toggle('role-active', role==='Teacher');
+                if(role === 'Teacher') {
+                    document.getElementById('sBtn').classList.add('secondary-text');
+                    document.getElementById('tBtn').classList.remove('secondary-text');
+                } else {
+                    document.getElementById('tBtn').classList.add('secondary-text');
+                    document.getElementById('sBtn').classList.remove('secondary-text');
+                }
+                window.currentRole = role;
+            }
+        </script>
         {% else %}
+
     
         
         
@@ -1683,6 +1755,42 @@ async function markDiariesAsRead() {
             from { border-color: #ef4444; box-shadow: 0 0 5px #ef4444; } 
             to { border-color: #fca5a5; box-shadow: 0 0 20px #ef4444; } 
         }
+
+    /* --- PROFESSIONAL DUAL THEME SYSTEM --- */
+    :root {
+        --bg-light: #F9FAFB; --card-light: #FFFFFF; --text-p-light: #111827; --text-s-light: #6B7280;
+        --bg-dark: #0B1220; --card-dark: #111827; --text-p-dark: #FFFFFF; --text-s-dark: rgba(255,255,255,0.65);
+        --accent: #2563EB;
+    }
+
+    .login-wrapper { transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 40px 24px; }
+    
+    /* Light Mode Classes */
+    .theme-light { background-color: var(--bg-light); color: var(--text-p-light); }
+    .theme-light .auth-card { background: var(--card-light); border: 1px solid #E5E7EB; }
+    .theme-light .input-field { background: #F3F4F6; color: #111827; border: 1px solid transparent; }
+    .theme-light .input-label { color: #374151; }
+    .theme-light .secondary-text { color: var(--text-s-light); }
+
+    /* Dark Mode Classes */
+    .theme-dark { background-color: var(--bg-dark); color: var(--text-p-dark); }
+    .theme-dark .auth-card { background: var(--card-dark); border: 1px solid rgba(255,255,255,0.06); }
+    .theme-dark .input-field { background: #1F2937; color: #FFFFFF; border: 1px solid transparent; }
+    .theme-dark .input-label { color: rgba(255,255,255,0.8); }
+    .theme-dark .secondary-text { color: var(--text-s-dark); }
+
+    .auth-card { width: 100%; max-width: 380px; border-radius: 24px; padding: 32px 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .input-field { width: 100%; height: 52px; border-radius: 12px; padding: 0 16px; font-size: 16px; transition: all 0.2s; margin-top: 6px; }
+    .input-field:focus { border-color: var(--accent); outline: none; }
+    .login-btn { width: 100%; height: 52px; background: var(--accent); color: white; border-radius: 16px; font-weight: 700; font-size: 15px; transition: transform 0.1s; }
+    .login-btn:active { transform: scale(0.98); }
+    
+    .role-switcher { background: rgba(0,0,0,0.1); padding: 4px; border-radius: 12px; display: flex; gap: 4px; }
+    .role-opt { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .role-active { background: var(--accent); color: white !important; }
+
+    .theme-toggle { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 10px; display: flex; items-center: center; justify-content: center; cursor: pointer; background: rgba(128,128,128,0.1); }
+
 </style>
 
 <div id="master-viewer" class="hidden fixed inset-0 z-[10000] bg-black/95 flex flex-col items-center justify-center">
