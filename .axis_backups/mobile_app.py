@@ -1230,6 +1230,7 @@ window.safeLogout = async function(e) {
             for(let i=0; i<files.length; i++) formData.append('files', files[i]);
 
             const res = await fetch('/api/diary/post', { method: 'POST', body: formData });
+            const result = await res.json();
             
             
             if(result.success) {
@@ -1273,7 +1274,7 @@ window.safeLogout = async function(e) {
                 return `
                 <div class="glass-card p-4 border-l-4 border-amber-500 mb-3 animate-fade-in">
                     <div class="flex justify-between items-start mb-2">
-                        <h4 class="font-black text-sm text-[#1B4332]">${d.subject}</h4>
+                        <h4 class="font-black text-sm text-[#1B4332]">${d.subject_name || "General"}</h4>
                         <span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">${datePart}</span>
                     </div>
                     <p class="text-xs text-gray-600 leading-relaxed mb-3">${d.content}</p>
@@ -2158,7 +2159,7 @@ window.calculateDays = function() {
 window.showLeaveDetails = function(l) {
     const role = "{{ user.role }}"; // Force local role definition
     // 1. Path Clean-up & Encoding
-    let rawPath = l.attachment ? l.attachment.replace(/^\/+/, '') : '';
+    let rawPath = l.attachment ? l.attachment.replace(/^\/+/g, '') : '';
     if (rawPath && !rawPath.startsWith('static/')) {
         rawPath = 'static/' + rawPath;
     }
@@ -2194,11 +2195,11 @@ window.showLeaveDetails = function(l) {
             <div class="grid grid-cols-2 gap-4 mb-8">
                 <div class="bg-gray-50 p-5 rounded-[30px] border border-gray-100">
                     <p class="text-[9px] font-bold text-gray-400 uppercase mb-1">Start Date</p>
-                    <p class="font-black text-[#1B3A57]">${l.start_date}</p>
+                    <p class="font-black text-[#1B3A57]">${l.from_date}</p>
                 </div>
                 <div class="bg-gray-50 p-5 rounded-[30px] border border-gray-100">
                     <p class="text-[9px] font-bold text-gray-400 uppercase mb-1">End Date</p>
-                    <p class="font-black text-[#1B3A57]">${l.end_date}</p>
+                    <p class="font-black text-[#1B3A57]">${l.to_date}</p>
                 </div>
             </div>
             ${attachmentHtml}
@@ -2283,8 +2284,8 @@ window.renderLeaveHistory = async function(filterMode = 'All', highlightId = nul
         const mappedOffline = offlinePending.map(item => ({
             id: 'off-' + item.id,
             reason: item.body.reason,
-            start_date: item.body.start_date,
-            end_date: item.body.end_date,
+            from_date: item.body.from_date,
+            to_date: item.body.to_date,
             status: 'Offline',
             is_offline: true
         }));
@@ -2317,7 +2318,7 @@ window.renderLeaveHistory = async function(filterMode = 'All', highlightId = nul
                  class="bg-white p-4 rounded-3xl border-l-[6px] border-[#1B3A57] shadow-sm active:scale-[0.98] transition-all flex justify-between items-center cursor-pointer ${l.id == highlightId ? 'leave-error-blink' : ''}" id="leave-card-${l.id}">
                 <div class="flex-1 pr-4">
                     <h4 class="font-bold text-[#1B3A57] text-sm truncate w-48">${l.reason}</h4>
-                    <p class="text-[10px] font-medium text-gray-400 mt-1">${l.start_date} — ${l.end_date}</p>
+                    <p class="text-[10px] font-medium text-gray-400 mt-1">${l.from_date} — ${l.to_date}</p>
                 </div>
                 <div class="flex flex-col items-end gap-2">
                     <span class="text-[9px] font-black px-3 py-1 rounded-full uppercase border ${sClass}">
@@ -2354,7 +2355,7 @@ window.submitLeaveRequest = async function() {
 
     // OFFLINE LOGIC (TEXT ONLY)
     if (!navigator.onLine) {
-        const offlineData = { start_date: start, end_date: end, reason: reason };
+        const offlineData = { from_date: start, to_date: end, reason: reason };
         try {
             btn.disabled = true;
             btn.innerText = "SAVING LOCALLY...";
@@ -2372,8 +2373,8 @@ window.submitLeaveRequest = async function() {
 
     // ONLINE LOGIC (WITH ATTACHMENT)
     const fd = new FormData();
-    fd.append('start_date', start);
-    fd.append('end_date', end);
+    fd.append('from_date', start);
+    fd.append('to_date', end);
     fd.append('reason', reason);
     if(file) fd.append('attachment', file);
 
@@ -2810,7 +2811,7 @@ def check_lock():
     res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a 
                         JOIN apsokara_student s ON a.student_id = s.id 
                         WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
-                        (today, u['assigned_class'], u['assigned_section'], u['wing'])).fetchone()
+                        (today, u['assigned_class'], u['assigned_section'], u.get('assigned_wing', u.get('wing')))).fetchone()
     conn.close()
     return jsonify({"edit_count": res[0] if res[0] is not None else 0})
 
@@ -2831,7 +2832,7 @@ def students_marking():
         (SELECT COUNT(*) FROM apsokara_studentleave l 
          WHERE l.student_id = s.id 
          AND l.status = 'Approved' 
-         AND ? BETWEEN l.start_date AND l.end_date) as on_leave
+         AND ? BETWEEN l.from_date AND l.to_date) as on_leave
         FROM apsokara_student s 
         LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=?
         WHERE s.student_class=? AND s.student_section=? AND s.wing=? 
@@ -2863,8 +2864,8 @@ def sync_attendance():
                 conn.execute("UPDATE apsokara_attendance SET status=?, edit_count=? WHERE student_id=? AND date=?",
                             (item['status'], new_count, item['id'], today))
             else:
-                conn.execute("INSERT INTO apsokara_attendance (date, status, student_id, marked_by, edit_count) VALUES (?, ?, ?, ?, ?)",
-                            (today, item['status'], item['id'], u['full_name'], 0))
+                conn.execute("INSERT INTO apsokara_attendance (date, status, student_id, marked_by, face_status, edit_count) VALUES (?, ?, ?, ?, ?, ?)",
+                            (today, item['status'], item['id'], u['full_name'], 'unknown', 0))
         
         conn.commit()
         conn.close()
@@ -2998,20 +2999,44 @@ def diary_post_new():
         for file in uploaded_files:
             if file and file.filename:
                 filename = f"{int(datetime.datetime.now().timestamp())}_{file.filename}"
-                path = os.path.join('uploads/diary', filename)
+                path = os.path.join('static/diary_uploads', filename)
                 file.save(path)
                 file_paths.append(path)
         data = request.form
-        content_text, target_class = data.get('content'), data.get('class')
-        target_section, target_wing = data.get('section'), data.get('wing')
+        content_text = data.get('content')
+        target_class = data.get('class')
+        target_section = data.get('section')
+        target_wing = data.get('wing')
+        subject_name = data.get('subject') # This comes as string from frontend
+
+        # Folder fix
+        upload_dir = 'static/diary_uploads'
+        if not os.path.exists(upload_dir): os.makedirs(upload_dir)
+
+        # Map wing names
         if target_wing and target_wing.lower().startswith('g'): target_wing = 'Girls'
         if target_wing and target_wing.lower().startswith('b'): target_wing = 'Boys'
-        subject = data.get('subject')
+
+        conn = sqlite3.connect(get_db_path())
+        # Find subject_id from name
+        sub_row = conn.execute("SELECT id FROM apsokara_subject WHERE name=?", (subject_name,)).fetchone()
+        subject_id = sub_row[0] if sub_row else 0
+        
+        query = """
+            INSERT INTO apsokara_dailydiary 
+            (student_class, section, wing, content, date_posted, attachments, subject_id, teacher_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        now = datetime.datetime.now().strftime("%Y-%m-%d | %H:%M")
+        conn.execute(query, (target_class, target_section, target_wing, content_text, now, ",".join(file_paths), subject_id, u['id']))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'msg': 'Diary Published!'})
         is_scheduled = 1 if data.get('schedule_date') else 0
         post_date = data.get('schedule_date') if is_scheduled else datetime.datetime.now().strftime('%Y-%m-%d')
         full_ts = f"{post_date} {datetime.datetime.now().strftime('%I:%M %p')}"
         conn = sqlite3.connect(get_db_path())
-        conn.execute("INSERT INTO apsokara_dailydiary (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        conn.execute("INSERT INTO apsokara_dailydiary (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                      (u['id'], u['full_name'], target_class, target_section, target_wing, subject, content_text, full_ts, is_scheduled, ",".join(file_paths)))
         conn.commit()
         conn.close()
@@ -3029,15 +3054,25 @@ def diary_fetch_list():
     if u['role'] == 'Student':
         # Student sirf apni class ki diaries dekhega jo schedule date tak pohanch chuki hain
         query = """
-            SELECT * FROM apsokara_dailydiary 
-            WHERE class=? AND section=? 
-            AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')
-            ORDER BY id DESC
+            SELECT d.*, s.name as subject_name, t.full_name as teacher_name 
+            FROM apsokara_dailydiary d
+            LEFT JOIN apsokara_subject s ON d.subject_id = s.id
+            LEFT JOIN apsokara_teacher t ON d.teacher_id = t.id
+            WHERE d.student_class=? AND d.section=? 
+            AND (d.wing=? OR d.wing LIKE SUBSTR(?, 1, 1) || '%')
+            ORDER BY d.id DESC
         """
         rows = conn.execute(query, (u.get('student_class', u.get('assigned_class')), u.get('student_section', u.get('assigned_section')), u['wing'], u['wing'])).fetchall()
     else:
         # Teacher apni saari history dekhega
-        query = "SELECT * FROM apsokara_dailydiary WHERE teacher_id=? ORDER BY id DESC"
+        query = """
+            SELECT d.*, s.name as subject_name, t.full_name as teacher_name 
+            FROM apsokara_dailydiary d
+            LEFT JOIN apsokara_subject s ON d.subject_id = s.id
+            LEFT JOIN apsokara_teacher t ON d.teacher_id = t.id
+            WHERE d.teacher_id=? 
+            ORDER BY d.id DESC
+        """
         rows = conn.execute(query, (u['id'],)).fetchall()
     
     conn.close()
@@ -3056,7 +3091,7 @@ def diary_unread_status():
     last_seen = request.args.get('last_seen', 0, type=int)
     conn = sqlite3.connect(get_db_path())
     s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
-    query = "SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?"
+    query = "SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE student_class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?"
     row = conn.execute(query, (s_class, s_sec, s_wing, s_wing, last_seen)).fetchone()
     conn.close()
     return jsonify({'count': row[0] or 0, 'latest_id': row[1] or 0})
@@ -3093,33 +3128,29 @@ def submit_leave_v2():
             # Improved Logic: Handle both Form and JSON for Offline/Online Sync
             data = request.form if request.form else (request.get_json() if request.is_json else {})
             
-            s_date = data.get('start') or data.get('start_date')
+            s_date = data.get('start') or data.get('from_date')
 
             # Professional Overlap Check
             from datetime import datetime
             today_str = datetime.now().strftime('%Y-%m-%d')
             
             check_sql = """
-                SELECT start_date, end_date FROM apsokara_studentleave 
+                SELECT from_date, to_date FROM apsokara_studentleave 
                 WHERE student_id = ? AND status = 'Approved' 
-                AND ? BETWEEN date(start_date) AND date(end_date)
+                AND ? BETWEEN date(from_date) AND date(to_date)
                 LIMIT 1
             """
-            existing = conn.execute("SELECT id, start_date, end_date FROM apsokara_studentleave WHERE student_id=? AND status='Approved' AND ? BETWEEN date(start_date) AND date(end_date) LIMIT 1", (u['id'], today_str)).fetchone()
+            existing = conn.execute("SELECT id, from_date, to_date FROM apsokara_studentleave WHERE student_id=? AND status='Approved' AND ? BETWEEN date(from_date) AND date(to_date) LIMIT 1", (u['id'], today_str)).fetchone()
             
             if existing:
                 msg = f"❌ Action Blocked: You already have an Approved leave from {existing[1]} to {existing[2]}."
                 return jsonify({'success': False, 'error': msg, 'conflict_id': existing[0]})
     
-            e_date = data.get('end') or data.get('end_date')
+            e_date = data.get('end') or data.get('to_date')
             reason = data.get('reason')
 
-            conn.execute("""INSERT INTO apsokara_studentleave 
-                (student_id, full_name, roll_number, class, section, wing, start_date, end_date, reason, attachment) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (u['id'], u['full_name'], u.get('roll_number', 'N/A'), u.get('assigned_class', 'N/A'), 
-                 u.get('assigned_section', 'N/A'), u.get('wing', 'N/A'), 
-                 s_date, e_date, reason, file_path))
+            conn.execute("""INSERT INTO apsokara_studentleave (student_id, from_date, to_date, reason, status, attachment) VALUES (?, ?, ?, ?, ?, ?)""",
+                (u['id'], s_date, e_date, reason, 'Pending', file_path))
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -3134,14 +3165,13 @@ def list_leaves_v2():
     
     if role == 'Student':
         # Student sirf apni history dekhega
-        res = conn.execute("SELECT * FROM apsokara_studentleave WHERE student_id = ? ORDER BY id DESC", (u['id'],)).fetchall()
+        res = conn.execute("SELECT l.*, s.full_name FROM apsokara_studentleave l JOIN apsokara_student s ON l.student_id = s.id WHERE student_id = ? ORDER BY id DESC", (u['id'],)).fetchall()
     else:
         # Teacher sirf apni assigned class ki leaves dekhega
         # Hum is_class_teacher ka check pehle hi UI me laga chuke honge
-        res = conn.execute("""SELECT * FROM apsokara_studentleave 
-                            WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') 
-                            ORDER BY status DESC, id DESC""",
-                            (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchall()
+            res = conn.execute("""SELECT l.*, s.full_name FROM apsokara_studentleave l JOIN apsokara_student s ON l.student_id = s.id 
+                               WHERE s.student_class=? AND s.student_section=? AND (s.wing=? OR s.wing LIKE SUBSTR(?, 1, 1) || '%') 
+                               ORDER BY l.status DESC, l.id DESC""", (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchall()
     
     data = [dict(row) for row in res]
     conn.close()
@@ -3157,8 +3187,14 @@ def leave_action_v2():
     d = request.json
     try:
         with sqlite3.connect(get_db_path()) as conn:
-            conn.execute("UPDATE apsokara_studentleave SET status=? WHERE id=? AND class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')", 
-                        (d['status'], d['id'], u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing')))
+            conn.execute("""
+                UPDATE apsokara_studentleave 
+                SET status=? 
+                WHERE id=? AND student_id IN (
+                    SELECT id FROM apsokara_student 
+                    WHERE student_class=? AND student_section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')
+                )
+            """, (d['status'], d['id'], u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing')))
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -3169,7 +3205,7 @@ def leave_action_v2():
     try:
         conn = sqlite3.connect(get_db_path())
         count = conn.execute("""SELECT COUNT(*) FROM apsokara_studentleave 
-                             WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND status='Pending'""",
+                             WHERE student_class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND status='Pending'""",
                              (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchone()[0]
         conn.close()
         return jsonify({'count': count})
@@ -3195,13 +3231,13 @@ def get_leave_stats_v2():
         c, s, w = u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing')
         
         # Pending for this teacher only
-        pending = conn.execute("SELECT COUNT(*) FROM apsokara_studentleave WHERE class=? AND section=? AND wing=? AND status='Pending'", (c,s,w)).fetchone()[0]
+        pending = conn.execute("SELECT COUNT(*) FROM apsokara_studentleave WHERE student_class=? AND section=? AND wing=? AND status='Pending'", (c,s,w)).fetchone()[0]
         
         # Today's applied (Using date comparison)
-        today = conn.execute("SELECT COUNT(*) FROM apsokara_studentleave WHERE class=? AND section=? AND wing=? AND (start_date LIKE '%2026-04-29%' OR date(start_date) = date('now'))", (c,s,w)).fetchone()[0]
+        today = conn.execute("SELECT COUNT(*) FROM apsokara_studentleave WHERE student_class=? AND section=? AND wing=? AND (from_date LIKE '%2026-04-29%' OR date(from_date) = date('now'))", (c,s,w)).fetchone()[0]
         
         # Total Approved Only
-        done = conn.execute("SELECT COUNT(*) FROM apsokara_studentleave WHERE class=? AND section=? AND wing=? AND status='Approved'", (c,s,w)).fetchone()[0]
+        done = conn.execute("SELECT COUNT(*) FROM apsokara_studentleave WHERE student_class=? AND section=? AND wing=? AND status='Approved'", (c,s,w)).fetchone()[0]
         
         conn.close()
         return jsonify({'pending': int(pending), 'today': int(today), 'done': int(done)})

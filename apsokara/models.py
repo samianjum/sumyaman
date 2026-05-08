@@ -17,6 +17,7 @@ class Teacher(models.Model):
     religion = models.CharField(max_length=20, choices=RELIGION_CHOICES, default='Islam')
     contact = models.CharField(max_length=15)
     address = models.TextField()
+    profile_pic = models.ImageField(upload_to='teachers/', null=True, blank=True)
 
     is_class_teacher = models.BooleanField(default=False)
     assigned_class = models.CharField(max_length=10, blank=True, null=True)
@@ -31,19 +32,17 @@ class Student(models.Model):
     PROVINCE_CHOICES = [('Punjab', 'Punjab'), ('Sindh', 'Sindh'), ('KPK', 'KPK'), ('Balochistan', 'Balochistan'), ('Gilgit', 'Gilgit'), ('AJK', 'AJK')]
     WING_CHOICES = [('None', 'None'), ('Boys', 'Boys'), ('Girls', 'Girls')]
 
-    # Basic Info
     full_name = models.CharField(max_length=100)
     father_name = models.CharField(max_length=100)
     b_form = models.CharField(max_length=20, unique=True, verbose_name="B-Form Number")
     dob = models.DateField(verbose_name="Date of Birth")
+    profile_pic = models.ImageField(upload_to='students/', null=True, blank=True)
     
-    # Academic Info
     student_class = models.CharField(max_length=10)
     student_section = models.CharField(max_length=10)
     wing = models.CharField(max_length=10, choices=WING_CHOICES)
     roll_number = models.CharField(max_length=20, unique=True)
 
-    # Personal/Address Info
     nationality = models.CharField(max_length=50, default="Pakistani")
     province = models.CharField(max_length=20, choices=PROVINCE_CHOICES, default='Punjab')
     religion = models.CharField(max_length=20, choices=RELIGION_CHOICES, default='Islam')
@@ -68,20 +67,31 @@ class Attendance(models.Model):
     date = models.DateField(default=timezone.now)
     status = models.CharField(max_length=10)
     marked_by = models.TextField(default='Unknown')
+    face_status = models.CharField(max_length=20, default='unknown')
+    edit_count = models.IntegerField(default=0)
 
 class StudentLeave(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     from_date = models.DateField()
     to_date = models.DateField()
+    reason = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, default='Pending')
+    attachment = models.FileField(upload_to='leaves/', null=True, blank=True)
+
+class DailyDiary(models.Model):
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    student_class = models.CharField(max_length=10)
+    section = models.CharField(max_length=10)
+    wing = models.CharField(max_length=10, choices=Student.WING_CHOICES)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    content = models.TextField()
+    date_posted = models.DateField(default=timezone.now)
+    attachments = models.FileField(upload_to='diaries/', null=True, blank=True)
 
 class SchoolNews(models.Model):
     content = models.TextField()
-    target_role = models.CharField(max_length=50, default='All')
     target_role = models.CharField(max_length=50, default='All')
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.content[:50]
