@@ -238,7 +238,7 @@ window.safeLogout = async function(e) {
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AXIS</title>
+    <title>{{ branding.name }}</title>
     <link rel="icon" type="image/png" href="/app_logo">
     <script src="/static/tailwind.min.css"></script>
     <style>
@@ -569,9 +569,9 @@ window.safeLogout = async function(e) {
         <div class="app-body flex flex-col items-center px-10 h-full justify-between pt-6 pb-12" style="background: #0B132B; color: white;">
             <div class="mt-0 flex flex-col items-center">
                 <div class="w-20 h-20 mb-2">
-                    <img src="/app_logo?v=1776620591" class="w-full h-full object-contain filter brightness-125" alt="AXIS">
+                    <img src="{{ branding.logo }}" class="w-full h-full object-contain filter brightness-125" alt="{{ branding.name }}">
                 </div>
-                <h1 class="text-2xl font-black tracking-[0.4em] text-white">AXIS</h1>
+                <h1 class="text-2xl font-black tracking-[0.4em] text-white">{{ branding.name }}</h1>
             </div>
 
             <div class="w-full space-y-12">
@@ -590,7 +590,7 @@ window.safeLogout = async function(e) {
                 <button onclick="doLogin()" class="w-full bg-[#6FFFE9] text-[#0B132B] py-4 rounded-full font-black text-[12px] tracking-[0.2em] uppercase active:scale-95 transition-all shadow-[0_10px_30px_-10px_rgba(111,255,233,0.4)]">
                     ENTER TERMINAL
                 </button>
-                <p class="text-[9px] font-bold tracking-[0.3em] uppercase opacity-50 text-center mt-12">© 2026 AXIS OS • V1.0.1</p>
+                <p class="text-[9px] font-bold tracking-[0.3em] uppercase opacity-50 text-center mt-12">© 2026 {{ branding.footer }}</p>
             </div>
         </div>
         {% else %}
@@ -602,7 +602,7 @@ window.safeLogout = async function(e) {
         
         <div id="main-header" class="app-header">
             <div class="flex justify-between items-center w-full">
-                <span class="text-[13px] font-[800] text-[#6FFFE9] tracking-[0.15em] uppercase">AXIS</span>
+                <span class="text-[13px] font-[800] text-[#6FFFE9] tracking-[0.15em] uppercase">{{ branding.name }}</span>
                 <span id="current-time" class="text-[11px] text-white/70 font-medium">00:00 AM</span>
             </div>
 
@@ -2592,11 +2592,38 @@ def get_school_logo():
     except FileNotFoundError:
         return send_file('static/logo.png', mimetype='image/png')
 
+
+def get_school_branding():
+    tenant = session.get('tenant', 'default')
+    branding = {'name': 'AXIS OS', 'logo': '/static/logo.png', 'footer': 'AXIS OS • V1.0.1'}
+    if tenant == 'default': return branding
+    try:
+        import sqlite3
+        conn = sqlite3.connect('db.sqlite3')
+        cur = conn.cursor()
+        cur.execute("SELECT name, logo FROM super_admin_schoolclient WHERE slug=? LIMIT 1", (tenant,))
+        row = cur.fetchone()
+        if row:
+            branding['name'] = row[0]
+            # Check if logo exists in DB and prepend /media/
+            if row[1]:
+                branding['logo'] = f'/media/{row[1]}'
+            branding['footer'] = f'{row[0]} • V1.0.1'
+        conn.close()
+    except: pass
+    return branding
+
+
+@app.route('/media/<path:filename>')
+def serve_media(filename):
+    return send_from_directory('media', filename)
+
 @app.route('/')
+
 def index():
     t_param = request.args.get('t')
     if t_param: session['tenant'] = t_param
-    resp = make_response(render_template_string(HTML_TEMPLATE, logged_in='user' in session, user=session.get('user')))
+    resp = make_response(render_template_string(HTML_TEMPLATE, logged_in='user' in session, user=session.get('user'), branding=get_school_branding()))
     if not request.path.startswith('/static/'): resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
     return resp
