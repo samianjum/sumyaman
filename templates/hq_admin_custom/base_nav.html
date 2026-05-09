@@ -59,8 +59,8 @@
 
         <div class="sidebar-label mt-4 mb-2">System Config</div>
         
-        <a href="/admin/" class="nav-btn" target="_blank">
-            <i class="fas fa-cog text-warning"></i> <span>System Admin</span>
+        <a href="{% url 'school_settings' school_slug=school_slug %}" class="nav-btn {% if 'settings' in request.path %}active{% endif %}">
+            <i class="fas fa-sliders-h text-info"></i> <span>School Settings</span>
         </a>
         
         <a href="{% url 'admin_logout' school_slug=school_slug %}" class="nav-btn text-danger mt-auto">

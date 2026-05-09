@@ -905,3 +905,80 @@ def class_sections_view(request, school_slug, class_name):
         'total_leave': attendance_qs.filter(status__iexact='Leave').count(),
     }
     return render(request, 'hq_admin_custom/section_selection.html', context)
+
+@login_required
+
+
+@login_required
+def school_settings_view(request, school_slug=None):
+    from django.contrib.auth.models import User
+    from django.contrib import messages
+    from django.contrib.auth import authenticate, logout
+    import re
+
+    # Terminal Log
+    print(f"[ACCESS] Settings page accessed by {request.user.username} for school: {school_slug}")
+    
+    school = get_object_or_404(SchoolClient.objects.using('default'), slug=school_slug)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'update_branding':
+            school.name = request.POST.get('school_name')
+            if 'logo' in request.FILES:
+                school.logo = request.FILES['logo']
+            school.save(using='default')
+            print(f"[UPDATE] School Identity Changed: {school.name}")
+            messages.success(request, "Branding updated successfully!")
+            return redirect('school_settings', school_slug=school_slug)
+            
+        elif action == 'update_security':
+            user = request.user
+            current_pass = request.POST.get('current_password')
+            new_pass = request.POST.get('new_password')
+            confirm_pass = request.POST.get('confirm_password')
+            new_username = request.POST.get('username')
+
+            # 1. Verify Current Password
+            if not user.check_password(current_pass):
+                messages.error(request, "Incorrect current password!")
+                print(f"[SECURITY ALERT] Failed credential update attempt by {user.username}")
+                return redirect('school_settings', school_slug=school_slug)
+
+            # 2. Server-side Validation (Double Check)
+            if new_pass:
+                if new_pass != confirm_pass:
+                    messages.error(request, "Passwords do not match!")
+                    return redirect('school_settings', school_slug=school_slug)
+                
+                # Regex Check
+                is_valid = (
+                    len(new_pass) >= 10 and 
+                    len(re.findall(r'[!@#$%^&*(),.?":{}|<>]', new_pass)) >= 2 and
+                    len(re.findall(r'\d', new_pass)) >= 3
+                )
+                
+                if not is_valid:
+                    messages.error(request, "Password does not meet complexity requirements!")
+                    return redirect('school_settings', school_slug=school_slug)
+
+                # 3. Apply Changes & Logout
+                user.username = new_username
+                user.set_password(new_pass)
+                user.save()
+                print(f"[SUCCESS] Admin {new_username} updated password and username.")
+                logout(request)
+                messages.info(request, "Credentials updated. Please login again.")
+                return redirect(f'/s/{school_slug}/admin/login/')
+            
+            else:
+                user.username = new_username
+                user.save()
+                messages.success(request, "Username updated successfully.")
+                return redirect('school_settings', school_slug=school_slug)
+
+    return render(request, 'hq_admin_custom/settings.html', {
+        'school_slug': school_slug,
+        'current_school': school
+    })

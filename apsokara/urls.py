@@ -38,5 +38,6 @@ urlpatterns = [
     
     # Main Dashboard (Empty path at the end)
     path('subjects/', views.subject_manager_view, name='subject_manager'),
+    path('settings/', views.school_settings_view, name='school_settings'),
     path('', views.hq_dashboard, name='hq_dashboard'),
 ]
