@@ -90,7 +90,9 @@ def update_school_logo(request, school_slug):
 def school_detail(request, slug):
     from django.utils import timezone
     school = SchoolClient.objects.get(slug=slug)
-    days_active = (timezone.now() - school.created_at).days
+    diff = timezone.now() - school.created_at
+    # Agar 24 hours se kam hain toh 1 day dikhaye, warna total days + 1
+    days_active = diff.days + 1
     return render(request, 'super_admin/school_detail.html', {
         'school': school, 
         'days_active': days_active

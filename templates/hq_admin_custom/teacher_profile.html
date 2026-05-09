@@ -1,78 +1,199 @@
 {% extends 'hq_admin_custom/base.html' %}
 {% block content %}
 <style>
-    :root { --hq-primary: #2F3E46; --hq-accent: #52796F; }
-    .profile-header { background: var(--hq-primary); color: white; padding: 40px; border-radius: 15px; margin-bottom: 25px; }
-    .info-card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 25px; height: 100%; }
-    .label-pro { font-size: 0.7rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: block; }
-    .value-pro { font-weight: 700; color: var(--hq-primary); font-size: 1.1rem; }
-    .avatar-placeholder { width: 100px; height: 100px; background: var(--hq-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border: 4px solid rgba(255,255,255,0.2); }
+    :root { --hq-primary: #1B263B; --hq-secondary: #415A77; --hq-accent: #778DA9; --bg-gray: #f8f9fa; }
+    body { background-color: #f4f7f6; }
+    .profile-banner { 
+        background: linear-gradient(135deg, var(--hq-primary) 0%, #0d1b2a 100%); 
+        color: white; padding: 40px; border-radius: 20px; margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .data-card { background: white; border-radius: 16px; border: none; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: 100%; }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .info-item { border-bottom: 1px solid #eee; padding-bottom: 8px; }
+    .field-label { font-size: 0.75rem; color: #8898aa; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px; }
+    .field-value { font-weight: 600; color: #32325d; font-size: 1rem; }
+    
+    /* Subject Assignment Cards - Professional App Style */
+    .assignment-list { display: flex; flex-direction: column; gap: 12px; }
+    .assignment-card { 
+        background: #fff; border: 1px solid #e9ecef; border-radius: 12px; 
+        padding: 15px; border-left: 5px solid var(--hq-secondary);
+        transition: transform 0.2s;
+    }
+    .assignment-card:hover { transform: translateX(5px); background: #fcfcfc; }
+    .subject-name { font-weight: 800; color: var(--hq-primary); font-size: 1.05rem; display: block; }
+    .class-tag { font-size: 0.85rem; color: #666; font-weight: 500; }
+    
+    .profile-pic-container { 
+        width: 120px; height: 120px; border-radius: 25px; overflow: hidden; 
+        border: 4px solid rgba(255,255,255,0.15); box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+    .status-badge { font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; font-weight: 700; }
 </style>
 
 <div class="container-fluid p-4">
-    <div class="profile-header shadow">
+    <!-- Header Banner -->
+    <div class="profile-banner d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-4">
-            <div class="avatar-placeholder">{{ teacher.full_name|slice:":1" }}</div>
+            <div class="profile-pic-container bg-white">
+                {% if teacher.profile_pic %}<img src="{{ teacher.profile_pic.url }}" style="width:100%; height:100%; object-fit:cover;">
+                {% else %}<div class="h-100 d-flex align-items-center justify-content-center text-dark fs-1 fw-bold">{{ teacher.full_name|slice:":1" }}</div>{% endif %}
+            </div>
             <div>
                 <h1 class="fw-bold mb-1">{{ teacher.full_name|upper }}</h1>
-                <p class="mb-0 opacity-75"><i class="fas fa-id-badge me-2"></i> {{ teacher.cnic }} | {{ teacher.assigned_wing }} Wing</p>
-                <div class="mt-3">
-                    <span class="badge {% if teacher.is_class_teacher %}bg-success{% else %}bg-secondary{% endif %} px-3 py-2">
-                        {% if teacher.is_class_teacher %}Class Teacher ({{ teacher.assigned_class }}-{{ teacher.assigned_section }}){% else %}Subject Teacher{% endif %}
-                    </span>
+                <div class="d-flex align-items-center gap-3 opacity-90 mb-3">
+                    <span><i class="fas fa-id-card me-1"></i> {{ teacher.cnic }}</span>
+                    <span><i class="fas fa-phone-alt me-1"></i> {{ teacher.contact }}</span>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if teacher.is_class_teacher %}
+                        <span class="badge bg-success status-badge">
+                            <i class="fas fa-star me-1"></i> CLASS TEACHER ({{ teacher.assigned_class }}-{{ teacher.assigned_section }})
+                        </span>
+                    {% else %}
+                        <span class="badge bg-light text-dark status-badge">SUBJECT SPECIALIST</span>
+                    {% endif %}
                 </div>
             </div>
+        </div>
+        <div class="text-end">
+            <button class="btn btn-outline-light fw-bold px-4 rounded-pill mb-2" data-bs-toggle="modal" data-bs-target="#editTeacherModal">
+                <i class="fas fa-edit me-2"></i> EDIT PROFILE
+            </button>
+            <br>
+            <a href="{% url 'teacher_master_list' school_slug=school_slug %}" class="text-white opacity-75 small text-decoration-none">
+                <i class="fas fa-chevron-left me-1"></i> Back to List
+            </a>
         </div>
     </div>
 
     <div class="row g-4">
-        <div class="col-md-8">
-            <div class="info-card shadow-sm">
-                <h5 class="fw-bold mb-4" style="color: var(--hq-accent); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
-                    <i class="fas fa-user-circle me-2"></i>Personal Biodata
-                </h5>
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <span class="label-pro">Father's Name</span>
-                        <div class="value-pro">{{ teacher.father_name|default:"---" }}</div>
-                    </div>
-                    <div class="col-md-6">
-                        <span class="label-pro">Contact Number</span>
-                        <div class="value-pro text-success">{{ teacher.contact }}</div>
-                    </div>
-                    <div class="col-md-6">
-                        <span class="label-pro">Assigned Section</span>
-                        <div class="value-pro">
-                            {% if teacher.assigned_class %}
-                                {{ teacher.assigned_class }}-{{ teacher.assigned_section }} ({{ teacher.assigned_wing }})
-                            {% else %}
-                                Not Assigned
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <span class="label-pro">CNIC Number</span>
-                        <div class="value-pro">{{ teacher.cnic }}</div>
-                    </div>
+        <!-- Left Column: Detailed Info -->
+        <div class="col-lg-8">
+            <div class="data-card">
+                <h5 class="fw-bold mb-4 text-uppercase letter-spacing-1">General Information</h5>
+                <div class="info-grid">
+                    <div class="info-item"><span class="field-label">Father Name</span><div class="field-value">{{ teacher.father_name }}</div></div>
+                    <div class="info-item"><span class="field-label">Date of Birth</span><div class="field-value">{{ teacher.dob }}</div></div>
+                    <div class="info-item"><span class="field-label">Religion</span><div class="field-value">{{ teacher.religion }}</div></div>
+                    <div class="info-item"><span class="field-label">Joined Date</span><div class="field-value">{{ teacher.id|default:"N/A" }}</div></div>
+                </div>
+                <div class="mt-4">
+                    <span class="field-label">Residential Address</span>
+                    <div class="field-value">{{ teacher.address }}</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="info-card shadow-sm text-center">
-                <h5 class="fw-bold mb-4 text-start"><i class="fas fa-tasks me-2"></i>Management</h5>
-                <div class="d-grid gap-2">
-                    <button class="btn btn-dark py-2"><i class="fas fa-edit me-2"></i> Edit Data</button>
-                    {% if teacher.assigned_class %}
-                    <a href="/hq-portal/class-view/{{ teacher.assigned_class }}/{{ teacher.assigned_section }}/" class="btn btn-outline-primary py-2">
-                        <i class="fas fa-external-link-alt me-2"></i> Go to Class Dashboard
-                    </a>
-                    {% endif %}
-                    <hr>
-                    <a href="{% url 'teacher_master_list' %}" class="btn btn-light btn-sm text-muted">← Back to Ledger</a>
+        <!-- Right Column: Subject Assignments -->
+        <div class="col-lg-4">
+            <div class="data-card">
+                <h5 class="fw-bold mb-4 text-uppercase letter-spacing-1">Current Load</h5>
+                <div class="assignment-list">
+                    {% for a in teacher.assignments.all %}
+                    <div class="assignment-card">
+                        <span class="subject-name">{{ a.subject.name|upper }}</span>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span class="class-tag">Class: {{ a.student_class }}-{{ a.section }}</span>
+                            {% if current_school.school_type == 'wing-based' %}
+                                <span class="badge bg-secondary-subtle text-secondary sx-small">{{ a.wing }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-book-open fa-2x mb-3 opacity-25"></i>
+                        <p class="small">No subjects assigned yet.</p>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal remains the same as it was functional -->
+<div class="modal fade" id="editTeacherModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content border-0">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold">EDIT TEACHER PROFILE</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    {% if form.errors or formset.errors %}
+                    <div class="alert alert-danger mb-3 py-2 shadow-sm">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Validation Error:</strong> 
+                        Check highlighted fields.
+                    </div>
+                    {% endif %}
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <hr class="my-4">
+                    <h5 class="fw-bold mb-3">SUBJECT ASSIGNMENTS</h5>
+                    {{ formset.management_form }}
+                    <div class="row g-2">
+                        {% for f in formset %}
+                        <div class="col-md-12 p-3 bg-white rounded border mb-2">
+                            <div class="row">
+                                {% for field in f.visible_fields %}
+                                <div class="col-md-3">
+                                    <label class="small fw-bold">{{ field.label }}</label>
+                                    {{ field }}
+                                </div>
+                                {% endfor %}
+                                {% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success px-5 fw-bold">SAVE CHANGES</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if form.errors or formset.errors or formset.non_form_errors %}
+            var editModal = new bootstrap.Modal(document.getElementById('editTeacherModal'));
+            editModal.show();
+        {% endif %}
+
+        const isClassTeacher = document.querySelector('input[name="is_class_teacher"]');
+        const classFields = ['assigned_class', 'assigned_section', 'assigned_wing'];
+
+        function toggleTeacherFields() {
+            if (isClassTeacher) {
+                const isChecked = isClassTeacher.checked;
+                classFields.forEach(fieldName => {
+                    const field = document.querySelector(`[name="${fieldName}"]`);
+                    if (field) {
+                        const container = field.closest('.col-md-4');
+                        if (container) container.style.display = isChecked ? 'block' : 'none';
+                    }
+                });
+            }
+        }
+        if (isClassTeacher) {
+            isClassTeacher.addEventListener('change', toggleTeacherFields);
+            toggleTeacherFields();
+        }
+    });
+</script>
+{% endblock %}
 {% endblock %}

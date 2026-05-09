@@ -191,11 +191,36 @@ def student_profile_view(request,  student_id, school_slug=None):
     })
 
 @login_required
-def teacher_profile_view(request,  teacher_id, school_slug=None):
+
+def teacher_profile_view(request, teacher_id, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
-    t = get_object_or_404(Teacher, id=teacher_id)
-    return render(request, 'hq_admin_custom/teacher_profile.html', {'school_slug': school_slug, 't': t})
+    
+    current_school = get_object_or_404(SchoolClient, slug=school_slug)
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    
+    if request.method == 'POST':
+        form = TeacherForm(request.POST, request.FILES, instance=teacher, school_type=current_school.school_type)
+        formset = SubjectAssignmentFormSet(request.POST, instance=teacher, prefix='assignments', 
+                                         form_kwargs={'school_type': current_school.school_type})
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            return redirect('teacher_profile', school_slug=school_slug, teacher_id=teacher_id)
+    else:
+        form = TeacherForm(instance=teacher, school_type=current_school.school_type)
+        formset = SubjectAssignmentFormSet(instance=teacher, prefix='assignments', 
+                                         form_kwargs={'school_type': current_school.school_type})
+
+    context = {
+        'school_slug': school_slug,
+        'teacher': teacher,
+        'current_school': current_school,
+        'form': form,
+        'formset': formset,
+    }
+    return render(request, 'hq_admin_custom/teacher_profile.html', context)
+
 
 
 @login_required
