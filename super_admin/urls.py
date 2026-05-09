@@ -7,4 +7,5 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/hq-admin/login/'), name='super_admin_logout'),
     path('', views.super_admin_dashboard, name='super_admin_dashboard'),
     path('create/', views.create_school, name='create_school'),
+    path('school/<slug:slug>/', views.school_detail, name='school_detail'),
 ]

@@ -1,3 +1,4 @@
+from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.shortcuts import render, redirect
 from django.core.management import call_command
@@ -10,11 +11,13 @@ import os
 def is_super_admin(user):
     return user.is_authenticated and user.is_superuser
 @user_passes_test(is_super_admin, login_url='/hq-admin/login/')
+@never_cache
 def super_admin_dashboard(request):
     schools = SchoolClient.objects.all()
     return render(request, 'super_admin/dashboard.html', {'schools': schools})
 
 @user_passes_test(is_super_admin, login_url='/hq-admin/login/')
+@never_cache
 def create_school(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -81,3 +84,14 @@ def update_school_logo(request, school_slug):
             return redirect(referer)
         return redirect(f'/s/{school_slug}/')
     return JsonResponse({"error": "Invalid request"})
+
+@user_passes_test(is_super_admin, login_url='/hq-admin/login/')
+@never_cache
+def school_detail(request, slug):
+    from django.utils import timezone
+    school = SchoolClient.objects.get(slug=slug)
+    days_active = (timezone.now() - school.created_at).days
+    return render(request, 'super_admin/school_detail.html', {
+        'school': school, 
+        'days_active': days_active
+    })
