@@ -33,6 +33,11 @@
 </style>
 
 <div class="container-fluid p-4">
+    <nav class="mb-3">
+        <a href="{% url 'teacher_master_list' school_slug=school_slug %}" class="text-secondary text-decoration-none small fw-bold">
+            <i class="fas fa-chevron-left me-1"></i> BACK TO TEACHER LIST
+        </a>
+    </nav>
     <!-- Header Banner -->
     <div class="profile-banner d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-4">
@@ -48,23 +53,20 @@
                 </div>
                 <div class="d-flex gap-2">
                     {% if teacher.is_class_teacher %}
-                        <span class="badge bg-success status-badge">
-                            <i class="fas fa-star me-1"></i> CLASS TEACHER ({{ teacher.assigned_class }}-{{ teacher.assigned_section }})
-                        </span>
+                        <a href="{% url 'mark_attendance' school_slug=school_slug class_name=teacher.assigned_class section_name=teacher.assigned_section wing_name=teacher.assigned_wing %}" 
+                           class="btn btn-success status-badge fw-bold shadow-sm" style="text-decoration: none; border: 2px solid rgba(255,255,255,0.2);">
+                            <i class="fas fa-chalkboard-teacher me-2"></i> VIEW ASSIGNED CLASS: {{ teacher.assigned_class }}-{{ teacher.assigned_section }}{% if current_school.school_type == 'wing-based' %}-{{ teacher.assigned_wing }}{% endif %}
+                        </a>
                     {% else %}
-                        <span class="badge bg-light text-dark status-badge">SUBJECT SPECIALIST</span>
+                        <span class="badge bg-light text-dark status-badge border">SUBJECT SPECIALIST</span>
                     {% endif %}
                 </div>
             </div>
         </div>
         <div class="text-end">
-            <button class="btn btn-outline-light fw-bold px-4 rounded-pill mb-2" data-bs-toggle="modal" data-bs-target="#editTeacherModal">
+            <button class="btn btn-outline-light fw-bold px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#editTeacherModal">
                 <i class="fas fa-edit me-2"></i> EDIT PROFILE
             </button>
-            <br>
-            <a href="{% url 'teacher_master_list' school_slug=school_slug %}" class="text-white opacity-75 small text-decoration-none">
-                <i class="fas fa-chevron-left me-1"></i> Back to List
-            </a>
         </div>
     </div>
 
