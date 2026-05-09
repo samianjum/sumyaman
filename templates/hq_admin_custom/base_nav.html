@@ -63,7 +63,7 @@
             <i class="fas fa-cog text-warning"></i> <span>System Admin</span>
         </a>
         
-        <a href="/admin/logout/" class="nav-btn text-danger mt-auto">
+        <a href="{% url 'admin_logout' school_slug=school_slug %}" class="nav-btn text-danger mt-auto">
             <i class="fas fa-power-off"></i> <span>Sign Out</span>
         </a>
     </div>

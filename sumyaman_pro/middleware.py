@@ -26,12 +26,28 @@ class TenantMiddleware:
                 
                 # FIX: Agar user login nahi hai aur dashboard access kar raha hai
                 # To usay usi school ke admin login pe bhejo, na ke default /admin/
-                if not hasattr(request, 'user') or not request.user.is_authenticated and not request.path.endswith('/admin/') and 'login' not in request.path:
-                    if not any(x in request.path for x in ['login', 'admin']):
-                         return redirect(f'/s/{slug}/admin/login/?next={request.path}')
+                # STRICT LOCKDOWN: Anonymous users cannot access school paths
+                is_auth_path = any(x in request.path for x in ['login', 'logout'])
+                if not request.user.is_authenticated and not is_auth_path:
+                    return redirect(f'/s/{slug}/admin/login/')
             else:
                 set_current_db('default')
         else:
             set_current_db('default')
             
         return self.get_response(request)
+
+from django.utils.cache import add_never_cache_headers
+
+class NoCacheMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if request.path.startswith('/admin/') or request.path.startswith('/hq-admin/'):
+            add_never_cache_headers(response)
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response

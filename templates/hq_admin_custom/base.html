@@ -103,7 +103,7 @@
         <a href="{% url 'hq_attendance' school_slug %}" class="nav-link"><i class="fas fa-calendar-check"></i> Attendance</a>
         <div style="margin-top: 200px; border-top: 1px solid rgba(255,255,255,0.05);">
             <a href="/admin/" class="nav-link small"><i class="fas fa-database"></i> Database</a>
-            <a href="/admin/logout/" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="{% url 'admin_logout' school_slug=school_slug %}" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </div>
 </div>

@@ -92,8 +92,13 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 DATABASE_ROUTERS = ['sumyaman_pro.router.TenantRouter']
 
 # Dynamic Login/Logout
-LOGIN_URL = '/hq-admin/login/'
-LOGOUT_REDIRECT_URL = '/hq-admin/login/'
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
+# Force browser to not cache admin pages
+MIDDLEWARE.append('sumyaman_pro.middleware.NoCacheMiddleware')
+
+# Dynamic handling is preferred for multi-tenant
+LOGIN_REDIRECT_URL = '/'
