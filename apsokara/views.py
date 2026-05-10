@@ -176,16 +176,17 @@ def student_profile_view(request,  student_id, school_slug=None):
     p_count = history.filter(status__iexact='Present').count()
     perc = (p_count / t_count * 100) if t_count > 0 else 0
     
+    t_obt, t_tot = 0, 0  # Default values to prevent UnboundLocalError
+    t_obt, t_tot = 0, 0  # Default values to prevent UnboundLocalError
     from django.db import connection
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT SUM(obtained_marks), SUM(total_marks) FROM student_marks WHERE student_id = %s", [student_id])
-            marks_data = cursor.fetchone()
-            if not marks_data: marks_data = (0, 0)
+            # Marks table does not exist yet, setting defaults
+            marks_data = (0, 0)
     except Exception:
         marks_data = (0, 0)
-        t_obt = m_row[0] if m_row[0] is not None else 0
-        t_tot = m_row[1] if m_row[1] is not None else 0
+        t_obt = marks_data[0] if marks_data and marks_data[0] is not None else 0
+        t_tot = marks_data[1] if marks_data and marks_data[1] is not None else 0
     
     return render(request, 'hq_admin_custom/student_profile.html', {'school_slug': school_slug, 
         's': s, 'attendance_history': history, 'present_count': p_count,
