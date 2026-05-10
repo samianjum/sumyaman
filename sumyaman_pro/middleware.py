@@ -10,16 +10,20 @@ class TenantMiddleware:
     def __call__(self, request):
         path_parts = request.path.strip('/').split('/')
         
+        # Load all schools into settings.DATABASES if not already there
+        # This ensures connections exist after server restart
+        schools = SchoolClient.objects.all()
+        for school in schools:
+            if school.slug not in settings.DATABASES:
+                db_config = settings.DATABASES['default'].copy()
+                db_config['NAME'] = f"{school.slug}_db"
+                settings.DATABASES[school.slug] = db_config
+
         if len(path_parts) >= 2 and path_parts[0] == 's':
             slug = path_parts[1]
-            
-            # SQLite file check ki jagah hum DB check karenge
             try:
-                school_exists = SchoolClient.objects.filter(slug=slug).exists()
-                if school_exists:
-                    # Yahan hum Dynamic DB routing ka logic use karenge
+                if slug in settings.DATABASES:
                     set_current_db(slug)
-                    
                     if not request.user.is_authenticated and 'login' not in request.path:
                         return redirect(f'/s/{slug}/admin/login/')
                 else:
@@ -31,15 +35,10 @@ class TenantMiddleware:
             
         return self.get_response(request)
 
-from django.utils.cache import add_never_cache_headers
-
 class NoCacheMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-
     def __call__(self, request):
         response = self.get_response(request)
-        if request.path.startswith('/admin/') or request.path.startswith('/hq-admin/'):
-            add_never_cache_headers(response)
         response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
         return response

@@ -177,9 +177,13 @@ def student_profile_view(request,  student_id, school_slug=None):
     perc = (p_count / t_count * 100) if t_count > 0 else 0
     
     from django.db import connection
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT SUM(obtained_marks), SUM(total_marks) FROM student_marks WHERE student_id = %s", [student_id])
-        m_row = cursor.fetchone()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT SUM(obtained_marks), SUM(total_marks) FROM student_marks WHERE student_id = %s", [student_id])
+            marks_data = cursor.fetchone()
+            if not marks_data: marks_data = (0, 0)
+    except Exception:
+        marks_data = (0, 0)
         t_obt = m_row[0] if m_row[0] is not None else 0
         t_tot = m_row[1] if m_row[1] is not None else 0
     
