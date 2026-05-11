@@ -1,4 +1,4 @@
-import sqlite3
+import pg_shim as sqlite3
 import datetime
 import pytz
 from flask import jsonify, session, request

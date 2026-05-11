@@ -1,6 +1,6 @@
 
 from flask import jsonify, session, render_template_string
-import sqlite3
+import pg_shim as sqlite3
 
 def init_student_routes(app, db_path, login_required):
     @app.route('/api/student/my-results')

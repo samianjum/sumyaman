@@ -1,0 +1,12 @@
+def check_lock():
+    u = session['user']
+    if not u.get('assigned_class'): return jsonify({'error': 'No class assigned to teacher'}), 400
+def students_marking():
+    u = session['user']
+    if not u.get('assigned_class'): return jsonify({'error': 'No class assigned to teacher'}), 400
+def submit_leave_v2():
+    u = session['user']
+    if not u.get('assigned_class'): return jsonify({'error': 'No class assigned to teacher'}), 400
+def get_leave_stats_v2():
+    u = session['user']
+    if not u.get('assigned_class'): return jsonify({'error': 'No class assigned to teacher'}), 400

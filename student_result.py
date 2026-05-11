@@ -1,4 +1,4 @@
-import sqlite3
+import pg_shim as sqlite3
 from flask import jsonify, session
 
 def init_student_routes(app, DB_PATH):

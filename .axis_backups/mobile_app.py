@@ -1,60 +1,58 @@
 from student_result import init_student_routes
 from finalize_module import init_finalize_routes
-from flask import send_file, send_from_directory, make_response, send_from_directory, Flask, render_template_string, request, jsonify, session
-import os, sqlite3, datetime, pytz
+from flask import send_file, send_from_directory, make_response, Flask, render_template_string, request, jsonify, session
+import os, datetime, pytz
+import pg_shim as sqlite3
 from functools import wraps
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.secret_key = "aps_okara_ultimate_final_v3"
 
+@app.errorhandler(500)
+def handle_500(e):
+    return jsonify({"error": "server_error", "message": str(e)}), 500
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "api_crash", "message": str(e)}), 500
+    return str(e), 500
+
 # --- CONFIG ---
-# --- Dynamic Multi-Tenancy Inject ---
-import os
-def get_db_path():
-    try:
-        from flask import request, session
-        # Check if we are inside a request
-        host = request.host.split(':')[0]
-        subdomain = host.split('.')[0]
-        tenant = request.args.get('t') or (subdomain if subdomain not in ['localhost', '127', 'www'] else (session.get('tenant') or request.headers.get('X-Tenant')))
-        if tenant:
-            path = os.path.join('tenants', f'{tenant}_school.sqlite3')
-            if os.path.exists(path): return path
-    except RuntimeError:
-        pass # Not in request context
-    
-    # Fallback logic for startup or unknown tenants
-    if os.path.exists('tenants'):
-        dbs = [f for f in os.listdir('tenants') if f.endswith('.sqlite3')]
-        if dbs: return os.path.join('tenants', dbs[0])
-    return 'db.sqlite3'
-# --- DYNAMIC MULTI-TENANCY START ---
-from flask import g
-import os
 
 def get_db_path():
     try:
         from flask import request, session
-        # Check if we are inside a request
         host = request.host.split(':')[0]
         subdomain = host.split('.')[0]
-        tenant = request.args.get('t') or (subdomain if subdomain not in ['localhost', '127', 'www'] else (session.get('tenant') or request.headers.get('X-Tenant')))
+        tenant = request.args.get('t') or (subdomain if subdomain not in ['localhost', '127', 'www'] else session.get('tenant'))
+        
+        if tenant == 'sas':
+            return 'sas_db'  # Signal for pg_shim to use Postgres
+            
         if tenant:
             path = os.path.join('tenants', f'{tenant}_school.sqlite3')
             if os.path.exists(path): return path
-    except RuntimeError:
-        pass # Not in request context
-    
-    # Fallback logic for startup or unknown tenants
-    if os.path.exists('tenants'):
-        dbs = [f for f in os.listdir('tenants') if f.endswith('.sqlite3')]
-        if dbs: return os.path.join('tenants', dbs[0])
-    return 'db.sqlite3'
+            
+        # Hard fallback to main db if no tenant file found
+        return 'db.sqlite3'
+    except Exception:
+        return 'db.sqlite3'
+
 def get_db_conn():
+    from flask import g
+    import pg_shim as sqlite3 # Use shim globally for routing support
     if 'db' not in g:
-        g.db = sqlite3.connect(get_db_path())
+        db_path = get_db_path()
+        g.db = sqlite3.connect(db_path)
         g.db.row_factory = sqlite3.Row
     return g.db
+# ------------------------------------
+# --- Dynamic Multi-Tenancy Inject ---
+import os
+# --- DYNAMIC MULTI-TENANCY START ---
+from flask import g
+import os
 
 @app.teardown_appcontext
 def close_db(error):
@@ -2707,7 +2705,7 @@ def get_school_branding():
     branding = {'name': 'AXIS OS', 'logo': '/static/logo.png', 'footer': 'AXIS OS • V1.0.1'}
     if tenant == 'default': return branding
     try:
-        import sqlite3
+        import pg_shim as sqlite3
         conn = sqlite3.connect('db.sqlite3')
         cur = conn.cursor()
         cur.execute("SELECT name, logo FROM super_admin_schoolclient WHERE slug=? LIMIT 1", (tenant,))
@@ -2738,110 +2736,108 @@ def index():
     return resp
 
 @app.route('/api/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def api_login():
-    data = request.json
-    # Frontend sends 'uid', 'dob', 'role'. Correcting the print and variables:
-    uid = str(data.get('uid', '')).strip()
-    dob = str(data.get('dob', '')).strip()
-    role = data.get('role', 'Student')
-    
-    # Auto-save tenant in session if passed in URL
-    if request.args.get('t'):
-        session['tenant'] = request.args.get('t')
+    try:
+        data = request.json or {}
+        uid = str(data.get('uid', '')).strip()
+        dob = str(data.get('dob', '')).strip()
+        role = data.get('role', 'Student')
         
-    print(f'🔑 LOGIN ATTEMPT -> Role: {role}, UID: {uid}, DB: {get_db_path()}')
-    
-    # uid_int removed for strict login
-    conn = sqlite3.connect(get_db_path())
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    if role == "Student":
-        cur.execute("SELECT * FROM apsokara_student WHERE b_form=? AND dob=?", (uid, dob))
-    else:
-        cur.execute("SELECT * FROM apsokara_teacher WHERE cnic=? AND dob=?", (uid, dob))
-    user = cur.fetchone()
-    
-    if user:
+        if request.args.get('t'):
+            session['tenant'] = request.args.get('t')
+        
+        db_path = get_db_path()
+        print(f'🔑 LOGIN ATTEMPT -> Role: {role}, UID: {uid}, DB: {db_path}')
+        
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        
+        # Robust Date Parsing for PostgreSQL
+        if role == "Student":
+            print(f"DEBUG: Testing Student Login - UID: '{uid}', DOB: '{dob}'")
+            cur.execute("SELECT * FROM apsokara_student WHERE b_form=%s AND dob=%s::text::date", (uid.strip(), dob.strip()))
+        else:
+            cur.execute("SELECT * FROM apsokara_teacher WHERE cnic=%s AND dob=%s::date", (uid, dob))
+            
+        user = cur.fetchone()
+        if not user:
+            conn.close()
+            return jsonify({"error": "invalid_credentials", "message": "User not found or wrong password"}), 401
+            
         u_dict = dict(user)
         u_dict['role'] = role
-        u_dict['assigned_class'] = u_dict.get('assigned_class') or u_dict.get('student_class')
-        u_dict['assigned_section'] = u_dict.get('assigned_section') or u_dict.get('student_section')
-        u_dict['wing'] = u_dict.get('assigned_wing') or u_dict.get('wing')
-        u_dict['is_class_teacher'] = u_dict.get('is_class_teacher', 0)
+        session['user'] = u_dict
         
-        
-        
-        
-        
-        # --- NEW: Fetch Subject Assignments for Teachers ---
+        # Fetch assignments for teacher
         if role == "Teacher":
-            t_id = u_dict.get('id')
             cur.execute("""
-                SELECT 
-                    COALESCE(s.name, 'Subject ' || sa.subject_id) AS name,
-                    sa.student_class AS student_class, 
-                    sa.section AS section, 
-                    sa.wing AS wing
+                SELECT COALESCE(s.name, 'Subject ' || sa.subject_id) AS name, 
+                sa.student_class, sa.section, sa.wing
                 FROM apsokara_subjectassignment sa
                 LEFT JOIN apsokara_subject s ON sa.subject_id = s.id
-                WHERE sa.teacher_id = ?""", (t_id,))
-            rows = cur.fetchall()
-            u_dict['assignments'] = [dict(r) for r in rows]
-            # Debug: print(f"Assignments found: {u_dict['assignments']}")
-        # ---------------------------------------------------
-
-
-
-
-        
-        session['user'] = {k: v for k, v in u_dict.items() if k not in ['bio', 'pfp_base64']}
-
+                WHERE sa.teacher_id = %s""", (u_dict.get('id'),))
+            u_dict['assignments'] = [dict(r) for r in cur.fetchall()]
+            
         conn.close()
-        return jsonify({"success": True})
-    conn.close()
-    return jsonify({"success": False})
+        return jsonify({"success": True, "user": u_dict}), 200
+        
+    except Exception as e:
+        print(f"❌ LOGIN CRASH: {str(e)}")
+        return jsonify({"error": "api_crash", "message": str(e)}), 500
 
 @app.route('/api/check-lock')
-@login_required
 def check_lock():
-    u = session['user']
-    today = datetime.datetime.now(PK_TZ).date().isoformat()
-    conn = sqlite3.connect(get_db_path())
-    # Check max edit count for this class today
-    res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a 
-                        JOIN apsokara_student s ON a.student_id = s.id 
-                        WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
-                        (today, u['assigned_class'], u['assigned_section'], u.get('assigned_wing', u.get('wing')))).fetchone()
-    conn.close()
-    return jsonify({"edit_count": res[0] if res[0] is not None else 0})
+    try:
+        u = session.get('user', {})
+        today = datetime.datetime.now(PK_TZ).date()
+        u_class, u_sec = str(u.get('assigned_class','')), str(u.get('assigned_section',''))
+        u_wing = str(u.get('assigned_wing') or u.get('wing') or 'None')
+        
+        with sqlite3.connect(get_db_path()) as conn:
+            query = """
+                SELECT COALESCE(MAX(a.edit_count), 0)::int 
+                FROM apsokara_attendance a 
+                JOIN apsokara_student s ON a.student_id = s.id 
+                WHERE a.date::date = %s::date AND s.student_class = %s 
+                AND s.student_section = %s AND s.wing = %s
+            """
+            res = conn.execute(query, (str(today), u_class, u_sec, u_wing)).fetchone()
+            return jsonify({"edit_count": res[0] if res else 0})
+    except Exception as e:
+        print(f"ERR_CHECK_LOCK: {e}")
+        return jsonify({"edit_count": 0})
 
 
 @app.route('/api/students-marking')
 @login_required
 def students_marking():
-    u = session['user']
-    if u['role'] != 'Teacher' or not u.get('is_class_teacher'):
-        return jsonify({"students": [], "error": "Unauthorized"}), 403
-    today = datetime.datetime.now(PK_TZ).date().isoformat()
-    conn = sqlite3.connect(get_db_path())
-    conn.row_factory = sqlite3.Row
-    
-    # Query checking both attendance table AND approved leaves for today
-    query = """
-        SELECT s.id, s.full_name, s.father_name, s.roll_number, a.status,
-        (SELECT COUNT(*) FROM apsokara_studentleave l 
-         WHERE l.student_id = s.id 
-         AND l.status = 'Approved' 
-         AND ? BETWEEN l.from_date AND l.to_date) as on_leave
-        FROM apsokara_student s 
-        LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=?
-        WHERE s.student_class=? AND s.student_section=? AND s.wing=? 
-        ORDER BY CAST(s.roll_number AS INTEGER)
-    """
-    cur = conn.execute(query, (today, today, u['assigned_class'], u['assigned_section'], u['wing']))
-    rows = [dict(r) for r in cur.fetchall()]
-    conn.close()
-    return jsonify({"students": rows})
+    try:
+        u = session.get('user', {})
+        today = datetime.datetime.now(PK_TZ).date()
+        u_class, u_sec = str(u.get('assigned_class','')), str(u.get('assigned_section',''))
+        u_wing = str(u.get('assigned_wing') or u.get('wing') or 'None')
+        
+        conn = sqlite3.connect(get_db_path())
+        conn.row_factory = sqlite3.Row
+        query = """
+            SELECT s.id, s.full_name, s.father_name, s.roll_number, a.status,
+            (SELECT COUNT(*) FROM apsokara_studentleave l 
+             WHERE l.student_id = s.id AND l.status = 'Approved' 
+             AND %s BETWEEN l.from_date AND l.to_date) as on_leave
+            FROM apsokara_student s 
+            LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date = %s
+            WHERE s.student_class = %s AND s.student_section = %s AND s.wing = %s 
+            ORDER BY s.id ASC
+        """
+        res = conn.execute(query.replace('?', '%s'), (today, today, u_class, u_sec, u_wing)).fetchall()
+        data = [dict(r) for r in res]
+        conn.close()
+        return jsonify({"students": data})
+    except Exception as e:
+        print(f"ERR_MARKING: {e}")
+        return jsonify({"students": [], "error": str(e)})
 
 
 @app.route('/api/sync-attendance', methods=['POST'])
@@ -2851,66 +2847,42 @@ def sync_attendance():
         data = request.json
         attendance_list = data.get('attendance', [])
         u = session['user']
-        today = datetime.datetime.now(PK_TZ).date().isoformat()
+        today = datetime.datetime.now(PK_TZ).date()
         
         conn = sqlite3.connect(get_db_path())
         for item in attendance_list:
-            # Check if record already exists
-            existing = conn.execute("SELECT id, edit_count FROM apsokara_attendance WHERE student_id=? AND date=?", 
-                                 (item['id'], today)).fetchone()
-            
+            existing = conn.execute("SELECT id, edit_count FROM apsokara_attendance WHERE student_id=%s::bigint AND date=%s::date", (item['id'], today)).fetchone()
             if existing:
                 new_count = (existing[1] or 0) + 1
-                conn.execute("UPDATE apsokara_attendance SET status=?, edit_count=? WHERE student_id=? AND date=?",
-                            (item['status'], new_count, item['id'], today))
+                conn.execute("UPDATE apsokara_attendance SET status=%s, edit_count=%s WHERE student_id=%s::bigint AND date=%s::date", (item['status'], new_count, item['id'], today))
             else:
-                conn.execute("INSERT INTO apsokara_attendance (date, status, student_id, marked_by, face_status, edit_count) VALUES (?, ?, ?, ?, ?, ?)",
-                            (today, item['status'], item['id'], u['full_name'], 'unknown', 0))
-        
+                conn.execute("INSERT INTO apsokara_attendance (date, status, student_id, marked_by, face_status, edit_count) VALUES (%s, %s, %s, %s, %s, %s)", (today, item['status'], item['id'], u.get('full_name','System'), 'unknown', 0))
         conn.commit()
         conn.close()
         return jsonify({"success": True})
     except Exception as e:
-        print(f"❌ Attendance Error: {str(e)}")
+        print(f"❌ Sync Error: {e}")
         return jsonify({"success": False, "error": str(e)})
 
 
 @app.route('/api/archive')
 @login_required
 def api_archive():
-    date = request.args.get('date')
+    date_req = request.args.get('date')
     u = session['user']
-    conn = sqlite3.connect(get_db_path())
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    
+    conn = sqlite3.connect(get_db_path()); conn.row_factory = sqlite3.Row
     if u['role'] == 'Student':
-        if date:
-            cur.execute("""SELECT a.date, a.status, a.marked_by, 
-                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 / 
-                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id) as stats
-                         FROM apsokara_attendance a 
-                         WHERE a.student_id = ? AND a.date = ? 
-                         ORDER BY a.date DESC""", (u['id'], date))
-        else:
-            cur.execute("""SELECT a.date, a.status, a.marked_by,
-                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 / 
-                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id) as stats
-                         FROM apsokara_attendance a 
-                         WHERE a.student_id = ? 
-                         ORDER BY a.date DESC""", (u['id'],))
+        q = "SELECT date, status, marked_by FROM apsokara_attendance WHERE student_id = %s"
+        params = [u['id']]
+        if date_req:
+            q += " AND date = %s"; params.append(date_req)
+        res = conn.execute(q + " ORDER BY date DESC", tuple(params)).fetchall()
     else:
-        if not date:
-            return jsonify({"error": "Date required for staff"}), 400
-        cur.execute("""SELECT s.full_name, a.status, a.date 
-                     FROM apsokara_student s 
-                     JOIN apsokara_attendance a ON s.id = a.student_id 
-                     WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
-                     (date, u['assigned_class'], u['assigned_section'], u['wing']))
-    
-    res = [dict(r) for r in cur.fetchall()]
+        u_wing = str(u.get('assigned_wing') or u.get('wing') or 'None')
+        res = conn.execute("SELECT s.full_name, a.status, a.date FROM apsokara_student s JOIN apsokara_attendance a ON s.id = a.student_id WHERE a.date=%s AND s.student_class=%s AND s.student_section=%s AND s.wing=%s", (date_req, u.get('assigned_class'), u.get('assigned_section'), u_wing)).fetchall()
+    data = [dict(r) for r in res]
     conn.close()
-    return jsonify(res)
+    return jsonify(data)
 
 # Removed the old duplicated block that was below this point
 
@@ -2929,7 +2901,7 @@ def api_intel():
     conn.row_factory = sqlite3.Row
     cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres 
                         FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id 
-                        WHERE s.student_class=? AND s.student_section=? AND s.wing=? GROUP BY s.id""", (u['assigned_class'], u['assigned_section'], u['assigned_wing'], 'Pending'))
+                        WHERE s.student_class=%s AND s.student_section=%s AND s.wing=%s GROUP BY s.id""", (u['assigned_class'], u['assigned_section'], u['assigned_wing'], 'Pending'))
     flags = []
     for r in cur.fetchall():
         perc = (r['pres'] / r['total'] * 100) if r['total'] > 0 else 100
@@ -2938,13 +2910,14 @@ def api_intel():
     return jsonify({"flags": flags})
 
 
+@app.route('/api/student-detailed/<int:sid>')
 @app.route('/api/student-detailed-stats/<int:sid>')
 @login_required
-def student_detailed_stats(sid):
+def student_detailed(sid):
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
-    stats = conn.execute("SELECT COUNT(*) as total_days, SUM(CASE WHEN status='Present' THEN 1 ELSE 0 END) as presents, SUM(CASE WHEN status='Absent' THEN 1 ELSE 0 END) as absents, SUM(CASE WHEN status='Leave' THEN 1 ELSE 0 END) as leaves FROM apsokara_attendance WHERE student_id = ?", (sid,)).fetchone()
-    history = conn.execute("SELECT date, status FROM apsokara_attendance WHERE student_id = ? ORDER BY date DESC LIMIT 15", (sid,)).fetchall()
+    stats = conn.execute("SELECT COUNT(*) as total_days, SUM(CASE WHEN status='Present' THEN 1 ELSE 0 END) as presents, SUM(CASE WHEN status='Absent' THEN 1 ELSE 0 END) as absents, SUM(CASE WHEN status='Leave' THEN 1 ELSE 0 END) as leaves FROM apsokara_attendance WHERE student_id = %s::bigint", (int(sid),)).fetchone()
+    history = conn.execute("SELECT date, status FROM apsokara_attendance WHERE student_id = %s ORDER BY date DESC LIMIT 15", (sid,)).fetchall()
     conn.close()
     return jsonify({"stats": dict(stats), "history": [dict(h) for h in history]})
 
@@ -2980,7 +2953,7 @@ def diary_init_teacher():
         SELECT DISTINCT sa.student_class, sa.section, sa.wing, s.name as sub_name 
         FROM apsokara_subjectassignment sa 
         JOIN apsokara_subject s ON sa.subject_id = s.id 
-        WHERE sa.teacher_id = ?
+        WHERE sa.teacher_id = %s
     """
     rows = conn.execute(query, (u['id'],)).fetchall()
     conn.close()
@@ -3019,13 +2992,13 @@ def diary_post_new():
 
         conn = sqlite3.connect(get_db_path())
         # Find subject_id from name
-        sub_row = conn.execute("SELECT id FROM apsokara_subject WHERE name=?", (subject_name,)).fetchone()
+        sub_row = conn.execute("SELECT id FROM apsokara_subject WHERE name=%s", (subject_name,)).fetchone()
         subject_id = sub_row[0] if sub_row else 0
         
         query = """
             INSERT INTO apsokara_dailydiary 
             (student_class, section, wing, content, date_posted, attachments, subject_id, teacher_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         now = datetime.datetime.now().strftime("%Y-%m-%d | %H:%M")
         conn.execute(query, (target_class, target_section, target_wing, content_text, now, ",".join(file_paths), subject_id, u['id']))
@@ -3046,31 +3019,33 @@ def diary_post_new():
 @app.route('/api/diary/fetch')
 @login_required
 def diary_fetch_list():
-    u = session['user']
+    import pg_shim as sqlite3
+    u = session.get('user', {})
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    rows = []
     
     if u['role'] == 'Student':
-        # Student sirf apni class ki diaries dekhega jo schedule date tak pohanch chuki hain
         query = """
-            SELECT d.*, s.name as subject_name, t.full_name as teacher_name 
+            SELECT d.*, sub.name as subject_name, t.full_name as teacher_name 
             FROM apsokara_dailydiary d
-            LEFT JOIN apsokara_subject s ON d.subject_id = s.id
-            LEFT JOIN apsokara_teacher t ON d.teacher_id = t.id
-            WHERE d.student_class=? AND d.section=? 
-            AND (d.wing=? OR d.wing LIKE SUBSTR(?, 1, 1) || '%')
+            LEFT JOIN apsokara_subject sub ON d.subject_id::bigint = sub.id::bigint
+            LEFT JOIN apsokara_teacher t ON d.teacher_id::bigint = t.id::bigint
+            WHERE d.student_class = %s AND d.section = %s 
+            AND (d.wing = %s OR d.wing LIKE SUBSTRING(%s, 1, 1) || '%%')
             ORDER BY d.id DESC
         """
-        rows = conn.execute(query, (u.get('student_class', u.get('assigned_class')), u.get('student_section', u.get('assigned_section')), u['wing'], u['wing'])).fetchall()
+        s_class = str(u.get('student_class', u.get('assigned_class', '')))
+        s_sec = str(u.get('student_section', u.get('assigned_section', '')))
+        s_wing = str(u.get('wing', u.get('assigned_wing', '')))
+        rows = conn.execute(query, (s_class, s_sec, s_wing, s_wing)).fetchall()
     else:
-        # Teacher apni saari history dekhega
         query = """
-            SELECT d.*, s.name as subject_name, t.full_name as teacher_name 
+            SELECT d.*, sub.name as subject_name, t.full_name as teacher_name 
             FROM apsokara_dailydiary d
-            LEFT JOIN apsokara_subject s ON d.subject_id = s.id
-            LEFT JOIN apsokara_teacher t ON d.teacher_id = t.id
-            WHERE d.teacher_id=? 
+            LEFT JOIN apsokara_subject sub ON d.subject_id::bigint = sub.id::bigint
+            LEFT JOIN apsokara_teacher t ON d.teacher_id::bigint = t.id::bigint
+            WHERE d.teacher_id = %s::bigint 
             ORDER BY d.id DESC
         """
         rows = conn.execute(query, (u['id'],)).fetchall()
@@ -3091,8 +3066,12 @@ def diary_unread_status():
     last_seen = request.args.get('last_seen', 0, type=int)
     conn = sqlite3.connect(get_db_path())
     s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
-    query = "SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary WHERE student_class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND id > ?"
-    row = conn.execute(query, (s_class, s_sec, s_wing, s_wing, last_seen)).fetchone()
+    query = """
+        SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary 
+        WHERE student_class = %s AND section = %s 
+        AND (wing = %s OR wing LIKE SUBSTRING(%s, 1, 1) || '%%') AND id > %s::bigint
+    """
+    row = conn.execute(query, (str(s_class), str(s_sec), str(s_wing), str(s_wing), int(last_seen))).fetchone()
     conn.close()
     return jsonify({'count': row[0] or 0, 'latest_id': row[1] or 0})
 
@@ -3136,11 +3115,11 @@ def submit_leave_v2():
             
             check_sql = """
                 SELECT from_date, to_date FROM apsokara_studentleave 
-                WHERE student_id = ? AND status = 'Approved' 
-                AND ? BETWEEN date(from_date) AND date(to_date)
+                WHERE student_id = %s AND status = 'Approved' 
+                AND %s::date BETWEEN from_date AND to_date
                 LIMIT 1
             """
-            existing = conn.execute("SELECT id, from_date, to_date FROM apsokara_studentleave WHERE student_id=? AND status='Approved' AND ? BETWEEN date(from_date) AND date(to_date) LIMIT 1", (u['id'], today_str)).fetchone()
+            existing = conn.execute("SELECT id, from_date, to_date FROM apsokara_studentleave WHERE student_id=? AND status='Approved' AND %s::date BETWEEN from_date AND to_date LIMIT 1", (u['id'], today_str)).fetchone()
             
             if existing:
                 msg = f"❌ Action Blocked: You already have an Approved leave from {existing[1]} to {existing[2]}."
@@ -3162,39 +3141,44 @@ def list_leaves_v2():
     role = u.get('role')
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
-    
-    if role == 'Student':
-        # Student sirf apni history dekhega
-        res = conn.execute("SELECT l.*, s.full_name FROM apsokara_studentleave l JOIN apsokara_student s ON l.student_id = s.id WHERE student_id = ? ORDER BY id DESC", (u['id'],)).fetchall()
-    else:
-        # Teacher sirf apni assigned class ki leaves dekhega
-        # Hum is_class_teacher ka check pehle hi UI me laga chuke honge
-            res = conn.execute("""SELECT l.*, s.full_name FROM apsokara_studentleave l JOIN apsokara_student s ON l.student_id = s.id 
-                               WHERE s.student_class=? AND s.student_section=? AND (s.wing=? OR s.wing LIKE SUBSTR(?, 1, 1) || '%') 
-                               ORDER BY l.status DESC, l.id DESC""", (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchall()
-    
-    data = [dict(row) for row in res]
-    conn.close()
-    return jsonify(data)
+    res = []
+    try:
+        if role == 'Student':
+            res = conn.execute("SELECT l.*, s.full_name FROM apsokara_studentleave l JOIN apsokara_student s ON l.student_id = s.id WHERE l.student_id = ? ORDER BY l.id DESC", (u['id'],)).fetchall()
+        else:
+            # Dynamic Class/Section/Wing filtering
+            res = conn.execute("""SELECT l.*, s.full_name FROM apsokara_studentleave l 
+                               JOIN apsokara_student s ON l.student_id = s.id 
+                               WHERE s.student_class=? AND s.student_section=? AND (s.wing=? OR s.wing LIKE ?) 
+                               ORDER BY l.status DESC, l.id DESC""", 
+                               (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), f"{u.get('assigned_wing')[:1]}%")).fetchall()
+    except Exception as e: print(f'❌ Leave List Error: {e}')
+    finally: conn.close()
+    return jsonify([dict(row) for row in res])
 
 @app.route('/api/leave/action', methods=['POST'])
 @login_required
 def leave_action_v2():
-    u = session['user']
+    u = session.get('user', {})
     if not u.get('is_class_teacher'):
         return jsonify({'success': False, 'error': 'Unauthorized'})
     
     d = request.json
     try:
+        import pg_shim as sqlite3
         with sqlite3.connect(get_db_path()) as conn:
-            conn.execute("""
+            # FIX: Use %s and casting for Postgres bigint
+            query = """
                 UPDATE apsokara_studentleave 
-                SET status=? 
-                WHERE id=? AND student_id IN (
+                SET status = %s 
+                WHERE id = %s::bigint AND student_id IN (
                     SELECT id FROM apsokara_student 
-                    WHERE student_class=? AND student_section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')
+                    WHERE student_class = %s AND student_section = %s 
+                    AND (wing = %s OR wing LIKE SUBSTRING(%s, 1, 1) || '%%')
                 )
-            """, (d['status'], d['id'], u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing')))
+            """
+            conn.execute(query, (str(d['status']), int(d['id']), str(u.get('assigned_class')), str(u.get('assigned_section')), str(u.get('assigned_wing')), str(u.get('assigned_wing'))))
+            conn.commit()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -3226,35 +3210,37 @@ def get_leave_stats_v2():
     if not u.get('is_class_teacher'):
         return jsonify({'pending': 0, 'today': 0, 'done': 0})
     try:
-        import sqlite3
+        import pg_shim as sqlite3
         conn = sqlite3.connect(get_db_path())
-        c, s, w = u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing')
+        c, s, w = str(u.get('assigned_class')), str(u.get('assigned_section')), str(u.get('assigned_wing'))
         
-        # Pending for this teacher only
-        pending = conn.execute("SELECT COUNT(*) FROM apsokara_studentleave WHERE student_class=? AND section=? AND wing=? AND status='Pending'", (c,s,w)).fetchone()[0]
+        # JOIN with apsokara_student to filter by class/section
+        # Pending
+        pending = conn.execute("""
+            SELECT COUNT(l.id) FROM apsokara_studentleave l 
+            JOIN apsokara_student s ON l.student_id = s.id 
+            WHERE s.student_class=%s AND s.student_section=%s AND s.wing=%s AND l.status='Pending'
+        """, (c,s,w)).fetchone()[0]
         
-        # Today's applied (Using date comparison)
-        today = conn.execute("SELECT COUNT(*) FROM apsokara_studentleave WHERE student_class=? AND section=? AND wing=? AND (from_date LIKE '%2026-04-29%' OR date(from_date) = date('now'))", (c,s,w)).fetchone()[0]
+        # Today's applied
+        today = conn.execute("""
+            SELECT COUNT(l.id) FROM apsokara_studentleave l 
+            JOIN apsokara_student s ON l.student_id = s.id 
+            WHERE s.student_class=%s AND s.student_section=%s AND s.wing=%s AND l.from_date = CURRENT_DATE
+        """, (c,s,w)).fetchone()[0]
         
-        # Total Approved Only
-        done = conn.execute("SELECT COUNT(*) FROM apsokara_studentleave WHERE student_class=? AND section=? AND wing=? AND status='Approved'", (c,s,w)).fetchone()[0]
+        # Approved Total
+        done = conn.execute("""
+            SELECT COUNT(l.id) FROM apsokara_studentleave l 
+            JOIN apsokara_student s ON l.student_id = s.id 
+            WHERE s.student_class=%s AND s.student_section=%s AND s.wing=%s AND l.status='Approved'
+        """, (c,s,w)).fetchone()[0]
         
         conn.close()
         return jsonify({'pending': int(pending), 'today': int(today), 'done': int(done)})
     except:
         return jsonify({'pending': 0, 'today': 0, 'done': 0})
 
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-@app.after_request
-def add_header(response):
-    # Allow home page and static files to be cached for offline use
-    if request.path.startswith('/static/') or request.path in ['/sw.js', '/']:
-        response.headers['Cache-Control'] = 'public, max-age=31536000'
-    return response
-    if request.path.startswith('/static/') or request.path == '/sw.js':
-        response.headers['Cache-Control'] = 'public, max-age=31536000'
-    else:
-        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    return response
