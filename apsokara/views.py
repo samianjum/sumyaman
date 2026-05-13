@@ -174,6 +174,8 @@ def student_profile_view(request,  student_id, school_slug=None):
     history = Attendance.objects.filter(student=s).order_by('-date')
     t_count = history.count()
     p_count = history.filter(status__iexact='Present').count()
+    a_count = history.filter(status__iexact='Absent').count()
+    l_count = history.filter(status__iexact='Leave').count()
     perc = (p_count / t_count * 100) if t_count > 0 else 0
     
     t_obt, t_tot = 0, 0  # Default values to prevent UnboundLocalError

@@ -39,8 +39,11 @@
                         {% else %}<i class="fas fa-university fa-lg text-primary"></i>{% endif %}
                     </div>
                     <div>
-                        <h6 class="mb-0 fw-bold">{{ school.name }}</h6>
+                        <h6 class="mb-0 fw-bold">{{ school.name }} 
+                            {% if not school.is_active %}<span class="badge bg-danger ms-1" style="font-size: 10px;">INACTIVE</span>{% endif %}
+                        </h6>
                         <small class="text-muted">/s/{{ school.slug }}</small>
+
                     </div>
                     <i class="fas fa-chevron-right ms-auto text-muted"></i>
                 </div>

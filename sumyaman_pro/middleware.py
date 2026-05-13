@@ -23,6 +23,12 @@ class TenantMiddleware:
             slug = path_parts[1]
             try:
                 if slug in settings.DATABASES:
+                    # Power Check: Is school active?
+                    school = SchoolClient.objects.using('default').get(slug=slug)
+                    if not school.is_active:
+                        from django.http import HttpResponseForbidden
+                        return HttpResponseForbidden("<h1>School Suspended</h1><p>This institution has been deactivated by the Super Admin.</p>")
+                    
                     set_current_db(slug)
                     if not request.user.is_authenticated and 'login' not in request.path:
                         return redirect(f'/s/{slug}/admin/login/')

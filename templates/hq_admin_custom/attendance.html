@@ -239,8 +239,9 @@
         </div>
     </div>
     <div class="hero-stats-grid">
-        <div class="stat-chip"><i class="fas fa-users text-info"></i><div><span class="stat-val">{{ total_students }}</span><span class="stat-lbl">Enrolled</span></div></div>
-        <div class="stat-chip" style="border-left: 3px solid #10b981;"><i class="fas fa-check-circle text-success"></i><div><span class="stat-val">{{ present }}</span><span class="stat-lbl">Present</span></div></div>
+        <!-- Backend Analytics Sync -->
+        <div class="stat-chip"><i class="fas fa-users text-info"></i><div><span class="stat-val">{{ total_students|default:"0" }}</span><span class="stat-lbl">Enrolled</span></div></div>
+        <div class="stat-chip" style="border-left: 3px solid #10b981;"><i class="fas fa-check-circle text-success"></i><div><span class="stat-val">{{ present|default:"0" }}</span><span class="stat-lbl">Present</span></div></div>
         <div class="stat-chip" style="border-left: 3px solid #ef4444;"><i class="fas fa-times-circle text-danger"></i><div><span class="stat-val">{{ absent }}</span><span class="stat-lbl">Absent</span></div></div>
         <div class="stat-chip" style="border-left: 3px solid #fbbf24;"><i class="fas fa-clock text-warning"></i><div><span class="stat-val">{{ leave }}</span><span class="stat-lbl">On Leave</span></div></div>
     </div>
@@ -296,16 +297,14 @@
                 </div>
             </div>
             
-            {% with c=class_group.grouper %}
-                {% if c == 'PG' or c == 'Nursery' or c == '1' or c == '2' or c == '3' or c == '4' or c == '5' %}
-                    <span class="level-badge bg-junior">Junior</span>
-                {% else %}
-                    <span class="level-badge bg-senior">Senior</span>
-                {% endif %}
-            {% endwith %}
+            {% if class_group.grouper in 'PG Nursery 1 2 3 4 5' %}
+                <span class="level-badge bg-junior">Junior</span>
+            {% else %}
+                <span class="level-badge bg-senior">Senior</span>
+            {% endif %}
 
-            <div class="view-overlay">
-                <span>VIEW SECTIONS <i class="fas fa-chevron-right ms-1"></i></span>
+            <div class="view-overlay" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 35px; transform: translateY(100%); display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">
+                <span>VIEW SECTIONS <i class="fas fa-arrow-right ms-1"></i></span>
             </div>
         </a>
     </div>

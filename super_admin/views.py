@@ -85,3 +85,10 @@ def update_school_logo(request, school_slug):
         referer = request.META.get('HTTP_REFERER')
         return redirect(referer if referer else f'/s/{school_slug}/')
     return JsonResponse({"error": "Invalid request"})
+
+@user_passes_test(is_super_admin, login_url='/hq-admin/login/')
+def toggle_school_status(request, slug):
+    school = SchoolClient.objects.get(slug=slug)
+    school.is_active = not school.is_active
+    school.save()
+    return redirect('super_admin_dashboard')
