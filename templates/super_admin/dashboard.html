@@ -26,6 +26,37 @@
     
     </div>
 </nav>
+<div class="container mb-4">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card bg-dark border-secondary p-2">
+                <small class="text-muted">SERVER CPU</small>
+                <div class="progress" style="height: 5px;">
+                    <div class="progress-bar bg-info" style="width: {{ health.cpu }}%"></div>
+                </div>
+                <small class="text-end text-info small">{{ health.cpu }}%</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-dark border-secondary p-2">
+                <small class="text-muted">RAM USAGE</small>
+                <div class="progress" style="height: 5px;">
+                    <div class="progress-bar bg-warning" style="width: {{ health.ram }}%"></div>
+                </div>
+                <small class="text-end text-warning small">{{ health.ram }}%</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-dark border-secondary p-2">
+                <small class="text-muted">DISK SPACE</small>
+                <div class="progress" style="height: 5px;">
+                    <div class="progress-bar bg-danger" style="width: {{ health.disk }}%"></div>
+                </div>
+                <small class="text-end text-danger small">{{ health.disk }}%</small>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="container">
     <h4 class="mb-4 fw-bold text-secondary">Active Institutions</h4>
@@ -43,6 +74,12 @@
                             {% if not school.is_active %}<span class="badge bg-danger ms-1" style="font-size: 10px;">INACTIVE</span>{% endif %}
                         </h6>
                         <small class="text-muted">/s/{{ school.slug }}</small>
+<div class="mt-2 small opacity-75">
+    <i class="fas fa-database me-1 text-primary"></i> 
+    {% with db_name=school.slug|add:"_db" %}
+        {{ school.size }}
+    {% endwith %}
+</div>
 
                     </div>
                     <i class="fas fa-chevron-right ms-auto text-muted"></i>
