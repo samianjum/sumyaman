@@ -36,7 +36,7 @@ def fix_all():
                 cursor.execute(f"ALTER SCHEMA public OWNER TO sami_admin;")
                 cursor.execute(f"GRANT ALL ON ALL TABLES IN SCHEMA public TO sami_admin;")
                 cursor.execute(f"GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO sami_admin;")
-                
+
                 # 2. Deploy Schema
                 cursor.execute(SCHEMA_SQL)
             c.close()

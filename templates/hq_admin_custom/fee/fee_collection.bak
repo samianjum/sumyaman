@@ -1,0 +1,318 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% load static %}
+{% block title %}Fee Collection | Smart Cashier{% endblock %}
+
+{% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<style>
+  .fee-container { max-width: 1400px; margin: 0 auto; }
+  .search-card { background: white; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem; margin-bottom: 1.5rem; }
+  .student-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem; }
+  .pending-badge { background: #f97316; color: white; border-radius: 30px; padding: 0.2rem 0.8rem; font-size: 0.8rem; font-weight: bold; }
+  .fee-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+  .fee-table th { font-size: 0.7rem; text-transform: uppercase; color: #64748b; font-weight: 800; padding-bottom: 0.5rem; }
+  .fee-table td { background: #f8fafc; border-radius: 12px; padding: 0.8rem; vertical-align: middle; }
+  .amount-input { font-size: 1.5rem; font-weight: 800; border: 2px solid #e2e8f0; border-radius: 16px; padding: 0.6rem; width: 100%; text-align: center; }
+  .payment-btn { background: #10b981; color: white; border: none; border-radius: 40px; padding: 0.8rem 1.5rem; font-weight: 800; width: 100%; transition: 0.2s; }
+  .payment-btn:hover { background: #059669; transform: scale(0.98); }
+  .mode-buttons { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; }
+  .mode-btn { flex: 1; padding: 0.8rem; border-radius: 40px; border: 1px solid #cbd5e1; background: white; font-weight: 700; transition: 0.2s; }
+  .mode-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
+  .receipt-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1050; }
+  .receipt-content { background: white; max-width: 500px; width: 90%; border-radius: 24px; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
+  .summary-box { background: #f1f5f9; border-radius: 16px; padding: 1rem; text-align: center; }
+  .allocation-preview { background: #eef2ff; border-radius: 12px; padding: 0.8rem; font-size: 0.8rem; margin: 0.5rem 0; }
+  @media (max-width: 768px) { .mode-buttons { flex-direction: column; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fee-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="fas fa-hand-holding-usd me-2 text-success"></i>Fee Collection Desk</h2>
+    <div class="summary-box" id="dailySummary">
+      <i class="fas fa-chart-line"></i> Today: ₹<span id="todayTotal">0</span> (<span id="todayCount">0</span> receipts)
+    </div>
+  </div>
+
+  <!-- Step 1: Instant Student Lookup -->
+  <div class="search-card">
+    <div class="mb-3">
+      <label class="form-label fw-bold">🔍 Find Student</label>
+      <div class="input-group">
+        <input type="text" id="studentSearch" class="form-control form-control-lg" placeholder="Roll number, name, father CNIC, or mobile..." autocomplete="off">
+        <button class="btn btn-primary" type="button" id="searchBtn"><i class="fas fa-search"></i> Search</button>
+      </div>
+      <div id="searchResults" class="list-group mt-2" style="display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Step 2: Student info + pending list container -->
+  <div id="studentSection" style="display: none;">
+    <div class="student-card" id="studentInfo"></div>
+    <div id="pendingListContainer"></div>
+  </div>
+
+  <!-- Step 3: Payment panel (initially hidden) -->
+  <div id="paymentPanel" style="display: none;" class="search-card">
+    <h5 class="fw-bold mb-3"><i class="fas fa-coins me-2"></i>Collect Payment</h5>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Amount Paying Today (₹)</label>
+      <input type="number" id="payAmount" class="amount-input" step="0.01" value="0">
+      <div id="allocationPreview" class="allocation-preview mt-2"></div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Payment Mode</label>
+      <div class="mode-buttons" id="modeButtons">
+        <button type="button" class="mode-btn" data-mode="cash">💵 Cash</button>
+        <button type="button" class="mode-btn" data-mode="bank_transfer">🏦 Bank Transfer</button>
+        <button type="button" class="mode-btn" data-mode="cheque">📝 Cheque</button>
+        <button type="button" class="mode-btn" data-mode="online">💻 Online</button>
+      </div>
+      <input type="text" id="remarks" class="form-control mt-2" placeholder="Cheque number / reference (optional)">
+    </div>
+    <button id="collectBtn" class="payment-btn"><i class="fas fa-receipt me-2"></i> Collect & Print Receipt</button>
+  </div>
+</div>
+
+<!-- Receipt modal -->
+<div id="receiptModal" class="receipt-modal" style="display: none;">
+  <div class="receipt-content">
+    <div class="d-flex justify-content-between mb-3">
+      <h5 class="fw-bold">Payment Receipt</h5>
+      <button type="button" class="btn-close" onclick="closeReceipt()"></button>
+    </div>
+    <div id="receiptBody"></div>
+    <div class="d-grid gap-2 mt-3">
+      <button onclick="window.print()" class="btn btn-secondary"><i class="fas fa-print"></i> Print</button>
+      <button onclick="closeReceipt()" class="btn btn-light">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+let currentStudent = null;
+let pendingRecords = [];
+let totalPending = 0;
+
+async function loadDailySummary() {
+    try {
+        const res = await fetch(window.location.pathname.replace(/\/fee\/collection\/$/, '/fee/daily-summary/'));
+        const data = await res.json();
+        document.getElementById('todayTotal').innerText = data.total || '0';
+        document.getElementById('todayCount').innerText = data.count || '0';
+    } catch(e) { console.error(e); }
+}
+loadDailySummary();
+
+const searchInput = document.getElementById('studentSearch');
+const searchResultsDiv = document.getElementById('searchResults');
+let searchTimeout;
+
+searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const q = this.value.trim();
+    if (q.length < 2) {
+        searchResultsDiv.style.display = 'none';
+        return;
+    }
+    searchTimeout = setTimeout(() => performSearch(q), 300);
+});
+
+document.getElementById('searchBtn').addEventListener('click', () => performSearch(searchInput.value.trim()));
+
+async function performSearch(q) {
+    if (!q) return;
+    const res = await fetch(`${window.location.pathname.replace(/\/fee\/collection\/$/, '/fee/student/search/')}?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if (data.results && data.results.length) {
+        searchResultsDiv.innerHTML = data.results.map(s => `
+            <button class="list-group-item list-group-item-action" onclick="selectStudent(${s.id})">
+                <div class="d-flex justify-content-between">
+                    <strong>${escapeHtml(s.full_name)}</strong>
+                    <span class="badge bg-secondary">${s.roll_number}</span>
+                </div>
+                <small>${s.father_name} | ${s.student_class}-${s.student_section} ${s.wing !== 'None' ? '('+s.wing+')' : ''}</small><br>
+                <small class="text-danger">Pending: ₹${parseFloat(s.pending_total).toFixed(2)}</small>
+            </button>
+        `).join('');
+        searchResultsDiv.style.display = 'block';
+    } else {
+        searchResultsDiv.innerHTML = '<div class="list-group-item text-muted">No students found</div>';
+        searchResultsDiv.style.display = 'block';
+    }
+}
+
+function escapeHtml(str) {
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+async function selectStudent(studentId) {
+    searchResultsDiv.style.display = 'none';
+    searchInput.value = '';
+    const res = await fetch(`${window.location.pathname.replace(/\/fee\/collection\/$/, '/fee/student/pending/')}?student_id=${studentId}`);
+    const data = await res.json();
+    if (data.error) {
+        alert(data.error);
+        return;
+    }
+    currentStudent = { id: studentId, name: data.student_name };
+    pendingRecords = data.pending;
+    totalPending = pendingRecords.reduce((sum, r) => sum + parseFloat(r.pending_amount), 0);
+    
+    document.getElementById('studentInfo').innerHTML = `
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h4 class="fw-bold mb-1">${escapeHtml(data.student_name)}</h4>
+                <div class="mt-1"><i class="fas fa-id-card"></i> Roll: ${pendingRecords[0]?.roll_number || '—'}</div>
+                <div><i class="fas fa-user-friends"></i> Father: ${pendingRecords[0]?.father_name || '—'}</div>
+                <div><i class="fas fa-school"></i> Class: ${pendingRecords[0]?.student_class || '—'}-${pendingRecords[0]?.student_section || '—'} ${pendingRecords[0]?.wing ? '('+pendingRecords[0].wing+')' : ''}</div>
+            </div>
+            <div class="text-end">
+                <span class="pending-badge">Total Pending: ₹${totalPending.toFixed(2)}</span>
+            </div>
+        </div>
+    `;
+    
+    let pendingHtml = `
+        <div class="search-card">
+            <h5 class="fw-bold mb-3"><i class="fas fa-list-ul me-2"></i>Unpaid Months</h5>
+            <table class="fee-table">
+                <thead><tr><th>Month/Year</th><th>Original Fee</th><th>Paid</th><th>Due</th><th>Due Date</th><th>Status</th></tr></thead>
+                <tbody>
+    `;
+    pendingRecords.forEach(r => {
+        let statusClass = r.status === 'overdue' ? 'text-danger' : (r.status === 'partial' ? 'text-warning' : 'text-secondary');
+        pendingHtml += `
+            <tr>
+                <td><strong>${r.month}/${r.year}</strong></td>
+                <td>₹${parseFloat(r.total_amount).toFixed(2)}</td>
+                <td>₹${parseFloat(r.paid_amount).toFixed(2)}</td>
+                <td>₹${parseFloat(r.pending_amount).toFixed(2)}</td>
+                <td>${r.due_date}</td>
+                <td class="${statusClass} fw-bold">${r.status.toUpperCase()}</td>
+            </tr>
+        `;
+    });
+    pendingHtml += `</tbody></tr></div>`;
+    document.getElementById('pendingListContainer').innerHTML = pendingHtml;
+    
+    document.getElementById('paymentPanel').style.display = 'block';
+    document.getElementById('studentSection').style.display = 'block';
+    const amountInput = document.getElementById('payAmount');
+    amountInput.value = totalPending.toFixed(2);
+    amountInput.max = totalPending;
+    updateAllocationPreview(amountInput.value);
+    document.getElementById('paymentPanel').scrollIntoView({ behavior: 'smooth' });
+}
+
+function updateAllocationPreview(amount) {
+    let remaining = parseFloat(amount);
+    if (isNaN(remaining)) remaining = 0;
+    let previewHtml = '';
+    let tempRemaining = remaining;
+    for (let r of pendingRecords) {
+        let due = parseFloat(r.pending_amount);
+        if (tempRemaining <= 0) break;
+        let payThis = Math.min(tempRemaining, due);
+        if (payThis > 0) {
+            previewHtml += `<div>₹${payThis.toFixed(2)} → clears ${r.month}/${r.year} (remaining due ₹${(due - payThis).toFixed(2)})</div>`;
+            tempRemaining -= payThis;
+        }
+    }
+    if (remaining > totalPending) {
+        previewHtml = `<div class="text-danger">Amount exceeds total pending! Will be limited to ₹${totalPending.toFixed(2)}.</div>`;
+    } else if (remaining === 0) {
+        previewHtml = `<div class="text-muted">Enter amount to see allocation</div>`;
+    }
+    document.getElementById('allocationPreview').innerHTML = previewHtml;
+}
+
+document.getElementById('payAmount').addEventListener('input', function() {
+    let val = parseFloat(this.value);
+    if (val > totalPending) this.value = totalPending;
+    updateAllocationPreview(this.value);
+});
+
+let selectedMode = 'cash';
+document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedMode = this.getAttribute('data-mode');
+    });
+});
+document.querySelector('.mode-btn[data-mode="cash"]').classList.add('active');
+
+document.getElementById('collectBtn').addEventListener('click', async () => {
+    if (!currentStudent) {
+        alert('Please select a student first.');
+        return;
+    }
+    let amount = parseFloat(document.getElementById('payAmount').value);
+    if (isNaN(amount) || amount <= 0) {
+        alert('Enter a valid amount greater than zero.');
+        return;
+    }
+    const remarks = document.getElementById('remarks').value;
+    const payload = {
+        student_id: currentStudent.id,
+        amount: amount,
+        payment_mode: selectedMode,
+        remarks: remarks
+    };
+    const res = await fetch(window.location.pathname.replace(/\/fee\/collection\/$/, '/fee/collect/'), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+        document.getElementById('receiptBody').innerHTML = data.receipt_html;
+        document.getElementById('receiptModal').style.display = 'flex';
+        await selectStudent(currentStudent.id);
+        loadDailySummary();
+        document.getElementById('remarks').value = '';
+        document.getElementById('payAmount').value = totalPending.toFixed(2);
+        updateAllocationPreview(totalPending);
+    } else {
+        alert('Error: ' + (data.error || 'Payment failed'));
+    }
+});
+
+function closeReceipt() {
+    document.getElementById('receiptModal').style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !searchResultsDiv.contains(e.target)) {
+        searchResultsDiv.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

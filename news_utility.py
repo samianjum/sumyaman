@@ -29,7 +29,7 @@ def render_news_ticker():
     if not df.empty:
         news_list = df['content'].tolist()
         display_text = " &nbsp;&nbsp;&nbsp;&nbsp; ★ &nbsp;&nbsp;&nbsp;&nbsp; ".join(news_list)
-        
+
         st.markdown(f'''
             <style>
             @keyframes smooth-loop {{ from {{ transform: translateX(0); }} to {{ transform: translateX(-50%); }} }}
@@ -53,7 +53,7 @@ def render_news_ticker():
                 .moving-text {{ font-size: 1rem !important; }}
             }}
             </style>
-            
+
             <div class="aps-ticker-container">
                 <div class="aps-label">APS UPDATES</div>
                 <div class="ticker-content-wrapper">

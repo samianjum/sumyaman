@@ -4,7 +4,7 @@ import sqlite3
 
 def render_leave_approvals(u):
     u_class, u_wing = u.get('class'), u.get('wing')
-    
+
     st.markdown("""
         <style>
         .request-card {
@@ -28,7 +28,7 @@ def render_leave_approvals(u):
     st.markdown("<h2 style='color:#1E1B4B;'>📥 New Leave Requests</h2>", unsafe_allow_html=True)
     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
         pending = pd.read_sql("SELECT * FROM apsokara_studentleave WHERE class=? AND wing=? AND status='Pending'", conn, params=(u_class, u_wing))
-    
+
     if pending.empty:
         st.success("No pending requests today!")
     else:
@@ -63,7 +63,7 @@ def render_leave_approvals(u):
 
     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
         hist = pd.read_sql(query + " ORDER BY id DESC", conn, params=params)
-    
+
     if not hist.empty:
         st.markdown("<br>", unsafe_allow_html=True)
         st.dataframe(hist, width='stretch', hide_index=True)

@@ -6,9 +6,9 @@ def render_leave_approvals(u):
     t_class = u.get('class') or u.get('incharge_class')
     t_sec = u.get('sec', '') or u.get('incharge_section', '')
     t_wing = u.get('wing', '')
-    
+
     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
-        p_count = pd.read_sql("SELECT COUNT(*) as count FROM apsokara_studentleave WHERE class_name=? AND wing=? AND status='Pending'", 
+        p_count = pd.read_sql("SELECT COUNT(*) as count FROM apsokara_studentleave WHERE class_name=? AND wing=? AND status='Pending'",
                              conn, params=(t_class, t_wing)).iloc[0]['count']
 
     st.markdown(f"""
@@ -70,12 +70,12 @@ def render_leave_approvals(u):
     with tab1:
         with sqlite3.connect("db.sqlite3", timeout=30) as conn:
             pending = pd.read_sql("""
-                SELECT l.*, s.full_name as name 
-                FROM apsokara_studentleave l 
-                LEFT JOIN apsokara_student s ON l.student_id = s.id 
+                SELECT l.*, s.full_name as name
+                FROM apsokara_studentleave l
+                LEFT JOIN apsokara_student s ON l.student_id = s.id
                 WHERE l.class_name=? AND l.wing=? AND l.status='Pending'
             """, conn, params=(t_class, t_wing))
-        
+
         if pending.empty:
             st.info("✨ Everything is clear! No pending requests.")
         else:
@@ -95,7 +95,7 @@ def render_leave_approvals(u):
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-                
+
                 c1, c2, _ = st.columns([1,1,2])
                 if c1.button("✅ Approve", key=f"a{r['id']}", width='stretch'):
                     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
@@ -111,32 +111,32 @@ def render_leave_approvals(u):
         c1, c2 = st.columns(2)
         s_name = c1.text_input("👤 Search Student Name", placeholder="Enter name...")
         s_date = c2.date_input("🗓️ Filter by Date", value=None)
-        
+
         # Humne query loose rakhi hai taake filter sahi chalein
         query = """
-            SELECT s.full_name as Name, l.from_date as Start, l.to_date as End, l.status as Status, l.reason as Reason 
-            FROM apsokara_studentleave l 
-            LEFT JOIN apsokara_student s ON l.student_id = s.id 
+            SELECT s.full_name as Name, l.from_date as Start, l.to_date as End, l.status as Status, l.reason as Reason
+            FROM apsokara_studentleave l
+            LEFT JOIN apsokara_student s ON l.student_id = s.id
             WHERE l.class_name=? AND l.wing=?
         """
         params = [t_class, t_wing]
-        
+
         if s_name:
             query += " AND s.full_name LIKE ?"
             params.append(f"%{s_name}%")
         if s_date:
             query += " AND ? BETWEEN l.from_date AND l.to_date"
             params.append(str(s_date))
-            
+
         with sqlite3.connect("db.sqlite3", timeout=30) as conn:
             hist = pd.read_sql(query + " ORDER BY l.id DESC", conn, params=params)
-        
+
         if hist.empty:
             st.info("No records found for the selected filters.")
         else:
             st.dataframe(
-                hist, 
-                width='stretch', 
+                hist,
+                width='stretch',
                 hide_index=True,
                 column_config={
                     "Status": st.column_config.TextColumn("Status", help="Approval Status")

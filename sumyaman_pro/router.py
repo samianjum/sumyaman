@@ -27,6 +27,6 @@ class TenantRouter:
         # Always allow migrations on the specific DB being targeted
         if db == 'default':
             return app_label != 'apsokara'
-        
+
         # If it's a tenant DB, allow everything except super_admin
         return app_label != 'super_admin'

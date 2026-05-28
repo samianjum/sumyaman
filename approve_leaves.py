@@ -6,7 +6,7 @@ DB_PATH = 'db.sqlite3'
 def approve_all_leaves():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    
+
     # Speed optimization
     cur.execute("PRAGMA synchronous = OFF")
     cur.execute("PRAGMA journal_mode = WAL")
@@ -16,7 +16,7 @@ def approve_all_leaves():
 
     # Sab 'Pending' leaves ko 'Approved' kar do
     cur.execute("UPDATE apsokara_studentleave SET status = 'Approved' WHERE status = 'Pending'")
-    
+
     rows_affected = cur.rowcount
     conn.commit()
     conn.close()

@@ -2,7 +2,7 @@ from student_result import init_student_routes
 from finalize_module import init_finalize_routes
 from flask import send_file, send_from_directory, make_response, Flask, render_template_string, request, jsonify, session
 import os, datetime, pytz
-import pg_shim as sqlite3
+import sqlite3
 from functools import wraps
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
@@ -26,14 +26,14 @@ def get_db_path():
         host = request.host.split(':')[0]
         subdomain = host.split('.')[0]
         tenant = request.args.get('t') or (subdomain if subdomain not in ['localhost', '127', 'www'] else session.get('tenant'))
-        
+
         if tenant == 'sas':
             return 'sas_db'  # Signal for pg_shim to use Postgres
-            
+
         if tenant:
             path = os.path.join('tenants', f'{tenant}_school.sqlite3')
             if os.path.exists(path): return path
-            
+
         # Hard fallback to main db if no tenant file found
         return 'db.sqlite3'
     except Exception:
@@ -41,7 +41,7 @@ def get_db_path():
 
 def get_db_conn():
     from flask import g
-    import pg_shim as sqlite3 # Use shim globally for routing support
+    import sqlite3 # Use shim globally for routing support
     if 'db' not in g:
         db_path = get_db_path()
         g.db = sqlite3.connect(db_path)
@@ -88,31 +88,31 @@ def update_profile_pic():
         action = data.get('action')
         user = session['user']
         table = 'apsokara_student' if user['role'] == 'Student' else 'apsokara_teacher'
-        
+
         conn = sqlite3.connect(get_db_path())
         if action == 'upload':
             img_data = data.get('image')
             if not img_data: return jsonify({'error': 'No image'}), 400
-            
+
             import base64
             header, encoded = img_data.split(",", 1)
             file_ext = header.split("/")[1].split(";")[0]
             filename = f"pfp_{user['id']}_{int(datetime.datetime.now().timestamp())}.{file_ext}"
             filepath = os.path.join('static/uploads/profile_pics', filename)
-            
+
             with open(filepath, "wb") as fh:
                 fh.write(base64.b64decode(encoded))
-            
+
             db_path = f"/static/uploads/profile_pics/{filename}"
             conn.execute(f"UPDATE {table} SET profile_pic = ? WHERE id = ?", (db_path, user['id']))
             session['user']['profile_pic'] = db_path
             session.modified = True
-            
+
         elif action == 'remove':
             conn.execute(f"UPDATE {table} SET profile_pic = NULL WHERE id = ?", (user['id'],))
             session['user']['profile_pic'] = None
             session.modified = True
-            
+
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -121,9 +121,9 @@ def update_profile_pic():
 
     user_id = user['id']
     role = user['role']
-    
+
     table = "apsokara_student" if role == "Student" else "apsokara_teacher"
-    
+
     conn = sqlite3.connect(get_db_path())
     cur = conn.cursor()
     try:
@@ -132,7 +132,7 @@ def update_profile_pic():
             cur.execute(f"UPDATE {table} SET address = ? WHERE id = ?", (f"IMG_DATA:{img_data}", user_id))
         elif action == 'remove':
             cur.execute(f"UPDATE {table} SET address = NULL WHERE id = ?", (user_id,))
-        
+
         conn.commit()
         # Update session
         session['user']['profile_pic'] = img_data if action == 'upload' else None
@@ -148,11 +148,11 @@ HTML_TEMPLATE = '''
 <script>
 window.safeLogout = async function(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    
+
     console.log("Checking connection for logout...");
-    
+
     // Check 1: navigator.onLine
-    
+
 
         if (!navigator.onLine) {
         if (window.showToast) showToast("❌ OFFLINE: Internet required to logout!", "error");
@@ -193,7 +193,7 @@ window.safeLogout = async function(e) {
             }
             return false; // Stop everything
         }
-        
+
         if (confirm("Are you sure you want to logout?")) {
             localStorage.clear();
             window.location.replace('/logout' + window.location.search);
@@ -205,7 +205,7 @@ window.safeLogout = async function(e) {
         if (window.doLogin && !window.doLogin._guarded) {
             const _oldLogin = window.doLogin;
             window.doLogin = async function() {
-                
+
 
         if (!navigator.onLine) {
                     if (typeof showToast === 'function') showToast("❌ OFFLINE: Login Disabled", "error");
@@ -230,7 +230,7 @@ window.safeLogout = async function(e) {
     <script>
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
-                
+
             });
         }
     </script>
@@ -244,117 +244,117 @@ window.safeLogout = async function(e) {
         * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #0f172a; margin: 0; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
         .app-shell { width: 100%; max-width: 450px; height: 100vh; background: #ffffff; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-        .app-header { 
-    background: linear-gradient(180deg, #0B132B 0%, #0F1B3D 100%); 
-    padding: 8px 16px; 
-    border-bottom: 1px solid rgba(111,255,233,0.12); 
-    flex-shrink: 0; 
-    z-index: 20; 
-    min-height: 140px; 
-    display: flex; 
-    flex-direction: column; 
+        .app-header {
+    background: linear-gradient(180deg, #0B132B 0%, #0F1B3D 100%);
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(111,255,233,0.12);
+    flex-shrink: 0;
+    z-index: 20;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
     justify-content: space-between;
 }
         .app-body { flex: 1; overflow-y: auto; padding: 20px 20px 100px; }
-        .app-nav { 
-            position: absolute; 
-            bottom: 20px; 
+        .app-nav {
+            position: absolute;
+            bottom: 20px;
             left: 5%;
-            width: 90%; 
-            height: 70px; 
-            background: rgba(11, 19, 43, 0.9); 
-            backdrop-filter: blur(15px); 
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center; 
-            border: 1px solid rgba(111, 255, 233, 0.15); 
+            width: 90%;
+            height: 70px;
+            background: rgba(11, 19, 43, 0.9);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border: 1px solid rgba(111, 255, 233, 0.15);
             border-radius: 25px;
-            z-index: 100; 
+            z-index: 100;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        .nav-btn { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
-        .nav-btn svg { 
-            width: 22px; 
-            height: 22px; 
-            stroke: rgba(255,255,255,0.5); 
+        .nav-btn svg {
+            width: 22px;
+            height: 22px;
+            stroke: rgba(255,255,255,0.5);
             transition: all 0.3s ease;
         }
-        .nav-btn span:last-child { 
-            font-size: 9px; 
-            font-weight: 800; 
-            color: rgba(255,255,255,0.4); 
-            text-transform: uppercase; 
-            margin-top: 4px; 
+        .nav-btn span:last-child {
+            font-size: 9px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            margin-top: 4px;
             letter-spacing: 0.05em;
         }
-        .active-nav svg { 
-            stroke: #6FFFE9 !important; 
+        .active-nav svg {
+            stroke: #6FFFE9 !important;
             filter: drop-shadow(0 0 8px rgba(111, 255, 233, 0.8)) !important;
             transform: translateY(-3px);
             stroke-width: 3px;
         }
-        .active-nav span { 
-            color: #6FFFE9 !important; 
+        .active-nav span {
+            color: #6FFFE9 !important;
         }
-        
+
         /* --- PROFESSIONAL DARK BLUE THEME OVERRIDES --- */
-        
-        .saas-card { 
-            background: #F8FAFC; 
-            border-radius: 20px; 
-            padding: 20px 10px; 
-            border: 1.5px solid #F1F5F9; 
-            transition: all 0.2s ease-in-out; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
+
+        .saas-card {
+            background: #F8FAFC;
+            border-radius: 20px;
+            padding: 20px 10px;
+            border: 1.5px solid #F1F5F9;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
-            color: #1E3A8A; 
+            color: #1E3A8A;
             position: relative;
             overflow: hidden;
         }
-        .saas-card:active { 
-            transform: scale(0.95); 
-            background: #f1f5f9; 
+        .saas-card:active {
+            transform: scale(0.95);
+            background: #f1f5f9;
             box-shadow: none;
         }
-        .saas-card svg { 
-            width: 32px !important; 
-            height: 32px !important; 
-            margin-bottom: 14px; 
+        .saas-card svg {
+            width: 32px !important;
+            height: 32px !important;
+            margin-bottom: 14px;
             transition: transform 0.3s ease;
         }
         .group:hover svg { transform: translateY(-3px); }
-        
+
         /* Dynamic Colors for Icons based on parent accent */
         /* .saas-card:nth-child(1) svg color disabled */ #0891b2 !important; } /* Cyan */
         /* .saas-card:nth-child(2) svg color disabled */ #2563eb !important; } /* Blue */
         /* .saas-card:nth-child(3) svg color disabled */ #7c3aed !important; } /* Purple */
         /* .saas-card:nth-child(4) svg color disabled */ #059669 !important; } /* Emerald */
-        
-        .saas-card h4 { 
-            color: #0F172A !important; 
-            font-weight: 900; 
-            font-size: 12px; 
-            letter-spacing: 0.02em; 
-            text-transform: uppercase; 
+
+        .saas-card h4 {
+            color: #0F172A !important;
+            font-weight: 900;
+            font-size: 12px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
             margin-bottom: 4px;
         }
-        .saas-card p { 
-            color: #64748b !important; 
-            font-size: 9px; 
-            font-weight: 600; 
+        .saas-card p {
+            color: #64748b !important;
+            font-size: 9px;
+            font-weight: 600;
             letter-spacing: 0.01em;
         }
-        .saas-accent { 
+        .saas-accent {
             position: absolute;
             top: 0;
             left: 0;
@@ -363,21 +363,21 @@ window.safeLogout = async function(e) {
             opacity: 0.8;
         }
  /* Rangeen side-bars hide kar diye */
-        
+
         /* Baaki sub-cards (Diary/History) ko bhi unified dark blue border dena */
         #page-home .glass-card { border-left-color: #0B132B !important; }
-    
+
         .glass-card { background: white; border-radius: 20px; padding: 18px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .hidden { display: none !important; }
         .btn-sync { background: #1B4332; color: white; width: 100%; padding: 15px; border-radius: 15px; font-weight: 800; margin-top: 20px; }
-        
+
         .status-pill { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; }
 .shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
         {% if user.role == 'Student' %}
         .teacher-only { display: none !important; }
         {% endif %}
-    
-    
+
+
         /* Sexy Toast Styles */
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100000; width: 90%; max-width: 400px; pointer-events: none; }
         .toast-msg { background: rgba(15, 23, 42, 0.95); color: white; padding: 16px 20px; border-radius: 20px; margin-bottom: 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); display: flex; items-center; justify-content: center; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); animation: toast-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
@@ -388,7 +388,7 @@ window.safeLogout = async function(e) {
         .toast-out { animation: toast-out 0.3s ease forwards !important; }
         @keyframes toast-out { to { opacity: 0; transform: translateY(-20px) scale(0.95); } }
 
-    
+
         @keyframes zoom-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .net-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
@@ -397,7 +397,7 @@ window.safeLogout = async function(e) {
         .sync-badge { position: absolute; top: -5px; right: 10px; background: #ef4444; color: white; font-size: 8px; padding: 2px 5px; border-radius: 10px; font-weight: 900; }
 
 
-    
+
         .axis-input {
             background: transparent !important;
             border: none !important;
@@ -429,21 +429,21 @@ window.safeLogout = async function(e) {
             margin-top: 4px;
             box-shadow: 0 0 8px #6FFFE9;
         }
-    
-    
-        
+
+
+
         .saas-card:active { transform: scale(0.95); }
-        
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
-    
-    
-        .leave-error-blink { 
-            border: 3px solid #ef4444 !important; 
+
+
+        .leave-error-blink {
+            border: 3px solid #ef4444 !important;
             animation: error-pulse 0.8s infinite alternate;
         }
-        @keyframes error-pulse { 
-            from { border-color: #ef4444; box-shadow: 0 0 5px #ef4444; } 
-            to { border-color: #fca5a5; box-shadow: 0 0 20px #ef4444; } 
+        @keyframes error-pulse {
+            from { border-color: #ef4444; box-shadow: 0 0 5px #ef4444; }
+            to { border-color: #fca5a5; box-shadow: 0 0 20px #ef4444; }
         }
 
     /* --- PROFESSIONAL DUAL THEME SYSTEM --- */
@@ -454,7 +454,7 @@ window.safeLogout = async function(e) {
     }
 
     .login-wrapper { transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 40px 24px; }
-    
+
     /* Light Mode Classes */
     .theme-light { background-color: var(--bg-light); color: var(--text-p-light); }
     .theme-light .auth-card { background: var(--card-light); border: 1px solid #E5E7EB; }
@@ -474,7 +474,7 @@ window.safeLogout = async function(e) {
     .input-field:focus { border-color: var(--accent); outline: none; }
     .login-btn { width: 100%; height: 52px; background: var(--accent); color: white; border-radius: 16px; font-weight: 700; font-size: 15px; transition: transform 0.1s; }
     .login-btn:active { transform: scale(0.98); }
-    
+
     .role-switcher { background: rgba(0,0,0,0.1); padding: 4px; border-radius: 12px; display: flex; gap: 4px; }
     .role-opt { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     .role-active { background: var(--accent); color: white !important; }
@@ -494,9 +494,9 @@ window.safeLogout = async function(e) {
     }
     </script>
 
-    
 
-    
+
+
 
 
 
@@ -514,7 +514,7 @@ window.safeLogout = async function(e) {
         const isSensitive = sensitiveUrls.some(u => url.includes(u));
 
         if (isSensitive) {
-            
+
 
         if (!navigator.onLine) {
                 alert("❌ SECURITY ERROR: Internet is required for Login/Logout.");
@@ -526,7 +526,7 @@ window.safeLogout = async function(e) {
         // RULE 2: Baaki POST requests (Attendance, Leave, Diary) ko Offline handle karo
         if (!navigator.onLine && options && options.method === 'POST') {
             let payload = {};
-            
+
             // Check for Files in Diary/Leave
             if (options.body instanceof FormData) {
                 let hasFiles = false;
@@ -557,7 +557,7 @@ window.safeLogout = async function(e) {
         if(!navigator.onLine) return;
         const queue = JSON.parse(localStorage.getItem(OFFLINE_KEY) || '[]');
         if(queue.length === 0) return;
-        
+
         for(let i=0; i < queue.length; i++) {
             try {
                 const res = await originalFetch(queue[i].url, {
@@ -578,7 +578,7 @@ window.safeLogout = async function(e) {
 </head>
 
 <body>
-    
+
     <div id="custom-confirm" class="hidden fixed inset-0 z-[999999] flex items-center justify-center p-6 bg-[#0B132B]/80 backdrop-blur-md animate-fade-in">
         <div class="bg-[#1C2541] w-full max-w-[320px] rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] scale-95 animate-zoom-in border border-white/10 text-center">
             <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
@@ -598,8 +598,8 @@ window.safeLogout = async function(e) {
 
     <div id="toast-container"></div>
     <div class="app-shell">
-        
-        
+
+
         {% if not logged_in %}
         <div id="loginPage" class="theme-dark login-wrapper">
             <div class="theme-toggle" onclick="toggleAuthTheme()">
@@ -664,12 +664,12 @@ window.safeLogout = async function(e) {
         </script>
         {% else %}
 
-    
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <div id="main-header" class="app-header">
             <div class="flex justify-between items-center w-full">
                 <span class="text-[13px] font-[800] text-[#6FFFE9] tracking-[0.15em] uppercase">{{ branding.name }}</span>
@@ -697,7 +697,7 @@ window.safeLogout = async function(e) {
                     <span class="text-[10px] font-bold text-white/40 uppercase tracking-widest">Online • Secure Session</span>
                 </div>
             </div>
-            
+
             <div id="header-compact-section" class="hidden flex items-center gap-3 mt-1">
                 <button onclick="showTab('home')" class="text-[#6FFFE9] text-xl">←</button>
                 <h1 id="page-display-title" class="text-white font-[800] text-[16px] uppercase tracking-tight">PAGE</h1>
@@ -746,24 +746,24 @@ window.safeLogout = async function(e) {
 
 
         <div class="app-body">
-            
-            
-            
-            
-            
+
+
+
+
+
             <div id="page-home" class="space-y-6 animate-zoom-in">
-                
+
 
                 <div class="grid grid-cols-2 gap-4">
                     {% if user.role == 'Student' %}
                     <div onclick="openDiaryHub()" class="saas-card group">
-                        
+
                         <svg class="w-6 h-6 mb-3 text-inherit" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                         <h4 class="font-bold text-[12px] tracking-normal">Diary</h4>
                         <p class="text-[8px] text-slate-500 font-medium mt-1">Daily Homework</p>
                     </div>
                     <div onclick="showTab('mark')" class="saas-card group">
-                        
+
                         <svg class="w-6 h-6 mb-3 text-inherit" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                         <h4 class="font-bold text-[12px] tracking-normal">Reports</h4>
                         <p class="text-[8px] text-slate-500 font-medium mt-1">Performance</p>
@@ -772,12 +772,12 @@ window.safeLogout = async function(e) {
 
                     {% if user.role == 'Teacher' %}
                     <div onclick="openDiaryHub()" class="saas-card group">
-                        
+
                         <svg class="w-6 h-6 mb-3 text-inherit" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         <h4 class="font-bold text-[12px] tracking-normal">Post Diary</h4>
                     </div>
                     <div onclick="navToMarks()" class="saas-card group hidden">
-                        
+
                         <svg class="w-6 h-6 mb-3 text-inherit" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         <h4 class="font-bold text-[12px] tracking-normal">Marks Entry</h4>
                     </div>
@@ -785,14 +785,14 @@ window.safeLogout = async function(e) {
 
                     {% if user.is_class_teacher %}
                     <div onclick="showTab('mark')" class="saas-card group">
-                        
+
                         <svg class="w-6 h-6 mb-3 text-inherit" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 002-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                         <h4 class="font-bold text-[12px] tracking-normal">Attendance</h4>
                     </div>
                     {% endif %}
 
                     <div onclick="openLeaveHub()" class="saas-card group">
-                        
+
                         <svg class="w-6 h-6 mb-3 text-inherit" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                         <h4 class="font-bold text-[12px] tracking-normal">Leave Hub</h4>
                     </div>
@@ -801,7 +801,7 @@ window.safeLogout = async function(e) {
             </div>
 
             <div id='page-results' class='hidden animate-slide-up pb-24'>
-        
+
         <div id='student-result-container' class='space-y-4'></div>
     </div>
     <div id='page-marks-entry' class='hidden space-y-4 max-w-md mx-auto'><div id='teacher-assign-list'></div></div>
@@ -814,12 +814,12 @@ window.safeLogout = async function(e) {
             <div id="finalize-content-area" class="space-y-4"></div>
         </div>
     </div>
-            
+
     <div id="page-leave" class="hidden animate-slide-up pb-10">
-        
+
         <div id="leave-content-area" class="space-y-4"></div>
     </div>
-    
+
 <div id="page-diary" class="hidden space-y-4">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="font-black text-xl text-[#1B4332]">Diary Hub</h3>
@@ -841,14 +841,14 @@ window.safeLogout = async function(e) {
                 <div id="diary-post-form" class="hidden glass-card p-4 space-y-3">
                     <select id="diary-target" class="w-full p-3 rounded-xl bg-gray-50 border-none text-xs font-bold"></select>
                     <textarea id="diary-content" placeholder="Enter Homework details..." class="w-full p-4 rounded-xl bg-gray-50 border-none text-sm min-h-[120px]"></textarea>
-                    
+
                     <div class="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg">
                         <input type="checkbox" id="diary-sch-check" onchange="toggleSchDate()">
                         <label class="text-[10px] font-bold text-yellow-700 uppercase">Schedule Post?</label>
                         <input type="date" id="diary-sch-date" class="hidden p-1 text-[10px] border-none bg-transparent">
                     </div>
 
-                    
+
                     <div id="attach-preview-zone" class="hidden mb-2 p-2 bg-blue-50/50 rounded-xl border border-dashed border-blue-200">
                         <div class="flex justify-between items-center mb-2 px-1">
                             <span id="attach-count" class="text-[9px] font-black text-blue-700 uppercase">0 Files Attached</span>
@@ -886,7 +886,7 @@ window.safeLogout = async function(e) {
                 </div>
             </div>
 
-            
+
             <div id="page-marking-view" class="hidden space-y-4">
                 <button onclick="showTab('marks-entry')" class="text-[10px] font-black text-gray-400 uppercase tracking-widest">← Back</button>
                 <div id="marking-area-v2" class="space-y-3"></div>
@@ -900,7 +900,7 @@ window.safeLogout = async function(e) {
 
             <div id="page-archive-view" class="hidden space-y-4 pb-10">
                 <button onclick="showTab('mark')" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">← Back</button>
-                
+
                 {% if user.role == 'Student' %}
                 <div class="p-5 rounded-3xl text-white shadow-xl relative overflow-hidden" style="background: linear-gradient(135deg, #0F2A44 0%, #173A5E 100%);">
                     <div class="relative z-10">
@@ -937,17 +937,17 @@ window.safeLogout = async function(e) {
                 <div id="archive-results" class="space-y-2"></div>
                 {% endif %}
             </div>
-            
-            
-            
-            
-            
-            
+
+
+
+
+
+
             <div id="page-intel-view" class="hidden space-y-4">
                 <button onclick="showTab('mark')" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">← Back to Hub</button>
                 <div id="intel-view" class="space-y-6"></div>
             </div>
-            
+
             <div id="page-profile" class="hidden pb-24 animate-fade-in">
                 <div class="bg-gradient-to-b from-[#0F172A] to-[#1E3A8A] p-8 pb-12 rounded-b-[40px] flex flex-col items-center text-white shadow-xl">
                     <div class="relative group">
@@ -1076,7 +1076,7 @@ window.safeLogout = async function(e) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 <span>Dashboard</span>
             </div>
-            
+
             {% if user.role == 'Student' or (user.role == 'Teacher' and user.is_class_teacher) %}
             <div onclick="showTab('mark')" id="n-mark" class="nav-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -1107,13 +1107,13 @@ window.safeLogout = async function(e) {
         }
         window.currentRole = 'Student';
 
-        
+
         async function doLogin() {
             const loginBtn = event.target;
             const originalText = loginBtn.innerText;
 
             // Step 1: Strict Internet Check
-            
+
 
         if (!navigator.onLine) {
                 showToast("❌ OFFLINE: Internet connection required to login!", "error");
@@ -1129,8 +1129,8 @@ window.safeLogout = async function(e) {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        uid: document.getElementById('uid').value, 
-                        dob: document.getElementById('dob').value, 
+                        uid: document.getElementById('uid').value,
+                        dob: document.getElementById('dob').value,
                         role: window.currentRole
                     })
                 });
@@ -1140,13 +1140,13 @@ window.safeLogout = async function(e) {
                 }
 
                 const data = await res.json();
-                
-                if(data.success) { 
-                    localStorage.setItem("isLoggedIn", "true"); 
+
+                if(data.success) {
+                    localStorage.setItem("isLoggedIn", "true");
                     showToast("✅ Login Successful! Redirecting...", "success");
-                    if(window.location.pathname === "/login" || window.location.pathname === "/") { 
-                        window.location.replace("/?login=" + Date.now() + (window.location.search.includes("t=") ? "&" + window.location.search.substring(1) : "")); 
-                    } 
+                    if(window.location.pathname === "/login" || window.location.pathname === "/") {
+                        window.location.replace("/?login=" + Date.now() + (window.location.search.includes("t=") ? "&" + window.location.search.substring(1) : ""));
+                    }
                 } else {
                     showToast("❌ Login Failed: " + (data.error || "Invalid Credentials"), "error");
                 }
@@ -1158,15 +1158,15 @@ window.safeLogout = async function(e) {
                 loginBtn.innerText = originalText;
             }
         }
-    
 
-        
+
+
     let diaryAssignments = [];
-    
-    
+
+
     async function openDiaryHub() { markDiariesAsRead();
         showTab('diary');
-        
+
         // Reset UI Elements
         const btn = document.getElementById('btn-pub');
         if(btn) {
@@ -1175,7 +1175,7 @@ window.safeLogout = async function(e) {
         }
         const contentInput = document.getElementById('diary-content');
         if(contentInput) contentInput.value = '';
-        
+
         const fileInput = document.getElementById('diary-files');
         if(fileInput) fileInput.value = '';
 
@@ -1201,15 +1201,15 @@ window.safeLogout = async function(e) {
         document.getElementById('diary-sch-date').classList.toggle('hidden', !document.getElementById('diary-sch-check').checked);
     }
 
-    
+
     async function submitDiary() {
         const btn = document.getElementById('btn-pub');
         const contentVal = document.getElementById('diary-content').value;
         if(!contentVal) return alert("Please write some content!");
-        
-        btn.disabled = true; 
+
+        btn.disabled = true;
         btn.innerText = "Sending...";
-        
+
         try {
             const target = JSON.parse(document.getElementById('diary-target').value);
             const formData = new FormData();
@@ -1218,23 +1218,23 @@ window.safeLogout = async function(e) {
             formData.append('section', target.section);
             formData.append('wing', target.wing);
             formData.append('subject', target.sub_name);
-            
+
             const schCheck = document.getElementById('diary-sch-check');
             if(schCheck && schCheck.checked) {
                 formData.append('schedule_date', document.getElementById('diary-sch-date').value);
             }
-            
+
             const files = document.getElementById('diary-files').files;
             for(let i=0; i<files.length; i++) formData.append('files', files[i]);
 
             const res = await fetch('/api/diary/post', { method: 'POST', body: formData });
             const result = await res.json();
-            
-            
+
+
             if(result.success) {
                 alert("✅ Diary Published Successfully!");
                 // This will reset the button and clear the form
-                await openDiaryHub(); 
+                await openDiaryHub();
             } else {
                 alert("❌ Error: " + result.msg);
                 btn.disabled = false;
@@ -1247,18 +1247,18 @@ window.safeLogout = async function(e) {
         }
     }
 
-    
+
     async function loadStudentDiary() {
         const list = document.getElementById('diary-display-list');
         list.innerHTML = '<p class="text-center text-xs font-bold text-gray-400 py-10">Fetching...</p>';
-        
+
         let u = JSON.parse(localStorage.getItem('user') || '{}');
         let role = u.role || 'Student';
 
         try {
             const res = await fetch('/api/diary/fetch');
             const diaries = await res.json();
-            
+
             if(!diaries || diaries.length === 0) {
                 list.innerHTML = '<div class="text-center py-10 opacity-40"><div class="text-5xl mb-2">📭</div><p class="font-black text-xs">No diary entries found</p></div>';
                 return;
@@ -1268,7 +1268,7 @@ window.safeLogout = async function(e) {
                 // Teacher kelye Class-Section, Student kelye Teacher ka naam
                 const metaInfo = (role === "Teacher") ? `FOR: ${d.class}-${d.section} (${d.wing})` : `BY: ${d.teacher_name}`;
                 const datePart = d.date_posted ? d.date_posted.split('|')[0] : '---';
-                
+
                 return `
                 <div class="glass-card p-4 border-l-4 border-amber-500 mb-3 animate-fade-in">
                     <div class="flex justify-between items-start mb-2">
@@ -1310,10 +1310,10 @@ window.safeLogout = async function(e) {
             });
 
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-nav'));
-            
+
             const targetPage = document.getElementById('page-' + t);
             if (targetPage) targetPage.classList.remove('hidden');
-            
+
             if(document.getElementById('n-' + t)) {
                 document.getElementById('n-' + t).classList.add('active-nav');
             } else if (t === 'archive-view' || t === 'marking-view' || t === 'attendance-view') {
@@ -1346,7 +1346,7 @@ window.safeLogout = async function(e) {
 
             // Removed marking-view and attendance-view from here so header stays visible
             const fullScreenPages = ['archive-view', 'intel-view'];
-            
+
             if (fullScreenPages.includes(t)) {
                 header.classList.add('hidden');
             } else {
@@ -1401,7 +1401,7 @@ window.safeLogout = async function(e) {
             const list = document.getElementById('marking-area');
             const banner = document.getElementById('lock-banner');
             const footer = document.getElementById('marking-footer');
-            
+
             if(isLocked) {
                 banner.innerHTML = '<div class="glass-card bg-green-50 text-center border-green-200"><h2 class="text-3xl">🛡️</h2><h4 class="font-black text-green-700">ATTENDANCE SECURED</h4><p class="text-[10px] font-bold">Database is finalized for today.</p></div>';
                 footer.innerHTML = '';
@@ -1441,7 +1441,7 @@ window.safeLogout = async function(e) {
             if(!(await askUser("Lock this record?"))) return;
             const students = document.querySelectorAll('[id^="s_"]');
             const attendance = Array.from(students).map(s => ({ id: s.id.split('_')[1], status: s.value }));
-            
+
             const res = await fetch('/api/sync-attendance', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1501,7 +1501,7 @@ window.safeLogout = async function(e) {
             }
             const now = new Date();
             let filtered = [];
-            
+
             if (currentArchiveFilter === 'week') {
                 const weekAgo = new Date();
                 weekAgo.setDate(now.getDate() - 7);
@@ -1549,7 +1549,7 @@ window.safeLogout = async function(e) {
                 const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
                 const dayNum = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
                 const yearNum = d.getFullYear();
-                
+
                 let dotColor, bgColor, textColor;
                 if(s.status === 'Present') { dotColor = 'bg-emerald-500'; bgColor = 'bg-[rgba(34,197,94,0.15)]'; textColor = 'text-[#22C55E]'; }
                 else if(s.status === 'Absent') { dotColor = 'bg-rose-500'; bgColor = 'bg-[rgba(239,68,68,0.15)]'; textColor = 'text-[#EF4444]'; }
@@ -1569,14 +1569,14 @@ window.safeLogout = async function(e) {
             }).join('') || '<p class="text-center text-xs py-10 font-bold text-slate-500">No records in this period.</p>';
         }
 
-        
-        
-        
-        
+
+
+
+
         /* Vault Function Removed */
 
 
-        
+
         async function loadIntel() {
             const container = document.getElementById('intel-view');
             if(!container) return;
@@ -1697,7 +1697,7 @@ async function markDiariesAsRead() {
         .toast-out { animation: toast-out 0.3s ease forwards !important; }
         @keyframes toast-out { to { opacity: 0; transform: translateY(-20px) scale(0.95); } }
 
-    
+
         @keyframes zoom-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .net-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
@@ -1706,7 +1706,7 @@ async function markDiariesAsRead() {
         .sync-badge { position: absolute; top: -5px; right: 10px; background: #ef4444; color: white; font-size: 8px; padding: 2px 5px; border-radius: 10px; font-weight: 900; }
 
 
-    
+
         .axis-input {
             background: transparent !important;
             border: none !important;
@@ -1738,21 +1738,21 @@ async function markDiariesAsRead() {
             margin-top: 4px;
             box-shadow: 0 0 8px #6FFFE9;
         }
-    
-    
-        
+
+
+
         .saas-card:active { transform: scale(0.95); }
-        
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
-    
-    
-        .leave-error-blink { 
-            border: 3px solid #ef4444 !important; 
+
+
+        .leave-error-blink {
+            border: 3px solid #ef4444 !important;
             animation: error-pulse 0.8s infinite alternate;
         }
-        @keyframes error-pulse { 
-            from { border-color: #ef4444; box-shadow: 0 0 5px #ef4444; } 
-            to { border-color: #fca5a5; box-shadow: 0 0 20px #ef4444; } 
+        @keyframes error-pulse {
+            from { border-color: #ef4444; box-shadow: 0 0 5px #ef4444; }
+            to { border-color: #fca5a5; box-shadow: 0 0 20px #ef4444; }
         }
 
     /* --- PROFESSIONAL DUAL THEME SYSTEM --- */
@@ -1763,7 +1763,7 @@ async function markDiariesAsRead() {
     }
 
     .login-wrapper { transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 40px 24px; }
-    
+
     /* Light Mode Classes */
     .theme-light { background-color: var(--bg-light); color: var(--text-p-light); }
     .theme-light .auth-card { background: var(--card-light); border: 1px solid #E5E7EB; }
@@ -1783,7 +1783,7 @@ async function markDiariesAsRead() {
     .input-field:focus { border-color: var(--accent); outline: none; }
     .login-btn { width: 100%; height: 52px; background: var(--accent); color: white; border-radius: 16px; font-weight: 700; font-size: 15px; transition: transform 0.1s; }
     .login-btn:active { transform: scale(0.98); }
-    
+
     .role-switcher { background: rgba(0,0,0,0.1); padding: 4px; border-radius: 12px; display: flex; gap: 4px; }
     .role-opt { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     .role-active { background: var(--accent); color: white !important; }
@@ -1794,10 +1794,10 @@ async function markDiariesAsRead() {
 
 <div id="master-viewer" class="hidden fixed inset-0 z-[10000] bg-black/95 flex flex-col items-center justify-center">
     <button onclick="closeMasterViewer()" class="absolute top-6 right-6 text-white text-4xl font-light hover:text-amber-500">&times;</button>
-    
+
     <div class="relative w-full max-w-4xl px-12 flex items-center justify-center">
         <button id="v-prev" onclick="changeMedia(-1)" class="viewer-btn absolute left-2 text-2xl">❮</button>
-        
+
         <div class="w-full flex items-center justify-center overflow-hidden rounded-2xl shadow-2xl bg-black/20" style="height: 70vh;">
             <img id="v-img" src="" class="max-w-full max-h-full object-contain hidden border border-white/10">
             <div id="v-file" class="hidden text-center text-white">
@@ -1830,10 +1830,10 @@ async function markDiariesAsRead() {
     window.viewMedia = function(urls, index) {
         console.log("Opening Viewer with:", urls, "Index:", index);
         if(!urls) return alert("No files found!");
-        
+
         mediaGallery = urls.split(',').map(u => u.trim());
         mediaIdx = parseInt(index);
-        
+
         const viewer = document.getElementById('master-viewer');
         if(viewer) {
             viewer.classList.remove('hidden');
@@ -1846,7 +1846,7 @@ async function markDiariesAsRead() {
     window.updateViewer = function() {
         let path = mediaGallery[mediaIdx];
         if(!path.startsWith('/')) path = '/' + path;
-        
+
         const fullUrl = window.location.origin + path;
         const img = document.getElementById('v-img');
         const file = document.getElementById('v-file');
@@ -1855,7 +1855,7 @@ async function markDiariesAsRead() {
 
         img.classList.add('hidden');
         file.classList.add('hidden');
-        
+
         document.getElementById('v-prev').classList.toggle('hidden', mediaGallery.length <= 1);
         document.getElementById('v-next').classList.toggle('hidden', mediaGallery.length <= 1);
 
@@ -1902,7 +1902,7 @@ async function markDiariesAsRead() {
                 }
             });
             updateAttachUI();
-            
+
             // Critical: Sync with the actual input for the original submitDiary function
             syncFilesToInput();
         }
@@ -1912,7 +1912,7 @@ async function markDiariesAsRead() {
         const zone = document.getElementById('attach-preview-zone');
         const list = document.getElementById('attach-list');
         const count = document.getElementById('attach-count');
-        
+
         if(tempFileStorage.length > 0) {
             zone.classList.remove('hidden');
             count.innerText = `${tempFileStorage.length} Files Attached`;
@@ -1967,7 +1967,7 @@ window.openLeaveHub = function() {
     showTab('leave');
     const area = document.getElementById('leave-content-area');
     const role = "{{ user.role }}";
-    
+
     if(role === 'Student') {
         area.innerHTML = `
             <div id="leave-menu" class="flex flex-col gap-3 animate-fade-in">
@@ -1980,7 +1980,7 @@ window.openLeaveHub = function() {
                         <p class="text-[11px] text-gray-500 mt-0.5">Create a new leave request</p>
                     </div>
                 </div>
-                
+
                 <div onclick="renderLeaveHistory()" class="bg-white p-4 rounded-2xl border border-black/5 flex items-center shadow-sm active:scale-95 transition-all cursor-pointer">
                     <div class="w-12 h-12 rounded-xl bg-gray-50 text-gray-600 flex items-center justify-center mr-4 shrink-0 border border-gray-100">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -1992,7 +1992,7 @@ window.openLeaveHub = function() {
                 </div>
             </div>
             <div id="leave-dynamic-inner" class="hidden animate-slide-up"></div>`;
-            
+
     } else {
         area.innerHTML = `
             <div id="leave-menu" class="flex flex-col gap-6 animate-fade-in">
@@ -2047,7 +2047,7 @@ window.openLeaveHub = function() {
                 </div>
             </div>
             <div id="leave-dynamic-inner" class="hidden animate-slide-up"></div>`;
-        
+
         // Sync badge and local stats
         setTimeout(() => {
             updateLeaveBadge();
@@ -2061,7 +2061,7 @@ window.updateFileName = function() {
     const fileInput = document.getElementById('l-file');
     const file = fileInput.files[0];
     const span = document.querySelector('label span') || document.querySelector('#l-file').previousElementSibling;
-    
+
     if(file && span) {
         span.innerHTML = `
             <div class="flex flex-col items-center gap-1">
@@ -2081,11 +2081,11 @@ window.removeFile = function() {
         span.classList.remove('text-[#1E3A8A]');
     }
 };
-window.renderLeaveApply = function() { 
+window.renderLeaveApply = function() {
     document.getElementById('leave-menu').classList.add('hidden');
     const inner = document.getElementById('leave-dynamic-inner');
     inner.classList.remove('hidden');
-    
+
     inner.innerHTML = `
         <button onclick="openLeaveHub()" class="mb-5 flex items-center gap-2 text-[11px] font-bold text-[#1E3A8A] bg-blue-50 px-4 py-2 rounded-full active:scale-90 transition-all">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
@@ -2136,12 +2136,12 @@ window.calculateDays = function() {
     const start = document.getElementById('l-start').value;
     const end = document.getElementById('l-end').value;
     const counter = document.getElementById('days-counter');
-    
+
     if (start && end) {
         const d1 = new Date(start);
         const d2 = new Date(end);
         const diff = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
-        
+
         if (diff > 0) {
             counter.innerText = diff + (diff === 1 ? ' Day' : ' Days');
             counter.className = "text-[11px] font-bold text-[#1E3A8A] bg-blue-50 px-3 py-1 rounded-lg";
@@ -2161,7 +2161,7 @@ window.showLeaveDetails = function(l) {
     if (rawPath && !rawPath.startsWith('static/')) {
         rawPath = 'static/' + rawPath;
     }
-    
+
     // Professional URL Encoding to handle special chars like ] or spaces
     const encodedPath = rawPath.split('/').map(part => encodeURIComponent(part)).join('/');
     const finalUrl = '/' + encodedPath;
@@ -2172,7 +2172,7 @@ window.showLeaveDetails = function(l) {
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Document</p>
                 <p class="text-xs font-black text-[#1B3A57]">Attached File Found</p>
             </div>
-            <button onclick="handleFileView('${finalUrl}')" 
+            <button onclick="handleFileView('${finalUrl}')"
                     class="bg-[#1B3A57] text-white text-[10px] font-black px-5 py-3 rounded-2xl active:scale-90 transition-all shadow-md shadow-[#1B3A57]/20">
                 VIEW ATTACHMENT
             </button>
@@ -2203,18 +2203,18 @@ window.showLeaveDetails = function(l) {
             ${attachmentHtml}
             ${(role === 'Teacher' && ((l.status.trim() === 'Pending' || l.status.trim() === 'Pending ') || l.status === 'Offline')) ? `
                 <div class="flex gap-3 mt-4">
-                    <button onclick="handleLeaveAction(${l.id}, 'Approved', '${l.status}'); this.closest('.fixed').remove()" 
+                    <button onclick="handleLeaveAction(${l.id}, 'Approved', '${l.status}'); this.closest('.fixed').remove()"
                             class="flex-1 bg-emerald-500 text-white font-black py-5 rounded-[30px] active:scale-95 transition-all shadow-lg shadow-emerald-500/20 uppercase tracking-widest text-[10px]">
                         Approve
                     </button>
-                    <button onclick="handleLeaveAction(${l.id}, 'Rejected', '${l.status}'); this.closest('.fixed').remove()" 
+                    <button onclick="handleLeaveAction(${l.id}, 'Rejected', '${l.status}'); this.closest('.fixed').remove()"
                             class="flex-1 bg-rose-500 text-white font-black py-5 rounded-[30px] active:scale-95 transition-all shadow-lg shadow-rose-500/20 uppercase tracking-widest text-[10px]">
                         Reject
                     </button>
                 </div>
                 <button onclick="this.closest('.fixed').remove()" class="w-full mt-4 text-gray-400 font-bold text-[10px] uppercase tracking-widest">Dismiss</button>
             ` : `
-                <button onclick="this.closest('.fixed').remove()" 
+                <button onclick="this.closest('.fixed').remove()"
                         class="w-full bg-[#1B3A57] text-white font-black py-5 rounded-[30px] active:scale-95 transition-all shadow-lg shadow-[#1B3A57]/20 uppercase tracking-widest text-xs">
                     Close Details
                 </button>
@@ -2258,10 +2258,10 @@ window.renderLeaveHistory = async function(filterMode = 'All', highlightId = nul
             </button>
             <h2 class="text-xl font-black text-[#1B3A57]">Leave History</h2>
         </div>
-        
+
         <div class="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
             ${['All', 'Pending', 'Approved', 'Rejected'].map(f => `
-                <button onclick="renderLeaveHistory('${f}')" 
+                <button onclick="renderLeaveHistory('${f}')"
                 class="px-5 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap
                 ${filterMode === f ? 'bg-[#1B3A57] text-white shadow-md' : 'bg-gray-100 text-gray-500'}">
                     ${f}
@@ -2312,7 +2312,7 @@ window.renderLeaveHistory = async function(filterMode = 'All', highlightId = nul
             const sClass = statusStyles[l.status] || 'bg-gray-50 text-gray-600';
 
             return `
-            <div onclick="showLeaveDetails(${JSON.stringify(l).replace(/"/g, '&quot;')})" 
+            <div onclick="showLeaveDetails(${JSON.stringify(l).replace(/"/g, '&quot;')})"
                  class="bg-white p-4 rounded-3xl border-l-[6px] border-[#1B3A57] shadow-sm active:scale-[0.98] transition-all flex justify-between items-center cursor-pointer ${l.id == highlightId ? 'leave-error-blink' : ''}" id="leave-card-${l.id}">
                 <div class="flex-1 pr-4">
                     <h4 class="font-bold text-[#1B3A57] text-sm truncate w-48">${l.reason}</h4>
@@ -2381,7 +2381,7 @@ window.submitLeaveRequest = async function() {
         btn.innerText = "PROCESSING...";
         const res = await fetch('/api/leave/submit', {method:'POST', body:fd});
         const result = await res.json();
-        
+
         if(result.success) {
             showToast("🚀 Leave Submitted Successfully!", "success");
             renderLeaveHistory();
@@ -2422,24 +2422,24 @@ window.viewLeaveFile = function(url) {
     const img = document.getElementById('v-img');
     const fileDiv = document.getElementById('v-file');
     const downloadBtn = document.getElementById('v-download');
-    
+
     // Reset Views
     if(img) img.classList.add('hidden');
     if(fileDiv) fileDiv.classList.add('hidden');
-    
+
     // Hide nav arrows for single attachment
     if(document.getElementById('v-prev')) document.getElementById('v-prev').style.display = 'none';
     if(document.getElementById('v-next')) document.getElementById('v-next').style.display = 'none';
 
     const isImg = url.match(/\\.(jpg|jpeg|png|gif|webp)$/i);
     const path = url.startsWith('/') ? url : '/' + url;
-    
+
     if(isImg) {
         if(img) { img.src = path; img.classList.remove('hidden'); }
     } else {
         if(fileDiv) fileDiv.classList.remove('hidden');
     }
-    
+
     if(downloadBtn) { downloadBtn.href = path; }
 };
 
@@ -2451,7 +2451,7 @@ window.updateLeaveBadge = async function() {
     try {
         const res = await fetch('/api/leave/stats');
         const data = await res.json();
-        
+
         // Home Badge
         const mb = document.getElementById('leave-badge');
         if(mb) { mb.innerText = data.pending; data.pending > 0 ? mb.classList.remove('hidden') : mb.classList.add('hidden'); }
@@ -2486,7 +2486,7 @@ window.showTab = function(id) {
 window.showToast = function(msg, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    
+
     // Auto-detect type based on common emojis if not provided
     let toastClass = 'toast-success';
     if(msg.includes('❌') || msg.includes('Error') || msg.includes('Failed')) toastClass = 'toast-error';
@@ -2495,9 +2495,9 @@ window.showToast = function(msg, type = 'success') {
 
     toast.className = `toast-msg ${toastClass}`;
     toast.innerHTML = `<span>${msg}</span>`;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.classList.add('toast-out');
         setTimeout(() => toast.remove(), 300);
@@ -2518,17 +2518,17 @@ window.askUser = function(message) {
         const msgEl = document.getElementById('confirm-msg');
         const yesBtn = document.getElementById('confirm-yes');
         const noBtn = document.getElementById('confirm-no');
-        
+
         msgEl.innerText = message;
         modal.classList.remove('hidden');
-        
+
         const cleanup = (result) => {
             modal.classList.add('hidden');
             yesBtn.onclick = null;
             noBtn.onclick = null;
             resolve(result);
         };
-        
+
         yesBtn.onclick = () => cleanup(true);
         noBtn.onclick = () => cleanup(false);
     });
@@ -2573,11 +2573,11 @@ window.removePfp = async () => {
 </script>
 
 <script>
-function openPfpMenu() { 
+function openPfpMenu() {
     const m = document.getElementById('pfp-modal');
     m.classList.remove('hidden'); m.classList.add('flex');
 }
-function closePfpMenu() { 
+function closePfpMenu() {
     const m = document.getElementById('pfp-modal');
     m.classList.add('hidden'); m.classList.remove('flex');
 }
@@ -2631,7 +2631,7 @@ window.onclick = (e) => { if(e.target.id == 'pfp-modal') closePfpMenu(); }
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({exam_id: eid, sub_id: sid, total_marks: total_m, marks: marks})
     });
-    
+
     if(result.status === 'success') { alert('DATA SAVED!'); showTab('marks-entry'); }
 }
 
@@ -2705,7 +2705,7 @@ def get_school_branding():
     branding = {'name': 'AXIS OS', 'logo': '/static/logo.png', 'footer': 'AXIS OS • V1.0.1'}
     if tenant == 'default': return branding
     try:
-        import pg_shim as sqlite3
+        import sqlite3
         conn = sqlite3.connect('db.sqlite3')
         cur = conn.cursor()
         cur.execute("SELECT name, logo FROM super_admin_schoolclient WHERE slug=? LIMIT 1", (tenant,))
@@ -2743,46 +2743,46 @@ def api_login():
         uid = str(data.get('uid', '')).strip()
         dob = str(data.get('dob', '')).strip()
         role = data.get('role', 'Student')
-        
+
         if request.args.get('t'):
             session['tenant'] = request.args.get('t')
-        
+
         db_path = get_db_path()
         print(f'🔑 LOGIN ATTEMPT -> Role: {role}, UID: {uid}, DB: {db_path}')
-        
+
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        
+
         # Robust Date Parsing for PostgreSQL
         if role == "Student":
             print(f"DEBUG: Testing Student Login - UID: '{uid}', DOB: '{dob}'")
             cur.execute("SELECT * FROM apsokara_student WHERE b_form=%s AND dob=%s::text::date", (uid.strip(), dob.strip()))
         else:
             cur.execute("SELECT * FROM apsokara_teacher WHERE cnic=%s AND dob=%s::date", (uid, dob))
-            
+
         user = cur.fetchone()
         if not user:
             conn.close()
             return jsonify({"error": "invalid_credentials", "message": "User not found or wrong password"}), 401
-            
+
         u_dict = dict(user)
         u_dict['role'] = role
         session['user'] = u_dict
-        
+
         # Fetch assignments for teacher
         if role == "Teacher":
             cur.execute("""
-                SELECT COALESCE(s.name, 'Subject ' || sa.subject_id) AS name, 
+                SELECT COALESCE(s.name, 'Subject ' || sa.subject_id) AS name,
                 sa.student_class, sa.section, sa.wing
                 FROM apsokara_subjectassignment sa
                 LEFT JOIN apsokara_subject s ON sa.subject_id = s.id
                 WHERE sa.teacher_id = %s""", (u_dict.get('id'),))
             u_dict['assignments'] = [dict(r) for r in cur.fetchall()]
-            
+
         conn.close()
         return jsonify({"success": True, "user": u_dict}), 200
-        
+
     except Exception as e:
         print(f"❌ LOGIN CRASH: {str(e)}")
         return jsonify({"error": "api_crash", "message": str(e)}), 500
@@ -2794,13 +2794,13 @@ def check_lock():
         today = datetime.datetime.now(PK_TZ).date()
         u_class, u_sec = str(u.get('assigned_class','')), str(u.get('assigned_section',''))
         u_wing = str(u.get('assigned_wing') or u.get('wing') or 'None')
-        
+
         with sqlite3.connect(get_db_path()) as conn:
             query = """
-                SELECT COALESCE(MAX(a.edit_count), 0)::int 
-                FROM apsokara_attendance a 
-                JOIN apsokara_student s ON a.student_id = s.id 
-                WHERE a.date::date = %s::date AND s.student_class = %s 
+                SELECT COALESCE(MAX(a.edit_count), 0)::int
+                FROM apsokara_attendance a
+                JOIN apsokara_student s ON a.student_id = s.id
+                WHERE a.date::date = %s::date AND s.student_class = %s
                 AND s.student_section = %s AND s.wing = %s
             """
             res = conn.execute(query, (str(today), u_class, u_sec, u_wing)).fetchone()
@@ -2818,17 +2818,17 @@ def students_marking():
         today = datetime.datetime.now(PK_TZ).date()
         u_class, u_sec = str(u.get('assigned_class','')), str(u.get('assigned_section',''))
         u_wing = str(u.get('assigned_wing') or u.get('wing') or 'None')
-        
+
         conn = sqlite3.connect(get_db_path())
         conn.row_factory = sqlite3.Row
         query = """
             SELECT s.id, s.full_name, s.father_name, s.roll_number, a.status,
-            (SELECT COUNT(*) FROM apsokara_studentleave l 
-             WHERE l.student_id = s.id AND l.status = 'Approved' 
+            (SELECT COUNT(*) FROM apsokara_studentleave l
+             WHERE l.student_id = s.id AND l.status = 'Approved'
              AND %s BETWEEN l.from_date AND l.to_date) as on_leave
-            FROM apsokara_student s 
+            FROM apsokara_student s
             LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date = %s
-            WHERE s.student_class = %s AND s.student_section = %s AND s.wing = %s 
+            WHERE s.student_class = %s AND s.student_section = %s AND s.wing = %s
             ORDER BY s.id ASC
         """
         res = conn.execute(query.replace('?', '%s'), (today, today, u_class, u_sec, u_wing)).fetchall()
@@ -2848,7 +2848,7 @@ def sync_attendance():
         attendance_list = data.get('attendance', [])
         u = session['user']
         today = datetime.datetime.now(PK_TZ).date()
-        
+
         conn = sqlite3.connect(get_db_path())
         for item in attendance_list:
             existing = conn.execute("SELECT id, edit_count FROM apsokara_attendance WHERE student_id=%s::bigint AND date=%s::date", (item['id'], today)).fetchone()
@@ -2899,8 +2899,8 @@ def api_intel():
         return jsonify({"flags": [], "error": "Access Denied"}), 403
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
-    cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres 
-                        FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id 
+    cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres
+                        FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id
                         WHERE s.student_class=%s AND s.student_section=%s AND s.wing=%s GROUP BY s.id""", (u['assigned_class'], u['assigned_section'], u['assigned_wing'], 'Pending'))
     flags = []
     for r in cur.fetchall():
@@ -2927,10 +2927,10 @@ def logout():
     t = session.get('tenant') or request.args.get('t')
     session.clear()
     if t: session['tenant'] = t # Wapis daal do taake database path sahi rahe
-    
+
     target_url = f"/?t={t}" if t else "/"
     js_code = f'<script>localStorage.clear(); window.location.replace("{target_url}");</script>'
-    
+
     response = make_response(js_code)
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     return response
@@ -2945,14 +2945,14 @@ def logout():
 def diary_init_teacher():
     u = session['user']
     if u['role'] != 'Teacher': return jsonify({'error': 'Unauthorized'}), 403
-    
+
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     # Get unique assignments for this teacher
     query = """
-        SELECT DISTINCT sa.student_class, sa.section, sa.wing, s.name as sub_name 
-        FROM apsokara_subjectassignment sa 
-        JOIN apsokara_subject s ON sa.subject_id = s.id 
+        SELECT DISTINCT sa.student_class, sa.section, sa.wing, s.name as sub_name
+        FROM apsokara_subjectassignment sa
+        JOIN apsokara_subject s ON sa.subject_id = s.id
         WHERE sa.teacher_id = %s
     """
     rows = conn.execute(query, (u['id'],)).fetchall()
@@ -2994,9 +2994,9 @@ def diary_post_new():
         # Find subject_id from name
         sub_row = conn.execute("SELECT id FROM apsokara_subject WHERE name=%s", (subject_name,)).fetchone()
         subject_id = sub_row[0] if sub_row else 0
-        
+
         query = """
-            INSERT INTO apsokara_dailydiary 
+            INSERT INTO apsokara_dailydiary
             (student_class, section, wing, content, date_posted, attachments, subject_id, teacher_id)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
@@ -3009,7 +3009,7 @@ def diary_post_new():
         post_date = data.get('schedule_date') if is_scheduled else datetime.datetime.now().strftime('%Y-%m-%d')
         full_ts = f"{post_date} {datetime.datetime.now().strftime('%I:%M %p')}"
         conn = sqlite3.connect(get_db_path())
-        conn.execute("INSERT INTO apsokara_dailydiary (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        conn.execute("INSERT INTO apsokara_dailydiary (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                      (u['id'], u['full_name'], target_class, target_section, target_wing, subject, content_text, full_ts, is_scheduled, ",".join(file_paths)))
         conn.commit()
         conn.close()
@@ -3019,19 +3019,19 @@ def diary_post_new():
 @app.route('/api/diary/fetch')
 @login_required
 def diary_fetch_list():
-    import pg_shim as sqlite3
+    import sqlite3
     u = session.get('user', {})
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     rows = []
-    
+
     if u['role'] == 'Student':
         query = """
-            SELECT d.*, sub.name as subject_name, t.full_name as teacher_name 
+            SELECT d.*, sub.name as subject_name, t.full_name as teacher_name
             FROM apsokara_dailydiary d
             LEFT JOIN apsokara_subject sub ON d.subject_id::bigint = sub.id::bigint
             LEFT JOIN apsokara_teacher t ON d.teacher_id::bigint = t.id::bigint
-            WHERE d.student_class = %s AND d.section = %s 
+            WHERE d.student_class = %s AND d.section = %s
             AND (d.wing = %s OR d.wing LIKE SUBSTRING(%s, 1, 1) || '%%')
             ORDER BY d.id DESC
         """
@@ -3041,15 +3041,15 @@ def diary_fetch_list():
         rows = conn.execute(query, (s_class, s_sec, s_wing, s_wing)).fetchall()
     else:
         query = """
-            SELECT d.*, sub.name as subject_name, t.full_name as teacher_name 
+            SELECT d.*, sub.name as subject_name, t.full_name as teacher_name
             FROM apsokara_dailydiary d
             LEFT JOIN apsokara_subject sub ON d.subject_id::bigint = sub.id::bigint
             LEFT JOIN apsokara_teacher t ON d.teacher_id::bigint = t.id::bigint
-            WHERE d.teacher_id = %s::bigint 
+            WHERE d.teacher_id = %s::bigint
             ORDER BY d.id DESC
         """
         rows = conn.execute(query, (u['id'],)).fetchall()
-    
+
     conn.close()
     return jsonify([dict(r) for r in rows])
 
@@ -3067,8 +3067,8 @@ def diary_unread_status():
     conn = sqlite3.connect(get_db_path())
     s_class, s_sec, s_wing = str(u.get('student_class','')), str(u.get('student_section','')), u.get('wing','')
     query = """
-        SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary 
-        WHERE student_class = %s AND section = %s 
+        SELECT COUNT(*), MAX(id) FROM apsokara_dailydiary
+        WHERE student_class = %s AND section = %s
         AND (wing = %s OR wing LIKE SUBSTRING(%s, 1, 1) || '%%') AND id > %s::bigint
     """
     row = conn.execute(query, (str(s_class), str(s_sec), str(s_wing), str(s_wing), int(last_seen))).fetchone()
@@ -3091,7 +3091,7 @@ def submit_leave_v2():
     u = session['user']
     if u.get('role') != 'Student':
         return jsonify({'success': False, 'error': 'Only students can apply'})
-    
+
     import time
     file_path = ""
     if 'attachment' in request.files:
@@ -3101,30 +3101,30 @@ def submit_leave_v2():
             fname = f"LV_{u['id']}_{int(time.time())}_{f.filename}"
             f.save(os.path.join('static/uploads/leaves', fname))
             file_path = f"static/uploads/leaves/{fname}"
-    
+
     try:
         with sqlite3.connect(get_db_path()) as conn:
             # Improved Logic: Handle both Form and JSON for Offline/Online Sync
             data = request.form if request.form else (request.get_json() if request.is_json else {})
-            
+
             s_date = data.get('start') or data.get('from_date')
 
             # Professional Overlap Check
             from datetime import datetime
             today_str = datetime.now().strftime('%Y-%m-%d')
-            
+
             check_sql = """
-                SELECT from_date, to_date FROM apsokara_studentleave 
-                WHERE student_id = %s AND status = 'Approved' 
+                SELECT from_date, to_date FROM apsokara_studentleave
+                WHERE student_id = %s AND status = 'Approved'
                 AND %s::date BETWEEN from_date AND to_date
                 LIMIT 1
             """
             existing = conn.execute("SELECT id, from_date, to_date FROM apsokara_studentleave WHERE student_id=? AND status='Approved' AND %s::date BETWEEN from_date AND to_date LIMIT 1", (u['id'], today_str)).fetchone()
-            
+
             if existing:
                 msg = f"❌ Action Blocked: You already have an Approved leave from {existing[1]} to {existing[2]}."
                 return jsonify({'success': False, 'error': msg, 'conflict_id': existing[0]})
-    
+
             e_date = data.get('end') or data.get('to_date')
             reason = data.get('reason')
 
@@ -3147,10 +3147,10 @@ def list_leaves_v2():
             res = conn.execute("SELECT l.*, s.full_name FROM apsokara_studentleave l JOIN apsokara_student s ON l.student_id = s.id WHERE l.student_id = ? ORDER BY l.id DESC", (u['id'],)).fetchall()
         else:
             # Dynamic Class/Section/Wing filtering
-            res = conn.execute("""SELECT l.*, s.full_name FROM apsokara_studentleave l 
-                               JOIN apsokara_student s ON l.student_id = s.id 
-                               WHERE s.student_class=? AND s.student_section=? AND (s.wing=? OR s.wing LIKE ?) 
-                               ORDER BY l.status DESC, l.id DESC""", 
+            res = conn.execute("""SELECT l.*, s.full_name FROM apsokara_studentleave l
+                               JOIN apsokara_student s ON l.student_id = s.id
+                               WHERE s.student_class=? AND s.student_section=? AND (s.wing=? OR s.wing LIKE ?)
+                               ORDER BY l.status DESC, l.id DESC""",
                                (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), f"{u.get('assigned_wing')[:1]}%")).fetchall()
     except Exception as e: print(f'❌ Leave List Error: {e}')
     finally: conn.close()
@@ -3162,18 +3162,18 @@ def leave_action_v2():
     u = session.get('user', {})
     if not u.get('is_class_teacher'):
         return jsonify({'success': False, 'error': 'Unauthorized'})
-    
+
     d = request.json
     try:
-        import pg_shim as sqlite3
+        import sqlite3
         with sqlite3.connect(get_db_path()) as conn:
             # FIX: Use %s and casting for Postgres bigint
             query = """
-                UPDATE apsokara_studentleave 
-                SET status = %s 
+                UPDATE apsokara_studentleave
+                SET status = %s
                 WHERE id = %s::bigint AND student_id IN (
-                    SELECT id FROM apsokara_student 
-                    WHERE student_class = %s AND student_section = %s 
+                    SELECT id FROM apsokara_student
+                    WHERE student_class = %s AND student_section = %s
                     AND (wing = %s OR wing LIKE SUBSTRING(%s, 1, 1) || '%%')
                 )
             """
@@ -3188,7 +3188,7 @@ def leave_action_v2():
 
     try:
         conn = sqlite3.connect(get_db_path())
-        count = conn.execute("""SELECT COUNT(*) FROM apsokara_studentleave 
+        count = conn.execute("""SELECT COUNT(*) FROM apsokara_studentleave
                              WHERE student_class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND status='Pending'""",
                              (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchone()[0]
         conn.close()
@@ -3210,32 +3210,32 @@ def get_leave_stats_v2():
     if not u.get('is_class_teacher'):
         return jsonify({'pending': 0, 'today': 0, 'done': 0})
     try:
-        import pg_shim as sqlite3
+        import sqlite3
         conn = sqlite3.connect(get_db_path())
         c, s, w = str(u.get('assigned_class')), str(u.get('assigned_section')), str(u.get('assigned_wing'))
-        
+
         # JOIN with apsokara_student to filter by class/section
         # Pending
         pending = conn.execute("""
-            SELECT COUNT(l.id) FROM apsokara_studentleave l 
-            JOIN apsokara_student s ON l.student_id = s.id 
+            SELECT COUNT(l.id) FROM apsokara_studentleave l
+            JOIN apsokara_student s ON l.student_id = s.id
             WHERE s.student_class=%s AND s.student_section=%s AND s.wing=%s AND l.status='Pending'
         """, (c,s,w)).fetchone()[0]
-        
+
         # Today's applied
         today = conn.execute("""
-            SELECT COUNT(l.id) FROM apsokara_studentleave l 
-            JOIN apsokara_student s ON l.student_id = s.id 
+            SELECT COUNT(l.id) FROM apsokara_studentleave l
+            JOIN apsokara_student s ON l.student_id = s.id
             WHERE s.student_class=%s AND s.student_section=%s AND s.wing=%s AND l.from_date = CURRENT_DATE
         """, (c,s,w)).fetchone()[0]
-        
+
         # Approved Total
         done = conn.execute("""
-            SELECT COUNT(l.id) FROM apsokara_studentleave l 
-            JOIN apsokara_student s ON l.student_id = s.id 
+            SELECT COUNT(l.id) FROM apsokara_studentleave l
+            JOIN apsokara_student s ON l.student_id = s.id
             WHERE s.student_class=%s AND s.student_section=%s AND s.wing=%s AND l.status='Approved'
         """, (c,s,w)).fetchone()[0]
-        
+
         conn.close()
         return jsonify({'pending': int(pending), 'today': int(today), 'done': int(done)})
     except:

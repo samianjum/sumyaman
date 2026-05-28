@@ -7,37 +7,37 @@ def get_db():
     return db
 
 def register_class_teacher_routes(app, login_required):
-    
+
     @app.route('/api/class-finalize-status')
     @login_required
     def finalize_status():
         from flask import session
         user_id = session.get('user_id')
         db = get_db()
-        
+
         # Get teacher's class
         user = db.execute('SELECT assigned_class, assigned_section FROM users WHERE id = ?', (user_id,)).fetchone()
         if not user: return jsonify({'success': False, 'error': 'User not found'})
-        
+
         # Get current active exam
         exam = db.execute('SELECT id, exam_name FROM exams ORDER BY id DESC LIMIT 1').fetchone()
         if not exam: return jsonify({'success': False, 'error': 'No active exam found'})
-        
+
         # Check if already published
-        pub = db.execute('SELECT id FROM final_results WHERE exam_id = ? AND class_name = ? AND section = ?', 
+        pub = db.execute('SELECT id FROM final_results WHERE exam_id = ? AND class_name = ? AND section = ?',
                         (exam['id'], user['assigned_class'], user['assigned_section'])).fetchone()
-        
+
         # Get status of all subjects for this class
         # Assuming you have a table 'marks_status' or similar
         subjects = db.execute('''
-            SELECT subject_name, teacher_name, is_submitted 
-            FROM marks_submissions 
+            SELECT subject_name, teacher_name, is_submitted
+            FROM marks_submissions
             WHERE class_name = ? AND section = ? AND exam_id = ?
         ''', (user['assigned_class'], user['assigned_section'], exam['id'])).fetchall()
-        
+
         status_list = [{'name': s['subject_name'], 'done': bool(s['is_submitted'])} for s in subjects]
         is_ready = all(s['done'] for s in status_list) if status_list else False
-        
+
         # Get students for remarks if ready
         students = []
         if is_ready:

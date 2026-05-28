@@ -1,0 +1,63 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Fee Collection</h2>
+    <div class="card">
+        <div class="card-body">
+            <p>Search student by roll number, name, father CNIC or phone.</p>
+            <input type="text" id="search" class="form-control mb-3" placeholder="Search...">
+            <div id="results"></div>
+            <div id="student_details" style="display:none;">
+                <h4 id="student_name"></h4>
+                <table class="table"><tbody id="pending_table"></tbody></table>
+                <input type="number" id="amount" class="form-control mb-2" placeholder="Amount">
+                <button id="pay_btn" class="btn btn-success">Pay</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('search').addEventListener('input', function() {
+    let q = this.value;
+    if(q.length<2) return;
+    fetch(`/s/{{ school_slug }}/fee/student/search/?q=${q}`)
+        .then(r=>r.json())
+        .then(d=>{
+            let html='';
+            d.results.forEach(s=>{
+                html+=`<div class="list-group-item" data-id="${s.id}">${s.full_name} (Pending: ₹${s.pending_total})</div>`;
+            });
+            document.getElementById('results').innerHTML=html;
+            document.querySelectorAll('.list-group-item').forEach(el=>{
+                el.addEventListener('click',()=>loadStudent(el.dataset.id));
+            });
+        });
+});
+function loadStudent(id){
+    fetch(`/s/{{ school_slug }}/fee/student/pending/?student_id=${id}`)
+        .then(r=>r.json())
+        .then(d=>{
+            document.getElementById('student_name').innerText=d.student_name;
+            let tb='<tr><th>Month</th><th>Pending</th></tr>';
+            d.pending.forEach(p=>{
+                tb+=`<tr><td>${p.month}/${p.year}</td><td>₹${p.pending_amount}</td></tr>`;
+            });
+            document.getElementById('pending_table').innerHTML=tb;
+            document.getElementById('student_details').style.display='block';
+            document.getElementById('pay_btn').onclick=()=>{
+                let amt=document.getElementById('amount').value;
+                fetch('/s/{{ school_slug }}/fee/collect/',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({student_id:id, amount:amt, payment_mode:'cash', remarks:''})
+                }).then(r=>r.json()).then(res=>{
+                    if(res.success){
+                        alert('Payment successful! Receipt generated.');
+                        location.reload();
+                    } else alert(res.error);
+                });
+            };
+        });
+}
+</script>
+{% endblock %}

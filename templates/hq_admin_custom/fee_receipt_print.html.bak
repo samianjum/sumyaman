@@ -1,0 +1,22 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+<div class="container mt-5" id="receipt">
+    <div class="card border-success">
+        <div class="card-header bg-success text-white">
+            <h3>Payment Receipt</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Receipt No:</strong> {{ transaction.receipt_number }}</p>
+            <p><strong>Student:</strong> {{ transaction.student.full_name }} ({{ transaction.student.roll_number }})</p>
+            <p><strong>Amount:</strong> ₹{{ transaction.amount }}</p>
+            <p><strong>Mode:</strong> {{ transaction.get_payment_mode_display }}</p>
+            <p><strong>Date:</strong> {{ transaction.transaction_date }}</p>
+            <p><strong>Remarks:</strong> {{ transaction.remarks|default:"-" }}</p>
+        </div>
+        <div class="card-footer">
+            <button onclick="window.print()" class="btn btn-secondary">Print Receipt</button>
+            <a href="{% url 'fee_collection' school_slug %}" class="btn btn-primary">New Payment</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

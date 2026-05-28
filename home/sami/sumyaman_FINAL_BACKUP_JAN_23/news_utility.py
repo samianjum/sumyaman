@@ -8,20 +8,20 @@ def render_news_ticker():
         conn = sqlite3.connect('db.sqlite3')
         news_df = pd.read_sql("SELECT content FROM apsokara_schoolnotice ORDER BY id DESC LIMIT 5", conn)
         conn.close()
-        
+
         if not news_df.empty:
             news_text = " &nbsp;&nbsp;&nbsp;&nbsp; ⚡ &nbsp;&nbsp;&nbsp;&nbsp; ".join(news_df['content'].tolist())
-            
+
             html_code = f"""
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Montserrat:wght@500&display=swap');
-                
-                body {{ 
-                    margin: 0; 
-                    overflow: hidden; 
+
+                body {{
+                    margin: 0;
+                    overflow: hidden;
                     background: transparent;
                 }}
-                
+
                 .main-container {{
                     background: #000000;
                     height: 45px;
@@ -91,7 +91,7 @@ def render_news_ticker():
                     z-index: 2;
                 }}
             </style>
-            
+
             <div class="main-container">
                 <div class="live-tag">LIVE UPDATE</div>
                 <div class="ticker-content">
@@ -102,6 +102,6 @@ def render_news_ticker():
             </div>
             """
             components.html(html_code, height=60)
-            
+
     except:
         pass

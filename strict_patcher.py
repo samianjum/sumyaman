@@ -12,15 +12,15 @@ try:
         .saas-insight-wrap { background: #0F2A44; margin: 0 -20px; padding: 16px 20px; }
         .saas-scroll { display: flex; overflow-x: auto; gap: 12px; scrollbar-width: none; -ms-overflow-style: none; }
         .saas-scroll::-webkit-scrollbar { display: none; }
-        .saas-card { 
-            flex: 0 0 160px; height: 70px; background: #173A5E; 
+        .saas-card {
+            flex: 0 0 160px; height: 70px; background: #173A5E;
             border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);
             display: flex; align-items: center; padding: 0 16px; cursor: pointer; transition: transform 0.2s;
         }
         .saas-card:active { transform: scale(0.95); }
-        .saas-icon { 
+        .saas-icon {
             width: 32px; height: 32px; background: #2F80ED; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; 
+            display: flex; align-items: center; justify-content: center;
             font-size: 14px; margin-right: 12px; flex-shrink: 0;
         }
         .saas-text-wrap { display: flex; flex-direction: column; }
@@ -79,7 +79,7 @@ try:
 
     # Strict Regex: Will ONLY replace if it finds BOTH the start and end markers
     pattern = r'.*?'
-    
+
     if re.search(pattern, content, re.DOTALL):
         new_content = re.sub(pattern, ui_block, content, flags=re.DOTALL)
         with open(path, 'w') as f:

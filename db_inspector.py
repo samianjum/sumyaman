@@ -26,18 +26,18 @@ def inspect():
             print(f"\n📊 Inspecting Schema for: {target_db}")
             conn = psycopg2.connect(dbname=target_db, **db_config)
             cur = conn.cursor()
-            
+
             # Get all apsokara tables
             cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE 'apsokara%';")
             tables = [r[0] for r in cur.fetchall()]
-            
+
             for table in tables:
                 cur.execute(f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table}';")
                 cols = cur.fetchall()
                 print(f"\n📍 Table: {table}")
                 for col in cols:
                     print(f"   - {col[0]} ({col[1]})")
-            
+
             cur.close()
             conn.close()
         else:

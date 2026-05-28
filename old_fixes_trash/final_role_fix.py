@@ -15,7 +15,7 @@ def fetch_user_data(user_id, dob_val, user_type):
             q = "SELECT id, full_name, assigned_wing as wing, assigned_class as class, assigned_section as section, is_class_teacher FROM apsokara_teacher WHERE cnic = ? AND dob = ?"
         else:
             q = "SELECT id, full_name, wing, student_class as class, student_section as section FROM apsokara_student WHERE b_form = ? AND dob = ?"
-        
+
         cursor.execute(q, (user_id, dob_val))
         row = cursor.fetchone()
         if row:

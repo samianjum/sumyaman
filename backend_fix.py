@@ -25,7 +25,7 @@ if os.path.exists(file_path):
     # Taki koi orphaned brackets bache na hon
     with open(file_path, 'w') as f:
         f.write(content)
-    
+
     print("✅ Backend Syntax fixed. Broken routes removed.")
     os.remove(__file__)
 else:

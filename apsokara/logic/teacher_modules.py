@@ -6,10 +6,10 @@ from datetime import date, datetime
 def render_marks_entry(u):
     conn = sqlite3.connect('db.sqlite3')
     today = date.today().isoformat()
-    
+
     q_exams = 'SELECT DISTINCT e.* FROM exams e JOIN apsokara_subjectassignment sa ON sa.student_class = e.class_group WHERE e.is_active = 1 AND e.start_date <= ? AND e.end_date >= ? AND sa.teacher_id = ?'
     active_exams = pd.read_sql_query(q_exams, conn, params=(today, today, u['id']))
-    
+
     if active_exams.empty:
         st.info('NO ACTIVE EXAMS FOUND')
         conn.close()
@@ -22,7 +22,7 @@ def render_marks_entry(u):
 
     q_assign = 'SELECT sa.id, sa.student_class, sa.section, sa.wing, sub.name as sub_name, sub.id as sub_id FROM apsokara_subjectassignment sa JOIN apsokara_subject sub ON sa.subject_id = sub.id WHERE sa.teacher_id = ? AND sa.student_class = ?'
     assigns = pd.read_sql_query(q_assign, conn, params=(u['id'], sel_exam['class_group']))
-    
+
     if assigns.empty:
         st.error('NO SUBJECTS ASSIGNED')
         conn.close()
@@ -65,18 +65,18 @@ def render_marks_entry(u):
         st.markdown('<div style="background:#800000; color:#ffffff; padding:15px; border-radius:8px; text-align:center; font-weight:900; margin-bottom:25px; border:2px solid #ff0000; letter-spacing:1px;">ACCESS DENIED: PORTAL LOCKED BY CLASS TEACHER</div>', unsafe_allow_html=True)
 
     students = pd.read_sql_query('SELECT id, full_name, father_name, roll_number FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?', conn, params=(target_row['student_class'], target_row['section'], target_row['wing']))
-    
+
     with st.form('marks_entry_form'):
         col_t, col_info = st.columns([1, 2])
         total_m = col_t.number_input('MAX MARKS', min_value=1, value=100, disabled=locked)
         col_info.markdown(f"<div style='text-align:right; color:#666; font-weight:600; padding-top:10px;'>Total Students: {len(students)}</div>", unsafe_allow_html=True)
         st.divider()
-        
+
         marks_data = []
         for _, s in students.iterrows():
             prev = pd.read_sql_query('SELECT obtained_marks, remarks FROM student_marks WHERE exam_id=? AND student_id=? AND subject_id=?', conn, params=(int(sel_exam['id']), s['id'], int(target_row['sub_id'])))
             val, rem = (prev.iloc[0]['obtained_marks'], prev.iloc[0]['remarks']) if not prev.empty else (0.0, '')
-            
+
             c1, c2 = st.columns([2.5, 3])
             c1.markdown(f"<div style='border-left:4px solid #1b4332; padding-left:10px;'><b style='font-size:16px;'>{s['full_name']}</b><br><span style='color:#555; font-size:12px;'>ROLL: {s['roll_number']} | S/O: {s['father_name'].upper()}</span></div>", unsafe_allow_html=True)
             m_col, r_col = c2.columns([1, 2])

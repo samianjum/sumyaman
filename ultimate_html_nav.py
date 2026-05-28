@@ -15,13 +15,13 @@ def get_mobile_db():
 def render_mobile_view():
     # 1. THE INVISIBLE ENGINE (Hidden Radio to control tabs)
     if 'm_tab' not in st.session_state: st.session_state.m_tab = "Home"
-    
+
     # CSS to hide the radio and style our custom HTML nav
     st.markdown('''
         <style>
             [data-testid="stSidebar"], header, footer, [data-testid="stHeader"] { display: none !important; }
             .main .block-container { padding: 0 !important; max-width: 100% !important; }
-            
+
             /* Hide the actual streamlit radio but keep it functional */
             div.stRadio > div { display: none !important; }
 
@@ -53,7 +53,7 @@ def render_mobile_view():
     ''', unsafe_allow_html=True)
 
     u = st.session_state.get('user_info', {})
-    
+
     # 2. HEADER
     st.markdown(f'''
         <div style="background:#1b4332; padding:25px 15px; color:#d4af37; text-align:center; border-radius:0 0 25px 25px;">
@@ -65,14 +65,14 @@ def render_mobile_view():
     # 3. CONTENT SWITCHER
     st.markdown('<div class="content-area">', unsafe_allow_html=True)
     tab = st.session_state.m_tab
-    
+
     if tab == "Home":
         st.write(f"### Salam, {u.get('full_name','User')} ✨")
         st.markdown('<div class="diary-card">Portal is now 100% stable with HTML Nav.</div>', unsafe_allow_html=True)
     elif tab == "Diary":
         st.write("### 📔 Daily Diary")
         conn = get_mobile_db()
-        df = pd.read_sql("SELECT * FROM apsokara_dailydiary WHERE class=? AND section=? ORDER BY id DESC LIMIT 5", 
+        df = pd.read_sql("SELECT * FROM apsokara_dailydiary WHERE class=? AND section=? ORDER BY id DESC LIMIT 5",
                          conn, params=(str(u.get('student_class','')), str(u.get('student_section',''))))
         conn.close()
         for _, row in df.iterrows():
@@ -115,7 +115,7 @@ def render_mobile_view():
         if st.button(" ", key="a_fix", help="Atten"): st.session_state.m_tab="Attendance"; st.rerun()
     with cols[3]:
         if st.button(" ", key="p_fix", help="Prof"): st.session_state.m_tab="Profile"; st.rerun()
-        
+
     st.markdown('''
         <style>
             /* Push invisible buttons over the HTML nav items */

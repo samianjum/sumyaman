@@ -32,9 +32,9 @@ HTML_TEMPLATE = '''
 <script>
 window.safeLogout = async function(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    
+
     console.log("Checking connection for logout...");
-    
+
     // Check 1: navigator.onLine
     if (!navigator.onLine) {
         if (window.showToast) showToast("❌ OFFLINE: Internet required to logout!", "error");
@@ -75,7 +75,7 @@ window.safeLogout = async function(e) {
             }
             return false; // Stop everything
         }
-        
+
         if (confirm("Are you sure you want to logout?")) {
             localStorage.clear();
             window.location.replace('/logout');
@@ -110,7 +110,7 @@ window.safeLogout = async function(e) {
     <script>
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
-                
+
             });
         }
     </script>
@@ -132,14 +132,14 @@ window.safeLogout = async function(e) {
         .glass-card { background: white; border-radius: 20px; padding: 18px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .hidden { display: none !important; }
         .btn-sync { background: #1B4332; color: white; width: 100%; padding: 15px; border-radius: 15px; font-weight: 800; margin-top: 20px; }
-        
+
         .status-pill { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; }
 .shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
         {% if user.role == 'Student' %}
         .teacher-only { display: none !important; }
         {% endif %}
-    
-    
+
+
         /* Sexy Toast Styles */
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100000; width: 90%; max-width: 400px; pointer-events: none; }
         .toast-msg { background: rgba(15, 23, 42, 0.95); color: white; padding: 16px 20px; border-radius: 20px; margin-bottom: 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); display: flex; items-center; justify-content: center; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); animation: toast-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
@@ -150,7 +150,7 @@ window.safeLogout = async function(e) {
         .toast-out { animation: toast-out 0.3s ease forwards !important; }
         @keyframes toast-out { to { opacity: 0; transform: translateY(-20px) scale(0.95); } }
 
-    
+
         @keyframes zoom-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .net-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
@@ -172,9 +172,9 @@ window.safeLogout = async function(e) {
     }
     </script>
 
-    
 
-    
+
+
 
 
 
@@ -202,7 +202,7 @@ window.safeLogout = async function(e) {
         // RULE 2: Baaki POST requests (Attendance, Leave, Diary) ko Offline handle karo
         if (!navigator.onLine && options && options.method === 'POST') {
             let payload = {};
-            
+
             // Check for Files in Diary/Leave
             if (options.body instanceof FormData) {
                 let hasFiles = false;
@@ -233,7 +233,7 @@ window.safeLogout = async function(e) {
         if(!navigator.onLine) return;
         const queue = JSON.parse(localStorage.getItem(OFFLINE_KEY) || '[]');
         if(queue.length === 0) return;
-        
+
         for(let i=0; i < queue.length; i++) {
             try {
                 const res = await originalFetch(queue[i].url, {
@@ -284,11 +284,11 @@ window.safeLogout = async function(e) {
             </div>
         </div>
         {% else %}
-        
-        
-        
-        
-        
+
+
+
+
+
         <div id="main-header" class="app-header shadow-md p-4 bg-gradient-to-r from-[#1B4332] to-[#2D6A4F]">
             <div class="flex justify-between items-center mb-3 opacity-80 border-b border-white/10 pb-2">
                 <span id="current-date" class="text-[9px] font-bold tracking-tighter uppercase">-- --- ----</span>
@@ -305,7 +305,7 @@ window.safeLogout = async function(e) {
                 <div class="flex-grow">
                     <h2 class="text-lg font-black leading-tight">{{ user.full_name }}</h2>
                     <p class="text-[10px] font-bold opacity-90">S/O: {{ user.father_name }}</p>
-                    
+
                     <div class="mt-1 flex items-center gap-2">
                         <span class="text-[8px] font-black bg-black/20 px-2 py-0.5 rounded uppercase tracking-tighter text-[#D4AF37]">{{ user.role }}</span>
                         {% if user.role == 'Student' %}
@@ -362,10 +362,10 @@ window.safeLogout = async function(e) {
 
 
         <div class="app-body">
-            
-            
-            
-            
+
+
+
+
             <div id="page-home" class="grid grid-cols-2 gap-4">
                 {% if user.role == 'Student' or (user.role == 'Teacher' and user.is_class_teacher) %}
                 <div onclick="openLeaveHub()" class="relative glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-rose-500 active:scale-95 transition-all cursor-pointer">
@@ -432,10 +432,10 @@ window.safeLogout = async function(e) {
                 {% endif %}
             </div>
 
-            
+
 
     <div id='page-results' class='hidden animate-slide-up pb-24'>
-        
+
         <div id='student-result-container' class='space-y-4'></div>
     </div>
     <div id='page-marks-entry' class='hidden space-y-4 max-w-md mx-auto'><div id='teacher-assign-list'></div></div>
@@ -448,7 +448,7 @@ window.safeLogout = async function(e) {
             <div id="finalize-content-area" class="space-y-4"></div>
         </div>
     </div>
-            
+
     <div id="page-leave" class="hidden animate-slide-up pb-24">
         <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
             <div>
@@ -460,7 +460,7 @@ window.safeLogout = async function(e) {
         </div>
         <div id="leave-content-area" class="space-y-4"></div>
     </div>
-    
+
 <div id="page-diary" class="hidden space-y-4">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="font-black text-xl text-[#1B4332]">Diary Hub</h3>
@@ -482,14 +482,14 @@ window.safeLogout = async function(e) {
                 <div id="diary-post-form" class="hidden glass-card p-4 space-y-3">
                     <select id="diary-target" class="w-full p-3 rounded-xl bg-gray-50 border-none text-xs font-bold"></select>
                     <textarea id="diary-content" placeholder="Enter Homework details..." class="w-full p-4 rounded-xl bg-gray-50 border-none text-sm min-h-[120px]"></textarea>
-                    
+
                     <div class="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg">
                         <input type="checkbox" id="diary-sch-check" onchange="toggleSchDate()">
                         <label class="text-[10px] font-bold text-yellow-700 uppercase">Schedule Post?</label>
                         <input type="date" id="diary-sch-date" class="hidden p-1 text-[10px] border-none bg-transparent">
                     </div>
 
-                    
+
                     <div id="attach-preview-zone" class="hidden mb-2 p-2 bg-blue-50/50 rounded-xl border border-dashed border-blue-200">
                         <div class="flex justify-between items-center mb-2 px-1">
                             <span id="attach-count" class="text-[9px] font-black text-blue-700 uppercase">0 Files Attached</span>
@@ -527,7 +527,7 @@ window.safeLogout = async function(e) {
                 </div>
             </div>
 
-            
+
             <div id="page-marking-view" class="hidden space-y-4">
                 <button onclick="showTab('marks-entry')" class="text-[10px] font-black text-gray-400 uppercase tracking-widest">← Back</button>
                 <div id="marking-area-v2" class="space-y-3"></div>
@@ -544,12 +544,12 @@ window.safeLogout = async function(e) {
                 <input type="date" id="archive-date" onchange="loadArchive()" placeholder="Select date for specific day" class="w-full p-3 rounded-xl bg-gray-50 border-none font-bold">
                 <div id="archive-results" class="space-y-2"></div>
             </div>
-            
-            
-            
-            
-            
-            
+
+
+
+
+
+
             <div id="page-intel-view" class="hidden space-y-4">
                 <button onclick="showTab('mark')" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">← Back to Hub</button>
                 <div id="intel-view" class="space-y-6"></div>
@@ -614,7 +614,7 @@ window.safeLogout = async function(e) {
                     </div>
                     {% endif %}
 
-                    
+
                     <button onclick="safeLogout(event)" class="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-black text-sm border border-red-100 mt-4">LOGOUT SESSION</button>
                 </div>
             </div>
@@ -643,7 +643,7 @@ window.safeLogout = async function(e) {
         }
         window.currentRole = 'Student';
 
-        
+
         async function doLogin() {
             const loginBtn = event.target;
             const originalText = loginBtn.innerText;
@@ -663,8 +663,8 @@ window.safeLogout = async function(e) {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        uid: document.getElementById('uid').value, 
-                        dob: document.getElementById('dob').value, 
+                        uid: document.getElementById('uid').value,
+                        dob: document.getElementById('dob').value,
                         role: window.currentRole
                     })
                 });
@@ -674,13 +674,13 @@ window.safeLogout = async function(e) {
                 }
 
                 const data = await res.json();
-                
-                if(data.success) { 
-                    localStorage.setItem("isLoggedIn", "true"); 
+
+                if(data.success) {
+                    localStorage.setItem("isLoggedIn", "true");
                     showToast("✅ Login Successful! Redirecting...", "success");
-                    if(window.location.pathname === "/login" || window.location.pathname === "/") { 
-                        window.location.replace("/?login=" + Date.now()); 
-                    } 
+                    if(window.location.pathname === "/login" || window.location.pathname === "/") {
+                        window.location.replace("/?login=" + Date.now());
+                    }
                 } else {
                     showToast("❌ Login Failed: " + (data.error || "Invalid Credentials"), "error");
                 }
@@ -692,15 +692,15 @@ window.safeLogout = async function(e) {
                 loginBtn.innerText = originalText;
             }
         }
-    
 
-        
+
+
     let diaryAssignments = [];
-    
-    
+
+
     async function openDiaryHub() { markDiariesAsRead();
         showTab('diary');
-        
+
         // Reset UI Elements
         const btn = document.getElementById('btn-pub');
         if(btn) {
@@ -709,7 +709,7 @@ window.safeLogout = async function(e) {
         }
         const contentInput = document.getElementById('diary-content');
         if(contentInput) contentInput.value = '';
-        
+
         const fileInput = document.getElementById('diary-files');
         if(fileInput) fileInput.value = '';
 
@@ -735,15 +735,15 @@ window.safeLogout = async function(e) {
         document.getElementById('diary-sch-date').classList.toggle('hidden', !document.getElementById('diary-sch-check').checked);
     }
 
-    
+
     async function submitDiary() {
         const btn = document.getElementById('btn-pub');
         const contentVal = document.getElementById('diary-content').value;
         if(!contentVal) return alert("Please write some content!");
-        
-        btn.disabled = true; 
+
+        btn.disabled = true;
         btn.innerText = "Sending...";
-        
+
         try {
             const target = JSON.parse(document.getElementById('diary-target').value);
             const formData = new FormData();
@@ -752,22 +752,22 @@ window.safeLogout = async function(e) {
             formData.append('section', target.section);
             formData.append('wing', target.wing);
             formData.append('subject', target.sub_name);
-            
+
             const schCheck = document.getElementById('diary-sch-check');
             if(schCheck && schCheck.checked) {
                 formData.append('schedule_date', document.getElementById('diary-sch-date').value);
             }
-            
+
             const files = document.getElementById('diary-files').files;
             for(let i=0; i<files.length; i++) formData.append('files', files[i]);
 
             const res = await fetch('/api/diary/post', { method: 'POST', body: formData });
-            
-            
+
+
             if(result.success) {
                 alert("✅ Diary Published Successfully!");
                 // This will reset the button and clear the form
-                await openDiaryHub(); 
+                await openDiaryHub();
             } else {
                 alert("❌ Error: " + result.msg);
                 btn.disabled = false;
@@ -780,18 +780,18 @@ window.safeLogout = async function(e) {
         }
     }
 
-    
+
     async function loadStudentDiary() {
         const list = document.getElementById('diary-display-list');
         list.innerHTML = '<p class="text-center text-xs font-bold text-gray-400 py-10">Fetching...</p>';
-        
+
         let u = JSON.parse(localStorage.getItem('user') || '{}');
         let role = u.role || 'Student';
 
         try {
             const res = await fetch('/api/diary/fetch');
             const diaries = await res.json();
-            
+
             if(!diaries || diaries.length === 0) {
                 list.innerHTML = '<div class="text-center py-10 opacity-40"><div class="text-5xl mb-2">📭</div><p class="font-black text-xs">No diary entries found</p></div>';
                 return;
@@ -801,7 +801,7 @@ window.safeLogout = async function(e) {
                 // Teacher kelye Class-Section, Student kelye Teacher ka naam
                 const metaInfo = (role === "Teacher") ? `FOR: ${d.class}-${d.section} (${d.wing})` : `BY: ${d.teacher_name}`;
                 const datePart = d.date_posted ? d.date_posted.split('|')[0] : '---';
-                
+
                 return `
                 <div class="glass-card p-4 border-l-4 border-amber-500 mb-3 animate-fade-in">
                     <div class="flex justify-between items-start mb-2">
@@ -838,7 +838,7 @@ window.safeLogout = async function(e) {
                 const vault = document.getElementById('vault-auth');
                 if(details) details.classList.add('hidden');
                 if(vault) vault.classList.remove('hidden');
-                document.getElementById('v-auth-id').value = ''; 
+                document.getElementById('v-auth-id').value = '';
             }
 
             const pages = ['home', 'diary', 'mark', 'results', 'marks-entry', 'final-upload', 'profile', 'marking-view', 'attendance-view', 'archive-view', 'intel-view', 'leave', 'marks-portal'];
@@ -849,10 +849,10 @@ window.safeLogout = async function(e) {
             });
 
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-nav'));
-            
+
             const targetPage = document.getElementById('page-' + t);
             if (targetPage) targetPage.classList.remove('hidden');
-            
+
             if(document.getElementById('n-' + t)) document.getElementById('n-' + t).classList.add('active-nav');
 
             // --- HEADER VISIBILITY LOGIC ---
@@ -898,7 +898,7 @@ window.safeLogout = async function(e) {
             const list = document.getElementById('marking-area');
             const banner = document.getElementById('lock-banner');
             const footer = document.getElementById('marking-footer');
-            
+
             if(isLocked) {
                 banner.innerHTML = '<div class="glass-card bg-green-50 text-center border-green-200"><h2 class="text-3xl">🛡️</h2><h4 class="font-black text-green-700">ATTENDANCE SECURED</h4><p class="text-[10px] font-bold">Database is finalized for today.</p></div>';
                 footer.innerHTML = '';
@@ -938,7 +938,7 @@ window.safeLogout = async function(e) {
             if(!(await askUser("Lock this record?"))) return;
             const students = document.querySelectorAll('[id^="s_"]');
             const attendance = Array.from(students).map(s => ({ id: s.id.split('_')[1], status: s.value }));
-            
+
             const res = await fetch('/api/sync-attendance', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -953,7 +953,7 @@ window.safeLogout = async function(e) {
             let date = dateInput;
             // Agar Student hai aur date select nahi ki, to date parameter khali bhejo
             if ('{{ user.role }}' === 'Student' && !dateInput) {
-                date = ''; 
+                date = '';
             } else if (!dateInput) {
                 date = new Date().toISOString().split('T')[0];
             }
@@ -970,15 +970,15 @@ window.safeLogout = async function(e) {
             `).join('') || '<p class="text-center text-xs py-10 font-bold text-gray-300">No history found.</p>';
         }
 
-        
-        
-        
-        
+
+
+
+
         async function unlockVault() {
             const auth_id = document.getElementById('v-auth-id').value;
             const dob = document.getElementById('v-dob').value;
             if(!auth_id || !dob) { alert("Please fill both fields"); return; }
-            
+
             const res = await fetch('/api/unlock-vault', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1000,7 +1000,7 @@ window.safeLogout = async function(e) {
         }
 
 
-        
+
         async function loadIntel() {
             const container = document.getElementById('intel-view');
             if(!container) return;
@@ -1121,7 +1121,7 @@ async function markDiariesAsRead() {
         .toast-out { animation: toast-out 0.3s ease forwards !important; }
         @keyframes toast-out { to { opacity: 0; transform: translateY(-20px) scale(0.95); } }
 
-    
+
         @keyframes zoom-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .net-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
@@ -1134,10 +1134,10 @@ async function markDiariesAsRead() {
 
 <div id="master-viewer" class="hidden fixed inset-0 z-[10000] bg-black/95 flex flex-col items-center justify-center">
     <button onclick="closeMasterViewer()" class="absolute top-6 right-6 text-white text-4xl font-light hover:text-amber-500">&times;</button>
-    
+
     <div class="relative w-full max-w-4xl px-12 flex items-center justify-center">
         <button id="v-prev" onclick="changeMedia(-1)" class="viewer-btn absolute left-2 text-2xl">❮</button>
-        
+
         <div class="w-full flex items-center justify-center overflow-hidden rounded-2xl shadow-2xl bg-black/20" style="height: 70vh;">
             <img id="v-img" src="" class="max-w-full max-h-full object-contain hidden border border-white/10">
             <div id="v-file" class="hidden text-center text-white">
@@ -1170,10 +1170,10 @@ async function markDiariesAsRead() {
     window.viewMedia = function(urls, index) {
         console.log("Opening Viewer with:", urls, "Index:", index);
         if(!urls) return alert("No files found!");
-        
+
         mediaGallery = urls.split(',').map(u => u.trim());
         mediaIdx = parseInt(index);
-        
+
         const viewer = document.getElementById('master-viewer');
         if(viewer) {
             viewer.classList.remove('hidden');
@@ -1186,7 +1186,7 @@ async function markDiariesAsRead() {
     window.updateViewer = function() {
         let path = mediaGallery[mediaIdx];
         if(!path.startsWith('/')) path = '/' + path;
-        
+
         const fullUrl = window.location.origin + path;
         const img = document.getElementById('v-img');
         const file = document.getElementById('v-file');
@@ -1195,7 +1195,7 @@ async function markDiariesAsRead() {
 
         img.classList.add('hidden');
         file.classList.add('hidden');
-        
+
         document.getElementById('v-prev').classList.toggle('hidden', mediaGallery.length <= 1);
         document.getElementById('v-next').classList.toggle('hidden', mediaGallery.length <= 1);
 
@@ -1242,7 +1242,7 @@ async function markDiariesAsRead() {
                 }
             });
             updateAttachUI();
-            
+
             // Critical: Sync with the actual input for the original submitDiary function
             syncFilesToInput();
         }
@@ -1252,7 +1252,7 @@ async function markDiariesAsRead() {
         const zone = document.getElementById('attach-preview-zone');
         const list = document.getElementById('attach-list');
         const count = document.getElementById('attach-count');
-        
+
         if(tempFileStorage.length > 0) {
             zone.classList.remove('hidden');
             count.innerText = `${tempFileStorage.length} Files Attached`;
@@ -1307,7 +1307,7 @@ window.openLeaveHub = function() {
     showTab('leave');
     const area = document.getElementById('leave-content-area');
     const role = "{{ user.role }}";
-    
+
     if(role === 'Student') {
         area.innerHTML = `
             <div id="leave-menu" class="grid grid-cols-1 gap-4 animate-fade-in">
@@ -1327,7 +1327,7 @@ window.openLeaveHub = function() {
                 </div>
             </div>
             <div id="leave-dynamic-inner" class="hidden animate-slide-up"></div>`;
-    
+
     } else {
         area.innerHTML = `
             <div id="leave-menu" class="grid grid-cols-1 gap-4 animate-fade-in">
@@ -1354,7 +1354,7 @@ window.openLeaveHub = function() {
                 </div>
             </div>
             <div id="leave-dynamic-inner" class="hidden animate-slide-up"></div>`;
-        
+
         // Sync badge on card load
         setTimeout(updateLeaveBadge, 100);
     }
@@ -1362,7 +1362,7 @@ window.openLeaveHub = function() {
 };
 
 
-window.renderLeaveApply = function() { 
+window.renderLeaveApply = function() {
     document.getElementById('leave-menu').classList.add('hidden');
     const inner = document.getElementById('leave-dynamic-inner');
     inner.classList.remove('hidden');
@@ -1420,7 +1420,7 @@ window.renderLeaveHistory = async function(filterMode = 'All') {
         }));
 
         let combinedData = [...mappedOffline, ...serverData];
-        
+
         if(filterMode === 'Pending') combinedData = combinedData.filter(l => l.status === 'Pending' || l.status === 'Offline');
         else if(filterMode === 'History') combinedData = combinedData.filter(l => l.status !== 'Pending' && l.status !== 'Offline');
 
@@ -1434,7 +1434,7 @@ window.renderLeaveHistory = async function(filterMode = 'All') {
         const userRole = '{{ user.role }}';
         let html = `<button onclick="openLeaveHub()" class="mb-4 flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-4 py-2 rounded-full w-fit active:scale-90 transition-all">← Back to Menu</button>
                     <div class="space-y-4">`;
-        
+
         combinedData.forEach(l => {
             const sClass = l.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' : (l.status === 'Offline' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600');
             html += `<div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
@@ -1496,7 +1496,7 @@ window.submitLeaveRequest = async function() {
 
         const res = await fetch('/api/leave/submit', {method:'POST', body:fd});
         const result = await res.json();
-        
+
         // Handle both server success and Service Worker offline fallback
         if(result.success || result.status === 'offline') {
             if(result.status === 'offline') {
@@ -1543,24 +1543,24 @@ window.viewLeaveFile = function(url) {
     const img = document.getElementById('v-img');
     const fileDiv = document.getElementById('v-file');
     const downloadBtn = document.getElementById('v-download');
-    
+
     // Reset Views
     if(img) img.classList.add('hidden');
     if(fileDiv) fileDiv.classList.add('hidden');
-    
+
     // Hide nav arrows for single attachment
     if(document.getElementById('v-prev')) document.getElementById('v-prev').style.display = 'none';
     if(document.getElementById('v-next')) document.getElementById('v-next').style.display = 'none';
 
     const isImg = url.match(/\\.(jpg|jpeg|png|gif|webp)$/i);
     const path = url.startsWith('/') ? url : '/' + url;
-    
+
     if(isImg) {
         if(img) { img.src = path; img.classList.remove('hidden'); }
     } else {
         if(fileDiv) fileDiv.classList.remove('hidden');
     }
-    
+
     if(downloadBtn) { downloadBtn.href = path; }
 };
 
@@ -1571,7 +1571,7 @@ window.viewLeaveFile = function(url) {
 window.updateLeaveBadge = async function() {
     const mainBadge = document.getElementById('leave-badge');
     const cardBadge = document.getElementById('card-leave-badge');
-    
+
     try {
         const res = await fetch('/api/leave/pending-count');
         const data = await res.json();
@@ -1581,7 +1581,7 @@ window.updateLeaveBadge = async function() {
             if(count > 0) { mainBadge.innerText = count; mainBadge.classList.remove('hidden'); }
             else { mainBadge.classList.add('hidden'); }
         }
-        
+
         if(cardBadge) {
             if(count > 0) { cardBadge.innerText = count; cardBadge.classList.remove('hidden'); }
             else { cardBadge.classList.add('hidden'); }
@@ -1605,7 +1605,7 @@ window.showTab = function(id) {
 window.showToast = function(msg, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    
+
     // Auto-detect type based on common emojis if not provided
     let toastClass = 'toast-success';
     if(msg.includes('❌') || msg.includes('Error') || msg.includes('Failed')) toastClass = 'toast-error';
@@ -1614,9 +1614,9 @@ window.showToast = function(msg, type = 'success') {
 
     toast.className = `toast-msg ${toastClass}`;
     toast.innerHTML = `<span>${msg}</span>`;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.classList.add('toast-out');
         setTimeout(() => toast.remove(), 300);
@@ -1637,17 +1637,17 @@ window.askUser = function(message) {
         const msgEl = document.getElementById('confirm-msg');
         const yesBtn = document.getElementById('confirm-yes');
         const noBtn = document.getElementById('confirm-no');
-        
+
         msgEl.innerText = message;
         modal.classList.remove('hidden');
-        
+
         const cleanup = (result) => {
             modal.classList.add('hidden');
             yesBtn.onclick = null;
             noBtn.onclick = null;
             resolve(result);
         };
-        
+
         yesBtn.onclick = () => cleanup(true);
         noBtn.onclick = () => cleanup(false);
     });
@@ -1683,7 +1683,7 @@ window.askUser = function(message) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({exam_id: eid, sub_id: sid, total_marks: total_m, marks: marks})
     });
-    
+
     if(result.status === 'success') { alert('DATA SAVED!'); showTab('marks-entry'); }
 }
 
@@ -1767,7 +1767,7 @@ def api_login():
     else:
         cur.execute("SELECT * FROM apsokara_teacher WHERE (cnic=? OR id=?) AND dob=?", (uid, uid_int, dob))
     user = cur.fetchone()
-    
+
     if user:
         u_dict = dict(user)
         u_dict['role'] = role
@@ -1775,19 +1775,19 @@ def api_login():
         u_dict['assigned_section'] = u_dict.get('assigned_section') or u_dict.get('student_section')
         u_dict['wing'] = u_dict.get('assigned_wing') or u_dict.get('wing')
         u_dict['is_class_teacher'] = u_dict.get('is_class_teacher', 0)
-        
-        
-        
-        
-        
+
+
+
+
+
         # --- NEW: Fetch Subject Assignments for Teachers ---
         if role == "Teacher":
             t_id = u_dict.get('id')
             cur.execute("""
-                SELECT 
+                SELECT
                     COALESCE(s.name, 'Subject ' || sa.subject_id) AS s_name,
-                    sa.student_class AS c_num, 
-                    sa.section AS s_sec, 
+                    sa.student_class AS c_num,
+                    sa.section AS s_sec,
                     sa.wing AS w_wing
                 FROM apsokara_subjectassignment sa
                 LEFT JOIN apsokara_subject s ON sa.subject_id = s.id
@@ -1800,7 +1800,7 @@ def api_login():
 
 
 
-        
+
         session['user'] = u_dict
 
         conn.close()
@@ -1815,9 +1815,9 @@ def check_lock():
     today = datetime.datetime.now(PK_TZ).date().isoformat()
     conn = sqlite3.connect(DB_PATH)
     # Check max edit count for this class today
-    res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a 
-                        JOIN apsokara_student s ON a.student_id = s.id 
-                        WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
+    res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a
+                        JOIN apsokara_student s ON a.student_id = s.id
+                        WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""",
                         (today, u['assigned_class'], u['assigned_section'], u['wing'])).fetchone()
     conn.close()
     return jsonify({"edit_count": res[0] if res[0] is not None else 0})
@@ -1832,17 +1832,17 @@ def students_marking():
     today = datetime.datetime.now(PK_TZ).date().isoformat()
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    
+
     # Query checking both attendance table AND approved leaves for today
     query = """
         SELECT s.id, s.full_name, s.father_name, s.roll_number, a.status,
-        (SELECT COUNT(*) FROM apsokara_studentleave l 
-         WHERE l.student_id = s.id 
-         AND l.status = 'Approved' 
+        (SELECT COUNT(*) FROM apsokara_studentleave l
+         WHERE l.student_id = s.id
+         AND l.status = 'Approved'
          AND ? BETWEEN l.start_date AND l.end_date) as on_leave
-        FROM apsokara_student s 
+        FROM apsokara_student s
         LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=?
-        WHERE s.student_class=? AND s.student_section=? AND s.wing=? 
+        WHERE s.student_class=? AND s.student_section=? AND s.wing=?
         ORDER BY CAST(s.roll_number AS INTEGER)
     """
     cur = conn.execute(query, (today, today, u['assigned_class'], u['assigned_section'], u['wing']))
@@ -1859,13 +1859,13 @@ def sync_attendance():
         attendance_list = data.get('attendance', [])
         u = session['user']
         today = datetime.datetime.now(PK_TZ).date().isoformat()
-        
+
         conn = sqlite3.connect(DB_PATH)
         for item in attendance_list:
             # Check if record already exists
-            existing = conn.execute("SELECT id, edit_count FROM apsokara_attendance WHERE student_id=? AND date=?", 
+            existing = conn.execute("SELECT id, edit_count FROM apsokara_attendance WHERE student_id=? AND date=?",
                                  (item['id'], today)).fetchone()
-            
+
             if existing:
                 new_count = (existing[1] or 0) + 1
                 conn.execute("UPDATE apsokara_attendance SET status=?, edit_count=? WHERE student_id=? AND date=?",
@@ -1873,7 +1873,7 @@ def sync_attendance():
             else:
                 conn.execute("INSERT INTO apsokara_attendance (date, status, student_id, marked_by, edit_count) VALUES (?, ?, ?, ?, ?)",
                             (today, item['status'], item['id'], u['full_name'], 0))
-        
+
         conn.commit()
         conn.close()
         return jsonify({"success": True})
@@ -1890,31 +1890,31 @@ def api_archive():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    
+
     if u['role'] == 'Student':
         if date:
-            cur.execute("""SELECT a.date, a.status, a.marked_by, 
-                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 / 
+            cur.execute("""SELECT a.date, a.status, a.marked_by,
+                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 /
                          (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id) as stats
-                         FROM apsokara_attendance a 
-                         WHERE a.student_id = ? AND a.date = ? 
+                         FROM apsokara_attendance a
+                         WHERE a.student_id = ? AND a.date = ?
                          ORDER BY a.date DESC""", (u['id'], date))
         else:
             cur.execute("""SELECT a.date, a.status, a.marked_by,
-                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 / 
+                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 /
                          (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id) as stats
-                         FROM apsokara_attendance a 
-                         WHERE a.student_id = ? 
+                         FROM apsokara_attendance a
+                         WHERE a.student_id = ?
                          ORDER BY a.date DESC""", (u['id'],))
     else:
         if not date:
             return jsonify({"error": "Date required for staff"}), 400
-        cur.execute("""SELECT s.full_name, a.status, a.date 
-                     FROM apsokara_student s 
-                     JOIN apsokara_attendance a ON s.id = a.student_id 
-                     WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
+        cur.execute("""SELECT s.full_name, a.status, a.date
+                     FROM apsokara_student s
+                     JOIN apsokara_attendance a ON s.id = a.student_id
+                     WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""",
                      (date, u['assigned_class'], u['assigned_section'], u['wing']))
-    
+
     res = [dict(r) for r in cur.fetchall()]
     conn.close()
     return jsonify(res)
@@ -1932,7 +1932,7 @@ def unlock_vault():
     auth_id, dob = str(data.get('auth_id')).strip(), str(data.get('dob')).strip()
     # Check role to compare against correct column
     stored_uid = str(u.get('b_form') if u['role'] == 'Student' else u.get('cnic')).strip()
-    
+
     if auth_id == stored_uid and dob == str(u.get('dob')):
         return jsonify({
             "success": True,
@@ -1956,8 +1956,8 @@ def api_intel():
         return jsonify({"flags": [], "error": "Access Denied"}), 403
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres 
-                        FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id 
+    cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres
+                        FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id
                         WHERE s.student_class=? AND s.student_section=? AND s.wing=? GROUP BY s.id""", (u['assigned_class'], u['assigned_section'], u['assigned_wing'], 'Pending'))
     flags = []
     for r in cur.fetchall():
@@ -1994,14 +1994,14 @@ def logout():
 def diary_init_teacher():
     u = session['user']
     if u['role'] != 'Teacher': return jsonify({'error': 'Unauthorized'}), 403
-    
+
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     # Get unique assignments for this teacher
     query = """
-        SELECT DISTINCT sa.student_class, sa.section, sa.wing, s.name as sub_name 
-        FROM apsokara_subjectassignment sa 
-        JOIN apsokara_subject s ON sa.subject_id = s.id 
+        SELECT DISTINCT sa.student_class, sa.section, sa.wing, s.name as sub_name
+        FROM apsokara_subjectassignment sa
+        JOIN apsokara_subject s ON sa.subject_id = s.id
         WHERE sa.teacher_id = ?
     """
     rows = conn.execute(query, (u['id'],)).fetchall()
@@ -2034,7 +2034,7 @@ def diary_post_new():
         post_date = data.get('schedule_date') if is_scheduled else datetime.datetime.now().strftime('%Y-%m-%d')
         full_ts = f"{post_date} {datetime.datetime.now().strftime('%I:%M %p')}"
         conn = sqlite3.connect(DB_PATH)
-        conn.execute("INSERT INTO apsokara_dailydiary (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        conn.execute("INSERT INTO apsokara_dailydiary (teacher_id, teacher_name, class, section, wing, subject, content, date_posted, is_scheduled, attachments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                      (u['id'], u['full_name'], target_class, target_section, target_wing, subject, content_text, full_ts, is_scheduled, ",".join(file_paths)))
         conn.commit()
         conn.close()
@@ -2048,12 +2048,12 @@ def diary_fetch_list():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     today = datetime.datetime.now().strftime("%Y-%m-%d")
-    
+
     if u['role'] == 'Student':
         # Student sirf apni class ki diaries dekhega jo schedule date tak pohanch chuki hain
         query = """
-            SELECT * FROM apsokara_dailydiary 
-            WHERE class=? AND section=? 
+            SELECT * FROM apsokara_dailydiary
+            WHERE class=? AND section=?
             AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')
             ORDER BY id DESC
         """
@@ -2062,7 +2062,7 @@ def diary_fetch_list():
         # Teacher apni saari history dekhega
         query = "SELECT * FROM apsokara_dailydiary WHERE teacher_id=? ORDER BY id DESC"
         rows = conn.execute(query, (u['id'],)).fetchall()
-    
+
     conn.close()
     return jsonify([dict(r) for r in rows])
 
@@ -2100,7 +2100,7 @@ def submit_leave_v2():
     u = session['user']
     if u.get('role') != 'Student':
         return jsonify({'success': False, 'error': 'Only students can apply'})
-    
+
     import time
     file_path = ""
     if 'attachment' in request.files:
@@ -2110,21 +2110,21 @@ def submit_leave_v2():
             fname = f"LV_{u['id']}_{int(time.time())}_{f.filename}"
             f.save(os.path.join('static/uploads/leaves', fname))
             file_path = f"static/uploads/leaves/{fname}"
-    
+
     try:
         with sqlite3.connect(DB_PATH) as conn:
             # Improved Logic: Handle both Form and JSON for Offline/Online Sync
             data = request.form if request.form else (request.get_json() if request.is_json else {})
-            
+
             s_date = data.get('start') or data.get('start_date')
             e_date = data.get('end') or data.get('end_date')
             reason = data.get('reason')
 
-            conn.execute("""INSERT INTO apsokara_studentleave 
-                (student_id, full_name, roll_number, class, section, wing, start_date, end_date, reason, attachment) 
+            conn.execute("""INSERT INTO apsokara_studentleave
+                (student_id, full_name, roll_number, class, section, wing, start_date, end_date, reason, attachment)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (u['id'], u['full_name'], u.get('roll_number', 'N/A'), u.get('assigned_class', 'N/A'), 
-                 u.get('assigned_section', 'N/A'), u.get('wing', 'N/A'), 
+                (u['id'], u['full_name'], u.get('roll_number', 'N/A'), u.get('assigned_class', 'N/A'),
+                 u.get('assigned_section', 'N/A'), u.get('wing', 'N/A'),
                  s_date, e_date, reason, file_path))
         return jsonify({'success': True})
     except Exception as e:
@@ -2137,18 +2137,18 @@ def list_leaves_v2():
     role = u.get('role')
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    
+
     if role == 'Student':
         # Student sirf apni history dekhega
         res = conn.execute("SELECT * FROM apsokara_studentleave WHERE student_id = ? ORDER BY id DESC", (u['id'],)).fetchall()
     else:
         # Teacher sirf apni assigned class ki leaves dekhega
         # Hum is_class_teacher ka check pehle hi UI me laga chuke honge
-        res = conn.execute("""SELECT * FROM apsokara_studentleave 
-                            WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') 
+        res = conn.execute("""SELECT * FROM apsokara_studentleave
+                            WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')
                             ORDER BY status DESC, id DESC""",
                             (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchall()
-    
+
     data = [dict(row) for row in res]
     conn.close()
     return jsonify(data)
@@ -2159,11 +2159,11 @@ def leave_action_v2():
     u = session['user']
     if not u.get('is_class_teacher'):
         return jsonify({'success': False, 'error': 'Unauthorized'})
-    
+
     d = request.json
     try:
         with sqlite3.connect(DB_PATH) as conn:
-            conn.execute("UPDATE apsokara_studentleave SET status=? WHERE id=? AND class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')", 
+            conn.execute("UPDATE apsokara_studentleave SET status=? WHERE id=? AND class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%')",
                         (d['status'], d['id'], u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing')))
         return jsonify({'success': True})
     except Exception as e:
@@ -2179,7 +2179,7 @@ def get_pending_leave_count():
         return jsonify({'count': 0})
     try:
         conn = sqlite3.connect(DB_PATH)
-        count = conn.execute("""SELECT COUNT(*) FROM apsokara_studentleave 
+        count = conn.execute("""SELECT COUNT(*) FROM apsokara_studentleave
                              WHERE class=? AND section=? AND (wing=? OR wing LIKE SUBSTR(?, 1, 1) || '%') AND status='Pending'""",
                              (u.get('assigned_class'), u.get('assigned_section'), u.get('assigned_wing'), u.get('assigned_wing'))).fetchone()[0]
         conn.close()

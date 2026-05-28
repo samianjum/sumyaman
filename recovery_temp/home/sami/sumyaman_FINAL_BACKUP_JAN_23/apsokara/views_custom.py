@@ -7,10 +7,10 @@ from django.db.models import Count, Q
 @never_cache
 def classroom_detail(request, class_name, section):
     if not request.user.is_authenticated or not request.user.is_staff: return redirect('/admin/login/')
-    
+
     c_name, s_name = str(class_name).strip(), str(section).strip()
     today = date.today()
-    
+
     # 1. Analytics Logic (Isolated Range)
     range_type = request.GET.get('range', 'today')
     start_date = today
@@ -23,7 +23,7 @@ def classroom_detail(request, class_name, section):
 
     students = Student.objects.filter(student_class=c_name, student_section=s_name).order_by('full_name')
     if not students.exists(): return redirect('/gatekeeper-v3-okara-786/attendance/')
-    
+
     wing_name = students.first().wing
     s_ids = students.values_list('id', flat=True)
 
@@ -65,8 +65,8 @@ def student_profile(request, student_id):
     history = Attendance.objects.filter(student=student).order_by('-date')
     leaves = StudentLeave.objects.filter(student=student).order_by('-id')
     return render(request, 'apsokara/student_profile.html', {
-        's': student, 
-        'history': history, 
-        'leaves': leaves, 
+        's': student,
+        'history': history,
+        'leaves': leaves,
         'today': date.today()
     })

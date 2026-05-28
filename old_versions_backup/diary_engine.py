@@ -33,30 +33,30 @@ def render_teacher_diary(u):
     teacher_id, teacher_name = u.get('id'), u.get('full_name')
     draw_aps_banner("🏛️ TEACHER PORTAL", f"Instructor: {teacher_name} | APS OKARA")
     conn = get_db()
-    
+
     query = "SELECT a.student_class, a.section, a.wing, a.subject_id, s.name as sub_name FROM apsokara_subjectassignment a LEFT JOIN apsokara_subject s ON a.subject_id = s.id WHERE a.teacher_id = ?"
     assignments = [dict(row) for row in conn.execute(query, (teacher_id,)).fetchall()]
-    
+
     if not assignments:
         st.warning("⚠️ No classes assigned.")
         return
 
     tab1, tab2 = st.tabs(["📝 PUBLISH", "📂 MANAGE HISTORY"])
-    
+
     with tab1:
         options = [f"{a['sub_name']} | Class {a['student_class']}-{a['section']} ({a['wing']} Wing)" for a in assignments]
         selected_idx = st.selectbox("🎯 Target", range(len(options)), format_func=lambda x: options[x])
         target = assignments[selected_idx]
-        
+
         with st.container(border=True):
             content = st.text_area("✍️ Homework Details", height=150)
             uploaded_file = st.file_uploader("📎 Attachment", type=['png', 'jpg', 'jpeg', 'pdf'])
             is_sch = st.toggle("⏰ Schedule?")
             post_date = st.date_input("📅 Date", date.today()) if is_sch else date.today()
             lock = st.checkbox("🔒 Confirm Content")
-            
-            
-            
+
+
+
             if st.button("🚀 PUBLISH", type="primary", use_container_width=True, disabled=not lock):
                 if content.strip():
                     file_p = None
@@ -64,23 +64,23 @@ def render_teacher_diary(u):
                         if not os.path.exists('uploads'): os.makedirs('uploads')
                         file_p = f"uploads/{datetime.now().timestamp()}_{uploaded_file.name}"
                         with open(file_p, "wb") as f: f.write(uploaded_file.getbuffer())
-                    
+
                     # Capture exact Date and Time
                     now = datetime.now()
                     time_str = now.strftime("%I:%M %p")
                     full_timestamp = f"{post_date} | {time_str}"
-                    
+
                     cur = conn.cursor()
-                    cur.execute("""INSERT INTO apsokara_dailydiary 
-                                 (teacher_id, teacher_name, class, section, subject, content, date_posted, attachment_url, is_scheduled, wing) 
-                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", 
-                                 (teacher_id, teacher_name, str(target['student_class']), str(target['section']), 
+                    cur.execute("""INSERT INTO apsokara_dailydiary
+                                 (teacher_id, teacher_name, class, section, subject, content, date_posted, attachment_url, is_scheduled, wing)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                 (teacher_id, teacher_name, str(target['student_class']), str(target['section']),
                                   str(target['sub_name']), content, full_timestamp, file_p, is_sch, target['wing']))
                     conn.commit()
-                    
-                    
+
+
                     # --- BROADCAST NOTIFICATION (Fixed Columns) ---
-                    
+
                     try:
                         from notification_system import add_notification
                         import sqlite3
@@ -95,9 +95,9 @@ def render_teacher_diary(u):
                         print(f"Notification Error: {e}")
                     # -----------------------------------------------
                     st.success(f"✅ Published at {time_str}!")
-    
-    
-    
+
+
+
 
     with tab2:
         df_h = pd.read_sql("SELECT * FROM apsokara_dailydiary WHERE teacher_id=? ORDER BY id DESC", conn, params=(teacher_id,))
@@ -110,7 +110,7 @@ def render_teacher_diary(u):
                         raw_date = str(row['date_posted'])
                         date_part = raw_date.split(" | ")[0] if " | " in raw_date else raw_date
                         time_part = raw_date.split(" | ")[1] if " | " in raw_date else "--:--"
-                        
+
                         st.markdown(f'''
                             <div style="margin-bottom: 10px;">
                                 <div style="font-size: 24px; font-weight: 800; color: #1b4332; line-height: 1.2;">📘 {row['subject']}</div>
@@ -129,7 +129,7 @@ def render_teacher_diary(u):
                             st.write(" ")
                             if st.button("🖼️ VIEW FILE", key=f"th_tm_fin_{row['id']}", use_container_width=True):
                                 show_attachment(row['attachment_url'])
-                    
+
                 st.markdown(f'''
                     <script>
                         var target = window.parent.document.getElementById("diary_{row['id']}");
@@ -140,9 +140,9 @@ def render_teacher_diary(u):
                 ''', unsafe_allow_html=True)
                 st.markdown('</div>', unsafe_allow_html=True)
 
-                        
-                        
-                    
+
+
+
         else:
             st.info("No history found.")
 
@@ -156,9 +156,9 @@ def render_student_diary(u):
     s_class, s_sec, s_wing = str(u.get('student_class')), str(u.get('student_section')), u.get('wing', 'General')
     conn = get_db()
     today = date.today()
-    
+
     # Fetch all visible diaries (Today and Past)
-    df = pd.read_sql("SELECT * FROM apsokara_dailydiary WHERE class=? AND section=? AND wing=? AND SUBSTR(date_posted, 1, 10) <= ? ORDER BY id DESC", 
+    df = pd.read_sql("SELECT * FROM apsokara_dailydiary WHERE class=? AND section=? AND wing=? AND SUBSTR(date_posted, 1, 10) <= ? ORDER BY id DESC",
                      conn, params=(s_class, s_sec, s_wing, today.isoformat()))
     conn.close()
 
@@ -213,7 +213,7 @@ def render_student_diary(u):
             is_focus = str(st.session_state.get('focus_diary')) == str(row['id'])
             if 'is_focus' in locals() and is_focus:
                 st.markdown('<div style="background:#fff9e6; border:2px solid #d4af37; border-radius:10px; padding:2px; margin-bottom:10px;">', unsafe_allow_html=True)
-            
+
             with st.container(border=True):
                 main_col, side_col = st.columns([5, 1.5])
                 with main_col:
@@ -225,7 +225,7 @@ def render_student_diary(u):
                         st.write("") # Spacer
                         if st.button("🖼️ VIEW FILE", key=f"sv_{row['id']}", use_container_width=True):
                             show_attachment(row['attachment_url'])
-                    
+
             if 'is_focus' in locals() and is_focus:
                 st.markdown(f'''
                     <script>
@@ -237,8 +237,8 @@ def render_student_diary(u):
                 ''', unsafe_allow_html=True)
                 st.markdown('</div>', unsafe_allow_html=True)
 
-                        
-                        
-                    
+
+
+
     else:
         st.info("No active diary entries found for your class.")

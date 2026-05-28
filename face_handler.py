@@ -13,10 +13,10 @@ def register_face(user_id, role, image_file):
         img_array = np.array(img.convert('RGB'))
         encodings = face_recognition.face_encodings(img_array)
         if not encodings: return False, "❌ Face detect nahi hua."
-        
+
         encoding_bytes = encodings[0].tobytes()
         table = "apsokara_student" if role == "Student" else "apsokara_teacher"
-        
+
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(f"UPDATE {table} SET face_status='ENROLLED', face_encoding=? WHERE id=?", (encoding_bytes, user_id))
@@ -41,7 +41,7 @@ def verify_face(user_id, role, image_file):
         curr_enc = face_recognition.face_encodings(np.array(img.convert('RGB')))
 
         if not curr_enc: return False, "❌ Camera mein face nahi dikha."
-        
+
         matches = face_recognition.compare_faces([saved_enc], curr_enc[0], tolerance=0.5)
         if matches[0]: return True, "✅ Verified!"
         return False, "❌ Face match nahi hua!"

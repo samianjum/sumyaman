@@ -53,7 +53,7 @@ def render_attendance_system(u):
                     st.markdown('''<div style="background: #fff1f2; border: 1px solid #fecdd3; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; animation: pulse 2s infinite;"><span style="font-size: 20px;">⚠️</span><span style="color: #9f1239; font-weight: 600;"><b>CRITICAL:</b> This is your <b>LAST CHANCE</b>. Database will LOCK after this sync.</span></div><style>@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }</style>''', unsafe_allow_html=True)
 
                 students = pd.read_sql("SELECT id, roll_no, full_name, session_year FROM apsokara_student WHERE student_class=? AND wing=? AND student_section=? AND is_active=1 ORDER BY CAST(roll_no AS INTEGER)", conn, params=(c_name, u_wing, u_sec))
-                
+
                 if students.empty:
                     st.warning(f"No students in {c_name}-{u_sec}")
                 else:
@@ -64,7 +64,7 @@ def render_attendance_system(u):
                             'status': st.segmented_control("Status", ["Present", "Absent", "Leave"], default="Present", key=f"s_{s['id']}_{today}", label_visibility="collapsed"),
                             'year': s['session_year']
                         }
-                    
+
                     st.markdown("---")
                     if st.toggle("Verify All Entries", key="verify_toggle"):
                         btn_label = "🚀 FINAL LOCK & SYNC" if edit_cnt == 1 else "🚀 SYNC TO DATABASE"
@@ -161,7 +161,7 @@ def render_attendance_system(u):
                     st.markdown("---")
                     st.markdown("#### 📜 Full Detailed Log")
                     st.dataframe(stats_df, width='stretch', height=250)
-                    
+
                     def make_pdf():
                         b = io.BytesIO(); c = canvas.Canvas(b, pagesize=letter)
                         c.drawString(100, 750, f"INTEL REPORT: {sel['full_name']}"); y=700

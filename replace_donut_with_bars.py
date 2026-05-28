@@ -23,7 +23,7 @@ try:
                             <span class="small fw-800 {% if data.avg < 40 %}text-danger{% elif data.avg < 70 %}text-warning{% else %}text-success{% endif %}">{{ data.avg }}%</span>
                         </div>
                         <div class="progress" style="height: 8px; background: #f1f5f9; border-radius: 10px;">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated {% if data.avg < 40 %}bg-danger{% elif data.avg < 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                            <div class="progress-bar progress-bar-striped progress-bar-animated {% if data.avg < 40 %}bg-danger{% elif data.avg < 70 %}bg-warning{% else %}bg-success{% endif %}"
                                  role="progressbar" style="width: {{ data.avg }}%; border-radius: 10px;"></div>
                         </div>
                     </div>
@@ -36,7 +36,7 @@ try:
     if 'Subject Mastery Levels' not in content:
         # Hum isay Smart Stats (row g-3 mt-3) ke foran baad laga rahe hain
         content = content.replace('<div class="row g-3 mt-3">', battery_html + '\n            <div class="row g-3 mt-3">')
-        
+
         with open(path, 'w') as f:
             f.write(content)
         print("✅ Success: Donut removed and Battery Bars installed!")

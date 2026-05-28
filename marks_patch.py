@@ -13,9 +13,9 @@ def patch_backend(app):
         u = session['user']
         conn = get_db()
         # Query matching your sqlite3 schema
-        q = '''SELECT sa.id, sa.student_class, sa.section, sa.wing, sub.name as sub_name, sub.id as sub_id 
-               FROM apsokara_subjectassignment sa 
-               JOIN apsokara_subject sub ON sa.subject_id = sub.id 
+        q = '''SELECT sa.id, sa.student_class, sa.section, sa.wing, sub.name as sub_name, sub.id as sub_id
+               FROM apsokara_subjectassignment sa
+               JOIN apsokara_subject sub ON sa.subject_id = sub.id
                WHERE sa.teacher_id = ?'''
         assigns = conn.execute(q, (u['id'],)).fetchall()
         conn.close()

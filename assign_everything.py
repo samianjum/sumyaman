@@ -15,7 +15,7 @@ def setup_academic_structure():
         ('Computer',), ('Physics',)
     ]
     cur.executemany("INSERT OR IGNORE INTO apsokara_subject (name) VALUES (?)", subjects_list)
-    
+
     # Get subject IDs
     cur.execute("SELECT id FROM apsokara_subject")
     subject_ids = [r[0] for r in cur.fetchall()]
@@ -44,7 +44,7 @@ def setup_academic_structure():
 
     # 4. Bulk Insert Assignments
     cur.executemany("""
-        INSERT OR IGNORE INTO apsokara_subjectassignment 
+        INSERT OR IGNORE INTO apsokara_subjectassignment
         (student_class, section, wing, subject_id, teacher_id, class_name)
         VALUES (?, ?, ?, ?, ?, ?)
     """, assignments)

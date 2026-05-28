@@ -7,14 +7,14 @@ from django.db.models import Q
 def teacher_master_list(request):
     query = request.GET.get('q', '').strip()
     teachers = Teacher.objects.all().order_by('full_name')
-    
+
     if query:
         teachers = teachers.filter(
-            Q(full_name__icontains=query) | 
-            Q(employee_id__icontains=query) | 
+            Q(full_name__icontains=query) |
+            Q(employee_id__icontains=query) |
             Q(phone_number__icontains=query)
         )
-    
+
     return render(request, 'hq_admin_custom/teachers_list.html', {
         'teachers': teachers,
         'query': query,

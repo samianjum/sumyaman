@@ -6,7 +6,7 @@ def school_context(request):
     Makes 'current_school' available in all templates.
     """
     path_parts = request.path.strip('/').split('/')
-    
+
     # Check if we are in a school context (/s/slug/...)
     if len(path_parts) >= 2 and path_parts[0] == 's':
         slug = path_parts[1]
@@ -19,5 +19,5 @@ def school_context(request):
             }
         except SchoolClient.DoesNotExist:
             pass
-            
+
     return {}

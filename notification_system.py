@@ -20,7 +20,7 @@ def add_notification(user_id, title, message, category='general'):
 def render_notification_ui():
     u = st.session_state.get('user_info', {})
     role = st.session_state.get('role')
-    
+
     # AGAR USER TEACHER HAI TO YAHAN SE WAPAS CHALE JAO (Bell mat dikhao)
     if str(role).lower() != 'student':
         return
@@ -55,7 +55,7 @@ def render_notification_ui():
     if rows:
         for r in rows:
             notif_items += f"""
-            <div style='padding:10px; border-bottom:1px solid #eee; cursor:pointer;' 
+            <div style='padding:10px; border-bottom:1px solid #eee; cursor:pointer;'
                  onclick='window.parent.location.search="?click_notif={r[2]}"'>
                 <b style='color:#1b4332; font-size:13px;'>{r[0]}</b><br>
                 <small style='color:#666;'>{r[1]}</small>
@@ -72,7 +72,7 @@ def render_notification_ui():
                 <div style="background:#1b4332; color:#d4af37; padding:10px; font-weight:bold; font-size:14px;">Notifications</div>
                 <div style="max-height:220px; overflow-y:auto; background:white;">{notif_items}</div>
             </div>
-            <div onclick="var b=document.getElementById('box'); b.style.display=(b.style.display=='none'?'block':'none')" 
+            <div onclick="var b=document.getElementById('box'); b.style.display=(b.style.display=='none'?'block':'none')"
                  style="width:55px; height:55px; background:#d4af37; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; border:2px solid #1b4332; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                 <span style="font-size:24px;">🔔</span> {badge}
             </div>

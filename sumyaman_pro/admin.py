@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_protect
 
 class TenantAwareAdminSite(AdminSite):
     """Admin site that ignores extra keyword arguments (like school_slug)."""
-    
+
     def admin_view(self, view, cacheable=False):
         # Wrapper to discard the school_slug keyword argument
         def wrapper(request, *args, **kwargs):

@@ -105,14 +105,14 @@ class TeacherForm(forms.ModelForm):
             if not section: self.add_error('assigned_section', "Section is required.")
             if self.school_type == 'wing-based' and (not wing or wing == 'None'):
                 self.add_error('assigned_wing', "Wing is required.")
-            
+
             existing = Teacher.objects.filter(
                 is_class_teacher=True,
                 assigned_class=a_class,
                 assigned_section=section,
                 assigned_wing=wing
             ).exclude(pk=self.instance.pk).first()
-            
+
             if existing:
                 raise ValidationError(f"Conflict: {existing.full_name} is already the Class Teacher for {a_class}-{section} ({wing}).")
         return cleaned_data

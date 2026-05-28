@@ -23,7 +23,7 @@ donut_script = """
     // Donut Chart Logic
     const dCtx = document.getElementById('donutChart').getContext('2d');
     let zones = {safe: 0, average: 0, danger: 0};
-    
+
     Object.keys(chartData).forEach(key => {
         if(key === 'overall') return;
         let avg = chartData[key].values.reduce((a,b) => a+b, 0) / chartData[key].values.length;
@@ -44,7 +44,7 @@ donut_script = """
         },
         options: {
             maintainAspectRatio: false,
-            plugins: { 
+            plugins: {
                 legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
             },
             cutout: '70%'

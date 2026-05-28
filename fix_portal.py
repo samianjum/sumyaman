@@ -21,15 +21,15 @@ showtab_code = """
 function showTab(t) {
     document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
     const target = document.getElementById('page-' + t);
-    if(target) { 
-        target.classList.remove('hidden'); 
-        if(t === 'final-upload') loadFinalizeStatus(); 
+    if(target) {
+        target.classList.remove('hidden');
+        if(t === 'final-upload') loadFinalizeStatus();
     }
     // Update Header visibility
     const headerIdentity = document.getElementById('header-identity-section');
     const headerCompact = document.getElementById('header-compact-section');
     const pageTitle = document.getElementById('page-display-title');
-    
+
     if (t === 'home') {
         if(headerIdentity) headerIdentity.classList.remove('hidden');
         if(headerCompact) headerCompact.classList.add('hidden');

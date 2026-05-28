@@ -6,7 +6,7 @@ from datetime import date
 def render_diary(u):
     st.subheader("📓 Digital School Diary")
     conn = sqlite3.connect('db.sqlite3')
-    
+
     # Safe data fetching from session
     is_student = "student_class" in u
     c_name = u.get('student_class') or u.get('incharge_class') or "N/A"
@@ -38,5 +38,5 @@ def render_diary(u):
                     st.write(row['diary_content'])
     except Exception as e:
         st.error(f"Error: {e}")
-    
+
     conn.close()

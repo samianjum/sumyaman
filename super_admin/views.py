@@ -34,27 +34,27 @@ def create_school(request):
         school_type = request.POST.get('school_type', 'co-ed')
         admin_user = request.POST.get('admin_user')
         admin_pass = request.POST.get('admin_pass')
-        
+
         if SchoolClient.objects.filter(slug=slug).exists():
             messages.error(request, 'Slug already exists')
             return redirect('create_school')
-        
+
         # Create database name
         db_name = f"{slug}_db"
-        
+
         # Create tenant record in default DB
         school = SchoolClient.objects.create(
             name=name, slug=slug, db_name=db_name, school_type=school_type
         )
-        
+
         # Create physical database and run migrations
         from .views_helper import create_tenant_database, setup_tenant_schema
         create_tenant_database(db_name, 'sami_admin', 'sami123')
         setup_tenant_schema(db_name, admin_user, admin_pass)
-        
+
         messages.success(request, f'School "{name}" created successfully!')
         return redirect('super_admin_dashboard')
-    
+
     return render(request, 'super_admin/create_school.html')
 
 @user_passes_test(is_super_admin)
@@ -64,13 +64,13 @@ def school_detail(request, slug):
     from django.db import connections
     from django.apps import apps
     tenant_db = school.db_name
-    
+
     # Add tenant DB to settings if not already there
     if tenant_db not in settings.DATABASES:
         db_config = settings.DATABASES['default'].copy()
         db_config['NAME'] = tenant_db
         settings.DATABASES[tenant_db] = db_config
-    
+
     try:
         with connections[tenant_db].cursor() as cursor:
             cursor.execute("SELECT COUNT(*) FROM apsokara_student")
@@ -80,10 +80,10 @@ def school_detail(request, slug):
     except Exception:
         student_count = 0
         teacher_count = 0
-    
+
     # Calculate days since creation
     days_active = (timezone.now() - school.created_at).days
-    
+
     stats = {'students': student_count, 'teachers': teacher_count}
     return render(request, 'super_admin/school_detail.html', {
         'school': school,

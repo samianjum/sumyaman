@@ -14,7 +14,7 @@ def render_leave_approvals(u):
             with st.container():
                 st.write(f"**{r['name']}** (Roll: {r['student_id']})")
                 if st.button('Approve', key=f'ap_{r["id"]}'):
-                    with sqlite3.connect('db.sqlite3') as conn: 
+                    with sqlite3.connect('db.sqlite3') as conn:
                         conn.execute('UPDATE apsokara_studentleave SET status="Approved" WHERE id=?', (r['id'],))
                     st.rerun()
 
@@ -22,18 +22,18 @@ def render_leave_approvals(u):
 def render_final_upload(u):
     conn = sqlite3.connect('db.sqlite3')
     today = date.today().isoformat()
-    
+
     # Check for exam that is BOTH active AND within date range
     query = 'SELECT * FROM exams WHERE class_group=? AND is_active=1 AND start_date <= ? AND end_date >= ? ORDER BY id DESC LIMIT 1'
     exam = pd.read_sql_query(query, conn, params=(u['class'], today, today))
-    
+
     if exam.empty:
         st.markdown(f'<div style="background:linear-gradient(90deg, #1b4332, #081c15); padding:20px; border-radius:15px; border-bottom:5px solid #d4af37; text-align:center; margin-bottom:25px;"><h2 style="color:white; margin:0;">📤 FINAL RESULT DASHBOARD</h2><p style="color:#d4af37; margin:0;">{u.get("class")} - {u.get("sec")} | {u.get("wing")}</p></div>', unsafe_allow_html=True)
         st.info('📢 NO LIVE EXAM SESSION FOUND. Deactivated by HQ or Session Expired.')
         conn.close()
         return
 
-    
+
     ex_name = exam.iloc[0]['name']
     ex_id = int(exam.iloc[0]['id'])
 
@@ -45,19 +45,19 @@ def render_final_upload(u):
             <p style="color:#ffffff; margin:0; font-size:14px; opacity:0.9;">{u.get("class")} {u.get("sec")} | {u.get("wing")}</p>
         </div>
     ''', unsafe_allow_html=True)
-    
-    q_status = """SELECT sub.name as Subject, t.full_name as Teacher, 
-                 (SELECT COUNT(*) FROM student_marks WHERE exam_id=? AND subject_id=sub.id 
-                  AND student_id IN (SELECT id FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?)) as entries 
-                 FROM apsokara_subjectassignment sa 
-                 JOIN apsokara_subject sub ON sa.subject_id = sub.id 
-                 JOIN apsokara_teacher t ON sa.teacher_id = t.id 
+
+    q_status = """SELECT sub.name as Subject, t.full_name as Teacher,
+                 (SELECT COUNT(*) FROM student_marks WHERE exam_id=? AND subject_id=sub.id
+                  AND student_id IN (SELECT id FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?)) as entries
+                 FROM apsokara_subjectassignment sa
+                 JOIN apsokara_subject sub ON sa.subject_id = sub.id
+                 JOIN apsokara_teacher t ON sa.teacher_id = t.id
                  WHERE sa.student_class=? AND sa.section=? AND sa.wing=?"""
     status_df = pd.read_sql_query(q_status, conn, params=(ex_id, u['class'], u['sec'], u['wing'], u['class'], u['sec'], u['wing']))
-    
+
     q_is_published = "SELECT COUNT(*) FROM student_marks WHERE exam_id=? AND subject_id=0 AND student_id IN (SELECT id FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?)"
     published_count = conn.execute(q_is_published, (ex_id, u['class'], u['sec'], u['wing'])).fetchone()[0]
-    
+
     if published_count > 0:
         st.markdown('<div style="padding:40px; background:#f8fafc; border:2px dashed #1b4332; border-radius:15px; text-align:center;"><h3 style="color:#1b4332; margin:0;">✅ RESULT FINALIZED</h3><p style="color:#64748b; margin-top:10px;">The results for <b>'+ex_name+'</b> have been officially published. All data is now securely locked.</p></div>', unsafe_allow_html=True)
         conn.close()
@@ -76,7 +76,7 @@ def render_final_upload(u):
         st.markdown('---')
         st.markdown('### 📊 Class Performance & Remarks')
         students = pd.read_sql_query('SELECT id, full_name, father_name, roll_number FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?', conn, params=(u['class'], u['sec'], u['wing']))
-        
+
         all_marks_q = 'SELECT id, student_id, obtained_marks, total_marks, subject_id FROM student_marks WHERE exam_id=? AND subject_id > 0'
         all_marks_df = pd.read_sql_query(all_marks_q, conn, params=(ex_id,))
 
@@ -85,7 +85,7 @@ def render_final_upload(u):
             for _, s in students.iterrows():
                 m_df = all_marks_df[all_marks_df['student_id'] == s['id']].copy()
                 m_df = m_df.sort_values('id', ascending=False).drop_duplicates('subject_id')
-                
+
                 if not m_df.empty:
                     t_obt = float(m_df['obtained_marks'].sum())
                     t_max = float(m_df['total_marks'].sum())

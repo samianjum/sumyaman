@@ -14,14 +14,14 @@ def get_base64_image(image_path):
 def render_apply_leave(u):
     # Classy Header Design
     st.markdown("""
-        <div style='background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%); 
-                    padding: 20px; border-radius: 12px; border-left: 10px solid #d4af37; 
+        <div style='background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+                    padding: 20px; border-radius: 12px; border-left: 10px solid #d4af37;
                     box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px;'>
             <h2 style='color: white; margin: 0; font-family: sans-serif; letter-spacing: 1px;'>📥 LEAVE APPLICATIONS</h2>
             <p style='color: #d4af37; margin: 5px 0 0 0; font-size: 0.9em;'>Submit your official leave requests here</p>
         </div>
     """, unsafe_allow_html=True)
-    
+
     with st.form("leave_form"):
         c1, c2 = st.columns(2)
         start = c1.date_input("From", date.today())
@@ -29,14 +29,14 @@ def render_apply_leave(u):
         reason = st.text_area("Reason for Leave")
         if st.form_submit_button("Submit Official Request"):
             with sqlite3.connect("db.sqlite3") as conn:
-                conn.execute("INSERT INTO apsokara_studentleave (student_id, name, class, section, wing, reason, from_date, to_date, status) VALUES (?,?,?,?,?,?,?,?,?)", 
+                conn.execute("INSERT INTO apsokara_studentleave (student_id, name, class, section, wing, reason, from_date, to_date, status) VALUES (?,?,?,?,?,?,?,?,?)",
                              (u['id'], u['full_name'], u['class'], u['sec'], u['wing'], reason, str(start), str(end), 'Pending'))
             st.success("Your request has been sent to the administration.")
 
 def render_my_result(u):
     conn = sqlite3.connect('db.sqlite3')
     logo_b64 = get_base64_image("/home/sami/Downloads/sami.png")
-    
+
     st.markdown("""
         <style>
         .exam-card {
@@ -84,16 +84,16 @@ def render_my_result(u):
     f_col1, f_col2 = st.columns([3, 1])
     search = f_col1.text_input("", placeholder="Type exam name to search...")
     sort_order = f_col2.selectbox("", ["Latest First", "Oldest First"])
-    
+
     if search:
         exams_df = exams_df[exams_df['name'].str.contains(search, case=False)]
-    
+
     exams_df['end_date'] = pd.to_datetime(exams_df['end_date'])
     # Logic for Oldest/Latest as requested
     exams_df = exams_df.sort_values(by='end_date', ascending=(sort_order == "Oldest First"))
 
     st.markdown("<br>", unsafe_allow_html=True)
-    
+
     cols = st.columns(2)
     for i, (_, ex) in enumerate(exams_df.iterrows()):
         with cols[i % 2]:
@@ -136,9 +136,9 @@ def render_my_result(u):
         for _, r in marks.iterrows():
             t_obt += r['Obtained']; t_max += r['Total']
             rows += f'<tr><td style="border:1px solid #000;padding:12px;">{r["Subject"]}</td><td style="border:1px solid #000;padding:12px;text-align:center;">{int(r["Total"])}</td><td style="border:1px solid #000;padding:12px;text-align:center;">{int(r["Obtained"])}</td><td style="border:1px solid #000;padding:12px;">{r["Remarks"]}</td></tr>'
-        
+
         perc = (t_obt/t_max*100) if t_max > 0 else 0
-        
+
         st.markdown(f'''
         <div class="modal-overlay">
             <div class="modal-content">

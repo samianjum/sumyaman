@@ -41,7 +41,7 @@ calc_logic = """
     // Smart Stats Calculation
     const subs = chartData;
     let best = {name: '', avg: 0}, worst = {name: '', avg: 101};
-    
+
     Object.keys(subs).forEach(key => {
         if(key === 'overall') return;
         let sum = subs[key].values.reduce((a,b) => a+b, 0);
@@ -52,7 +52,7 @@ calc_logic = """
 
     document.getElementById('bestSub').innerText = best.name.toUpperCase();
     document.getElementById('worstSub').innerText = worst.name.toUpperCase();
-    
+
     const overallVals = chartData.overall.values;
     if(overallVals.length > 1) {
         let first = overallVals[0];

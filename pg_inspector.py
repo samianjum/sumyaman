@@ -12,11 +12,11 @@ def inspect_db(dbname):
             port='5432'
         )
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        
+
         # 1. Get all tables
         cur.execute("""
-            SELECT table_name 
-            FROM information_schema.tables 
+            SELECT table_name
+            FROM information_schema.tables
             WHERE table_schema = 'public'
         """)
         tables = [t['table_name'] for t in cur.fetchall()]
@@ -27,8 +27,8 @@ def inspect_db(dbname):
         for table in core_tables:
             if table in tables:
                 cur.execute(f"""
-                    SELECT column_name, data_type 
-                    FROM information_schema.columns 
+                    SELECT column_name, data_type
+                    FROM information_schema.columns
                     WHERE table_name = '{table}'
                 """)
                 cols = cur.fetchall()

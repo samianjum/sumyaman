@@ -34,7 +34,7 @@ def login_page():
     [data-testid="stAppViewContainer"] {{
         background-color: #F1F3F2 !important;
     }}
-    
+
     /* Login Box */
     .login-card {{
         background-color: white;
@@ -70,7 +70,7 @@ def login_page():
     div[data-baseweb="input"] {{
         border-radius: 8px !important;
     }}
-    
+
     div.stButton > button {{
         width: 100%;
         background-color: #52796F !important;
@@ -84,7 +84,7 @@ def login_page():
 
     # Centering Layout
     col1, col2, col3 = st.columns([1, 1.5, 1])
-    
+
     with col2:
         st.markdown(f"""
         <div class="login-card">
@@ -93,52 +93,19 @@ def login_page():
             <p style="color: #52796F; font-weight: 600; margin-bottom: 20px;">OKARA CANTT | HQ PANEL</p>
         </div>
         """, unsafe_allow_html=True)
-        
+
         # Form inside col2
         with st.form("login_form"):
             user = st.text_input("Username", placeholder="Enter username")
             pwd = st.text_input("Password", type="password", placeholder="Enter password")
             submit = st.form_submit_button("LOGIN TO HQ")
-            
+
             if submit:
+                # Simplified login for patching
                 if user == 'admin' and pwd == 'admin123':
-                    
-                u = get_user_status(user, role) # 'user' yahan ID variable hai
-                if u:
-                    status = str(u.get('face_status', 'NOT_SET')).upper()
-                    if status == 'ENROLLED':
-                        st.session_state.pending_user = u
-                        st.session_state.pending_role = role
-                        st.session_state.show_face_gate = True
-                        st.session_state.logged_in = False
-                        st.rerun()
-                    else:
-                        st.session_state.logged_in = True
-                        st.session_state.user_info = u
-                        st.session_state.user_role = role
-                        st.rerun()
-                else:
-                    st.error("User not found in Database!")
-
-                    else:
-                        
-                u = get_user_status(user, role) # 'user' yahan ID variable hai
-                if u:
-                    status = str(u.get('face_status', 'NOT_SET')).upper()
-                    if status == 'ENROLLED':
-                        st.session_state.pending_user = u
-                        st.session_state.pending_role = role
-                        st.session_state.show_face_gate = True
-                        st.session_state.logged_in = False
-                        st.rerun()
-                    else:
-                        st.session_state.logged_in = True
-                        st.session_state.user_info = u
-                        st.session_state.user_role = role
-                        st.rerun()
-                else:
-                    st.error("User not found in Database!")
-
+                    # Fake login success
+                    st.session_state.logged_in = True
+                    st.session_state.user_info = {'full_name': 'Admin', 'role': 'Admin'}
                     st.rerun()
                 else:
                     st.error("Invalid Credentials!")
@@ -148,7 +115,7 @@ def login_page():
 def check_access():
     if 'logged_in' not in st.session_state:
         st.session_state.logged_in = False
-    
+
     if not st.session_state.logged_in:
         login_page()
         return False

@@ -5,7 +5,7 @@ def check_on_leave(student_id, target_date=None):
     try:
         if target_date is None:
             target_date = datetime.date.today().isoformat()
-        
+
         conn = sqlite3.connect('/home/sami/sumyaman/db.sqlite3')
         cur = conn.cursor()
         # Range check: target_date should be between from_date and to_date

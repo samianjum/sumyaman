@@ -5,13 +5,13 @@ from urllib.parse import urlparse, parse_qs
 def get_current_db_name():
     # 1. Try direct URL parameter
     tenant = request.args.get('t')
-    
+
     # 2. Try Referer (the URL in the browser address bar)
     if not tenant and request.referrer:
         parsed_ref = urlparse(request.referrer)
         params = parse_qs(parsed_ref.query)
         tenant = params.get('t', [None])[0]
-    
+
     # 3. Try Session
     if not tenant:
         tenant = session.get('tenant')

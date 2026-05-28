@@ -2,7 +2,7 @@ import streamlit as st
 
 def show_verification_screen():
     st.markdown("<h2 style='text-align: center; color: #00d4ff;'>🛡️ BIOMETRIC SCAN</h2>", unsafe_allow_html=True)
-    
+
     # High-Tech Laser Animation
     st.markdown('''
         <style>
@@ -19,5 +19,5 @@ def show_verification_screen():
             <div class="scanner"></div>
         </div>
     ''', unsafe_allow_html=True)
-    
+
     return st.camera_input("Verify Face to Unlock Portal")

@@ -15,6 +15,244 @@ from sumyaman_pro.router import set_current_db
 from .models import Student, FeeStructure, FeeRecord, PaymentTransaction, SchoolFeeSettings
 from .forms import FeeStructureForm, FeeCollectionForm, FamilyPaymentForm
 
+# ---------- UPGRADED FEE COLLECTION SYSTEM (AUTO-GENERATED) ----------
+import json
+from decimal import Decimal
+from django.db import transaction
+from django.db.models import Sum, Q
+from django.utils import timezone
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from .models import Student, FeeRecord, PaymentTransaction, FeeStructure
+
+def allocate_payment(student, amount_paid, payment_mode, remarks=""):
+    """
+    Allocate payment to oldest pending fee records.
+    Returns: (allocated_records_list, total_allocated, remaining_amount)
+    """
+    amount_left = Decimal(str(amount_paid))
+    pending_records = FeeRecord.objects.filter(
+        student=student,
+        status__in=['pending', 'partial', 'overdue']
+    ).order_by('year', 'month')  # oldest first
+
+    allocated = []
+    for record in pending_records:
+        if amount_left <= 0:
+            break
+        due = record.pending_amount
+        if due <= 0:
+            continue
+        if amount_left >= due:
+            pay = due
+        else:
+            pay = amount_left
+        record.paid_amount += pay
+        record.update_status()
+        record.save()
+        allocated.append({
+            'id': record.id,
+            'month': record.month,
+            'year': record.year,
+            'original_fee': record.total_amount,
+            'paid_from_this': pay,
+            'remaining': record.pending_amount
+        })
+        amount_left -= pay
+    return allocated, amount_paid - amount_left, amount_left
+
+def student_search_api(request, school_slug=None):
+    """AJAX endpoint to search student by roll number, name, father CNIC, or phone."""
+    query = request.GET.get('q', '').strip()
+    if len(query) < 2:
+        return JsonResponse({'results': []})
+
+    students = Student.objects.filter(
+        Q(roll_number__icontains=query) |
+        Q(full_name__icontains=query) |
+        Q(father_name__icontains=query) |
+        Q(parents_phone__icontains=query) |
+        Q(b_form__icontains=query)
+    )[:10]
+
+    results = []
+    for s in students:
+                    pending_data = FeeRecord.objects.filter(student=s, status__in=['pending','partial','overdue']).aggregate(
+
+                        total=Sum('total_amount'), paid=Sum('paid_amount')
+
+                    )
+
+                    total = pending_data['total'] or Decimal('0.00')
+
+                    paid = pending_data['paid'] or Decimal('0.00')
+
+                    pending_total = total - paid
+                    results.append({
+            'id': s.id,
+            'full_name': s.full_name,
+            'roll_number': s.roll_number,
+            'father_name': s.father_name,
+            'student_class': s.student_class,
+            'student_section': s.student_section,
+            'wing': s.wing,
+            'pending_total': str(pending_total),
+        })
+    return JsonResponse({'results': results})
+
+def get_pending_details(request, school_slug=None):
+    """AJAX endpoint to get detailed pending fee records for a student."""
+    student_id = request.GET.get('student_id')
+    try:
+        student = Student.objects.get(id=student_id)
+    except Student.DoesNotExist:
+        return JsonResponse({'error': 'Student not found'}, status=404)
+
+    records = FeeRecord.objects.filter(student=student).order_by('year', 'month')
+    pending = []
+    for r in records:
+        if r.pending_amount > 0:
+            pending.append({
+                'id': r.id,
+                'month': r.month,
+                'year': r.year,
+                'total_amount': str(r.total_amount),
+                'paid_amount': str(r.paid_amount),
+                'pending_amount': str(r.pending_amount),
+                'due_date': r.due_date.isoformat(),
+                'status': r.status,
+            })
+    return JsonResponse({'pending': pending, 'student_name': student.full_name})
+
+def collect_payment_api(request, school_slug=None):
+    """Process a payment transaction."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    data = json.loads(request.body)
+    student_id = data.get('student_id')
+    amount = Decimal(str(data.get('amount')))
+    payment_mode = data.get('payment_mode')
+    remarks = data.get('remarks', '')
+
+    try:
+        student = Student.objects.get(id=student_id)
+    except Student.DoesNotExist:
+        return JsonResponse({'error': 'Student not found'}, status=404)
+
+    if amount <= 0:
+        return JsonResponse({'error': 'Invalid amount'}, status=400)
+
+    with transaction.atomic():
+        # Allocate payment
+        allocated_records, total_allocated, remaining = allocate_payment(student, amount, payment_mode, remarks)
+        if total_allocated == 0:
+            return JsonResponse({'error': 'No pending fee to allocate'}, status=400)
+
+        # Generate receipt number
+        today = timezone.now().date()
+        last_receipt = PaymentTransaction.objects.filter(
+            receipt_number__startswith=f"APS-{today.strftime("%Y%m")}-"
+        ).order_by('-receipt_number').first()
+        if last_receipt:
+            last_num = int(last_receipt.receipt_number.split('/')[-1])
+            new_num = last_num + 1
+        else:
+            new_num = 1
+        receipt_no = f"APS-{today.strftime("%Y%m")}-{new_num:04d}"
+
+        # Create payment transaction
+        payment = PaymentTransaction.objects.create(
+            receipt_number=receipt_no,
+            student=student,
+            amount=total_allocated,
+            payment_mode=payment_mode,
+            transaction_date=today,
+            remarks=remarks,
+        )
+        # Associate fee records
+        allocated_ids = [rec['id'] for rec in allocated_records]
+        payment.fee_records.set(FeeRecord.objects.filter(id__in=allocated_ids))
+
+        # Build receipt HTML
+        receipt_context = {
+            'school': request.current_school if hasattr(request, 'current_school') else None,
+            'receipt': payment,
+            'student': student,
+            'allocated_months': allocated_records,
+            'remaining_total': sum(Decimal(rec['remaining']) for rec in allocated_records),
+            'date': today,
+        }
+        receipt_html = render_to_string('hq_admin_custom/fee/receipt_print.html', receipt_context)
+
+    return JsonResponse({
+        'success': True,
+        'receipt_html': receipt_html,
+        'receipt_no': receipt_no,
+        'remaining_total': str(remaining),
+        'allocated': allocated_records,
+    })
+
+def undo_payment(request, receipt_no, school_slug=None):
+    """Admin only: revert a payment (marks as reversed)."""
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    try:
+        payment = PaymentTransaction.objects.get(receipt_number=receipt_no)
+    except PaymentTransaction.DoesNotExist:
+        return JsonResponse({'error': 'Receipt not found'}, status=404)
+    # Mark as reversed without complex recalculation (admin can adjust manually)
+    payment.reversed = True
+    payment.save()
+    return JsonResponse({'success': True, 'message': 'Payment marked as reversed. Please manually adjust fee records if needed.'})
+
+def family_payment_api(request, school_slug=None):
+    """Process payment for all children of a father (by CNIC)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    data = json.loads(request.body)
+    father_cnic = data.get('father_cnic')
+    amount = Decimal(str(data.get('amount'))) if data.get('amount') else None
+    payment_mode = data.get('payment_mode')
+    remarks = data.get('remarks', '')
+
+    students = Student.objects.filter(b_form=father_cnic)
+    if not students.exists():
+        return JsonResponse({'error': 'No student found with this CNIC'}, status=404)
+
+    total_paid = Decimal('0.00')
+    details = []
+    with transaction.atomic():
+        for student in students:
+            if amount is None:
+                            pending_data = FeeRecord.objects.filter(student=s, status__in=['pending','partial','overdue']).aggregate(
+
+                                total=Sum('total_amount'), paid=Sum('paid_amount')
+
+                            )
+
+                            total = pending_data['total'] or Decimal('0.00')
+
+                            paid = pending_data['paid'] or Decimal('0.00')
+
+                            pending_total = total - paid
+                            if pending_total > 0:
+                                alloc, paid, rem = allocate_payment(student, pending_total, payment_mode, remarks)
+                                if paid > 0:
+                                    total_paid += paid
+                                    details.append({'student': student.full_name, 'paid': str(paid), 'remaining': str(rem)})
+        if total_paid == 0:
+            return JsonResponse({'error': 'No pending fees for any student'}, status=400)
+    return JsonResponse({'success': True, 'total_paid': str(total_paid), 'details': details})
+
+def daily_collection_summary(request, school_slug=None):
+    """Return today's collection total and count."""
+    today = timezone.now().date()
+    payments = PaymentTransaction.objects.filter(transaction_date=today)
+    total = payments.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    count = payments.count()
+    return JsonResponse({'total': str(total), 'count': count})
+
+
 
 def get_fee_settings():
     obj, _ = SchoolFeeSettings.objects.get_or_create(pk=1)
@@ -78,7 +316,7 @@ def fee_structure_view(request, school_slug=None):
     else:
         form = FeeStructureForm()
     structures = FeeStructure.objects.all().order_by('student_class')
-    return render(request, 'hq_admin_custom/fee/fee_structure.html', {
+    return render(request, 'hq_admin_custom/fee_structure.html', {
         'structures': structures,
         'form': form,
         'school_slug': school_slug,
@@ -156,7 +394,7 @@ def fee_collection_view(request, school_slug=None):
         form = FeeCollectionForm()
 
     recent = PaymentTransaction.objects.select_related('student').order_by('-created_at')[:10]
-    return render(request, 'hq_admin_custom/fee/fee_collection.html', {
+    return render(request, 'hq_admin_custom/fee_collection.html', {
         'form': form,
         'recent': recent,
         'school_slug': school_slug,
@@ -168,7 +406,7 @@ def fee_collection_print(request, receipt_no, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
     payment = get_object_or_404(PaymentTransaction, receipt_number=receipt_no)
-    return render(request, 'hq_admin_custom/fee/receipt_print.html', {
+    return render(request, 'hq_admin_custom/receipt_print.html', {
         'payment': payment,
         'school_slug': school_slug,
     })
@@ -252,7 +490,7 @@ def family_payment_view(request, school_slug=None):
     else:
         form = FamilyPaymentForm()
 
-    return render(request, 'hq_admin_custom/fee/family_payment.html', {
+    return render(request, 'hq_admin_custom/family_payment.html', {
         'form': form,
         'school_slug': school_slug,
     })
@@ -276,7 +514,7 @@ def defaulters_list(request, school_slug=None):
     paginator = Paginator(students, 30)
     page = request.GET.get('page')
     page_obj = paginator.get_page(page)
-    return render(request, 'hq_admin_custom/fee/defaulters.html', {
+    return render(request, 'hq_admin_custom/defaulters.html', {
         'page_obj': page_obj,
         'school_slug': school_slug,
     })
@@ -292,7 +530,7 @@ def fee_reports(request, school_slug=None):
 
     pending_by_class = FeeRecord.objects.filter(status__in=['pending', 'partial', 'overdue'])         .values('student__student_class')         .annotate(pending_total=Sum(F('total_amount') - F('paid_amount')))         .order_by('student__student_class')
 
-    return render(request, 'hq_admin_custom/fee/fee_reports.html', {
+    return render(request, 'hq_admin_custom/fee_reports.html', {
         'collections': collections,
         'pending_by_class': pending_by_class,
         'school_slug': school_slug,
@@ -307,7 +545,7 @@ def student_fee_view(request, student_id, school_slug=None):
     fee_records = FeeRecord.objects.filter(student=student).order_by('-year', '-month')
     payments = PaymentTransaction.objects.filter(student=student).order_by('-created_at')
     total_pending = sum(record.pending_amount for record in fee_records if record.status != 'paid')
-    return render(request, 'hq_admin_custom/fee/student_fee_view.html', {
+    return render(request, 'hq_admin_custom/student_fee_view.html', {
         'student': student,
         'fee_records': fee_records,
         'payments': payments,

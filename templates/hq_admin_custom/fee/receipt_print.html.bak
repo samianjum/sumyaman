@@ -1,0 +1,8 @@
+<div class="card p-3">
+    <h4>Receipt</h4>
+    <p>Receipt No: {{ receipt.receipt_number }}<br>
+    Student: {{ student.full_name }}<br>
+    Amount: ₹{{ receipt.amount }}<br>
+    Date: {{ receipt.transaction_date }}</p>
+    <button onclick="window.print()">Print</button>
+</div>

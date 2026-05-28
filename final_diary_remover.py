@@ -28,8 +28,8 @@ content = re.sub(r'<div onclick="openDiarySystem\(\)".*?</div>\s*</div>', '</div
 
 # 4. Remove All Diary JavaScript Functions
 js_funcs = [
-    'loadStudentDiary', 'initTeacherDiary', 'renderDiaryGrid', 
-    'filterDiaryClasses', 'openDiaryEditor', 'submitDiary', 
+    'loadStudentDiary', 'initTeacherDiary', 'renderDiaryGrid',
+    'filterDiaryClasses', 'openDiaryEditor', 'submitDiary',
     'loadTeacherHistory', 'openDiarySystem'
 ]
 for func in js_funcs:

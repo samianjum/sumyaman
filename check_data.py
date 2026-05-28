@@ -15,7 +15,7 @@ def run_check():
 
     try:
         print(f"--- ANALYZING EXAM ID: {exam_id} ---")
-        
+
         # 1. Subject Performance (Sorted by Avg Marks)
         cursor.execute("""
             SELECT s.name, AVG(m.obtained_marks) as avg_score
@@ -24,7 +24,7 @@ def run_check():
             WHERE m.exam_id = ?
             GROUP BY s.id ORDER BY avg_score DESC
         """, (exam_id,))
-        
+
         print("\n📊 SUBJECTS PERFORMANCE (Sorted: Best to Worst)")
         subjects = cursor.fetchall()
         for r in subjects:
@@ -38,7 +38,7 @@ def run_check():
             WHERE m.exam_id = ?
             GROUP BY st.id ORDER BY total DESC LIMIT 3
         """, (exam_id,))
-        
+
         print("\n🏆 TOP 3 STUDENTS")
         toppers = cursor.fetchall()
         for i, r in enumerate(toppers, 1):

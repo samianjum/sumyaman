@@ -26,14 +26,14 @@ def run_smart_attendance():
 
     print(f"📝 Marking attendance for {len(all_student_ids)} students...")
     attendance_batch = []
-    
+
     for s_id in all_student_ids:
         if s_id in on_leave_ids:
             status = 'LEAVE'
         else:
             # 90% Present, 10% Absent (Randomly)
             status = 'PRESENT' if random.random() > 0.10 else 'ABSENT'
-        
+
         # Schema assumed: student_id, status, date, marked_by
         attendance_batch.append((s_id, status, today, 'Admin_System'))
 
@@ -46,7 +46,7 @@ def run_smart_attendance():
 
     conn.commit()
     conn.close()
-    
+
     end_time = time.time()
     print(f"✅ Success! 90,000 attendance records marked.")
     print(f"⏱️  Total Time: {end_time - start_time:.4f} seconds")

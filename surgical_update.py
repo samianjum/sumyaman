@@ -15,9 +15,9 @@ def get_teacher_assignments_v3():
     conn.row_factory = sqlite3.Row
     # Query matching your apsokara_subjectassignment schema
     query = '''
-        SELECT sa.student_class, sa.section, sa.wing, s.name as sub_name, s.id as sub_id 
-        FROM apsokara_subjectassignment sa 
-        JOIN apsokara_subject s ON sa.subject_id = s.id 
+        SELECT sa.student_class, sa.section, sa.wing, s.name as sub_name, s.id as sub_id
+        FROM apsokara_subjectassignment sa
+        JOIN apsokara_subject s ON sa.subject_id = s.id
         WHERE sa.teacher_id = ?
     '''
     rows = conn.execute(query, (u['id'],)).fetchall()
@@ -37,7 +37,7 @@ new_page_html = """
                 <span class='text-xs font-black text-gray-500'>BACK</span>
             </button>
         </div>
-        
+
         <div id='teacher-assign-list' class='space-y-4 px-1'>
             </div>
     </div>
@@ -51,11 +51,11 @@ new_js = """
     async function loadTeacherAssignments() {
         const list = document.getElementById('teacher-assign-list');
         list.innerHTML = '<div class="p-10 text-center animate-pulse text-gray-400 font-bold text-xs uppercase">Connecting to Academic DB...</div>';
-        
+
         try {
             const res = await fetch('/api/teacher/assignments');
             const data = await res.json();
-            
+
             if(data.length === 0) {
                 list.innerHTML = '<div class="glass-card p-10 text-center text-gray-400 text-xs font-bold">NO SUBJECTS ASSIGNED TO YOU</div>';
                 return;

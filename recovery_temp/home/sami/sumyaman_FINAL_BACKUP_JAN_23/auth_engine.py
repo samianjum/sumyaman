@@ -5,9 +5,9 @@ import streamlit as st
 def get_teacher_permissions(u):
     t_id = st.session_state.get('username') or st.session_state.get('user', {}).get('username') or 'admin'
     conn = sqlite3.connect("db.sqlite3", check_same_thread=False)
-    
+
     query = """
-        SELECT sa.class_name, sa.section, sub.name as subject_name 
+        SELECT sa.class_name, sa.section, sub.name as subject_name
         FROM apsokara_subjectassignment sa
         JOIN apsokara_subject sub ON sa.subject_id = sub.id
         WHERE sa.teacher_id = (SELECT id FROM auth_user WHERE username = ?)
@@ -17,7 +17,7 @@ def get_teacher_permissions(u):
         assign_df = pd.read_sql_query(query, conn, params=(str(t_id), str(t_id)))
     except:
         assign_df = pd.DataFrame()
-    
+
     conn.close()
     return assign_df, t_id
 

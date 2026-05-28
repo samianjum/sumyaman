@@ -5,13 +5,13 @@ file_path = 'main_app.py'
 dashboard_ui_code = """
 def render_mobile_dashboard():
     user = st.session_state.get('user_data', {})
-    
+
     # CSS for Bottom Nav and Dashboard Cards
     st.markdown('''
         <style>
             [data-testid="stHeader"], [data-testid="stSidebar"] {display: none !important;}
             .main .block-container {padding: 0 !important; max-width: 100% !important;}
-            
+
             .dash-header {
                 background: #1B4332;
                 padding: 40px 20px;
@@ -39,18 +39,18 @@ def render_mobile_dashboard():
             }
             .nav-item { text-align: center; color: #1B4332; font-size: 12px; }
         </style>
-        
+
         <div class="dash-header">
             <p style="margin:0; opacity:0.8;">Welcome back,</p>
             <h2 style="margin:0;">''' + user.get('full_name', 'Student') + '''</h2>
         </div>
-        
+
         <div style="padding: 20px; margin-bottom: 80px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="stat-card"><b>📚 Course</b><br>7th Class</div>
                 <div class="stat-card"><b>🏆 Rank</b><br>#04</div>
             </div>
-            
+
             <h3 style="margin-top:25px;">Quick Actions</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
                 <button style="border:none; background:#E8F5E9; padding:20px; border-radius:15px; color:#1B4332;">View Results</button>

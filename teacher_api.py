@@ -1,5 +1,5 @@
 from flask import jsonify, session, request
-import pg_shim as sqlite3, datetime, pytz
+import sqlite3, datetime, pytz
 
 DB_PATH = 'db.sqlite3'
 PK_TZ = pytz.timezone("Asia/Karachi")

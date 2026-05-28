@@ -37,7 +37,7 @@ class Student(models.Model):
     b_form = models.CharField(max_length=20, unique=True, verbose_name="B-Form Number")
     dob = models.DateField(verbose_name="Date of Birth")
     profile_pic = models.ImageField(upload_to='students/', null=True, blank=True)
-    
+
     student_class = models.CharField(max_length=10)
     student_section = models.CharField(max_length=10)
     wing = models.CharField(max_length=10, choices=WING_CHOICES)

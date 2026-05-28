@@ -18,9 +18,9 @@ def git_push():
         # 4. Git Push
         print("Pushing to GitHub...")
         subprocess.run(["git", "push"], check=True)
-        
+
         print("\n✅ Everything pushed successfully!")
-    
+
     except subprocess.CalledProcessError as e:
         print(f"\n❌ Error occurred: {e}")
     except Exception as e:

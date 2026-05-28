@@ -4,7 +4,7 @@ from apsokara.models import Attendance, Student
 
 def show_attendance_viewer():
     st.header("📅 Attendance Radar")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         target_date = st.date_input("Select Date")
@@ -13,7 +13,7 @@ def show_attendance_viewer():
 
     # Query Attendance
     qs = Attendance.objects.filter(date=target_date)
-    
+
     if view_type != "All":
         wing_name = "Boys" if "Boys" in view_type else "Girls"
         qs = qs.filter(student__wing=wing_name)
@@ -28,15 +28,15 @@ def show_attendance_viewer():
                 "Status": att.status
             })
         df = pd.DataFrame(data)
-        
+
         # Stats Cards
         p_count = len(df[df['Status'] == 'Present'])
         a_count = len(df[df['Status'] == 'Absent'])
-        
+
         c1, c2 = st.columns(2)
         c1.metric("Present ✅", p_count)
         c2.metric("Absent ❌", a_count)
-        
+
         st.dataframe(df, width='stretch')
     else:
         st.warning(f"No attendance records found for {target_date}")

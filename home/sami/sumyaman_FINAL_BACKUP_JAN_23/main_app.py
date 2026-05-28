@@ -158,9 +158,9 @@ def check_attendance_state(t_class, t_sec, t_wing):
     conn = sqlite3.connect('db.sqlite3')
     cursor = conn.cursor()
     today = datetime.date.today().isoformat()
-    cursor.execute("""SELECT MAX(edit_count) FROM apsokara_attendance 
-                      WHERE student_class=? AND student_section=? AND date=? 
-                      AND student_id IN (SELECT identity_number FROM apsokara_student WHERE wing=?)""", 
+    cursor.execute("""SELECT MAX(edit_count) FROM apsokara_attendance
+                      WHERE student_class=? AND student_section=? AND date=?
+                      AND student_id IN (SELECT identity_number FROM apsokara_student WHERE wing=?)""",
                    (t_class, t_sec, today, t_wing))
     res = cursor.fetchone()
     conn.close()
@@ -174,8 +174,8 @@ def save_attendance(attendance_data, t_class, t_sec, is_edit=False):
     try:
         for s_id, status in attendance_data.items():
             cursor.execute("DELETE FROM apsokara_attendance WHERE student_id=? AND session_year = (SELECT session_year FROM apsokara_student WHERE id=?) AND date=?", (s_id, today))
-            cursor.execute('''INSERT INTO apsokara_attendance 
-                            (student_id, date, status, student_class, student_section, edit_count) 
+            cursor.execute('''INSERT INTO apsokara_attendance
+                            (student_id, date, status, student_class, student_section, edit_count)
                             VALUES (?, ?, ?, ?, ?, ?)''', (s_id, today, status, t_class, t_sec, new_count))
         conn.commit()
         return True
@@ -206,7 +206,7 @@ def get_daily_analytics(t_class, t_sec, t_wing):
     today = datetime.date.today().isoformat()
     q_total = "SELECT COUNT(*) FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?"
     total = pd.read_sql_query(q_total, conn, params=(t_class, t_sec, t_wing)).iloc[0,0]
-    q_stats = """SELECT status, COUNT(*) as count FROM apsokara_attendance 
+    q_stats = """SELECT status, COUNT(*) as count FROM apsokara_attendance
                  WHERE student_class=? AND student_section=? AND date=?
                  AND student_id IN (SELECT identity_number FROM apsokara_student WHERE wing=?)
                  GROUP BY status"""
@@ -260,7 +260,7 @@ def show_dashboard():
         extra = f'''<div class="detail-item"><b>👨‍👦 Father Name</b><span>{u.get('father')}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get('dob')}</span></div><div class="detail-item"><b>🏫 Class</b><span>{u.get("class")} {u.get("sec")}</span></div>'''
     else:
         tag, tag_col = "📖 SUBJECT TEACHER", "#DC143C"
-        extra = f'''<div class="detail-item"><b>👨‍👦 Father Name</b><span>{u.get('father')}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get('dob')}</span></div><div class="detail-item"><b>🏛 Staff Type</b><span>Academic Staff</span></div>'''                                              
+        extra = f'''<div class="detail-item"><b>👨‍👦 Father Name</b><span>{u.get('father')}</span></div><div class="detail-item"><b>📅 DOB</b><span>{u.get('dob')}</span></div><div class="detail-item"><b>🏛 Staff Type</b><span>Academic Staff</span></div>'''
 
     st.markdown(f'''
     <div class="hero-card">
@@ -282,7 +282,7 @@ def show_dashboard():
     if role == "Student": tabs_list = ["🏠 HOME", "📅 DAILY DIARY", "📜 ATTENDANCE HISTORY", "📝 APPLY LEAVE", "🏆 MY RESULT"]
     elif role == "Class Teacher": tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📝 ATTENDANCE SYSTEM", f"📥 LEAVE APPROVALS{get_pending_count(u)}", "🎯 MARKS ENTRY", "📤 FINAL UPLOAD"]
     else: tabs_list = ["🏠 DASHBOARD", "📓 POST DIARY", "📚 TEACHING SCHEDULE", "🎯 MARKS ENTRY"]
-    
+
     active_tabs = st.tabs(tabs_list)
     for i, tab in enumerate(active_tabs):
         with tab:

@@ -12,11 +12,11 @@ for line in lines:
     if 'iterrows()' in line and 'for' in line and 'index' not in line:
         line = re.sub(r'for (.*?) in', r'for index, \1 in', line)
         found_loop = True
-    
+
     # 2. Key mein 'index' ko safeguard karna
     if 'key=f"s_' in line and 'index' not in line:
         line = line.replace('today}"', 'today}_{index}"')
-        
+
     new_lines.append(line)
 
 with open(file_path, 'w') as f:

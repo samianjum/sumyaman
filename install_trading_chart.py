@@ -67,8 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 scales: {
-                    y: { 
-                        beginAtZero: true, 
+                    y: {
+                        beginAtZero: true,
                         max: 100,
                         grid: { color: '#f1f5f9' },
                         ticks: { callback: (value) => value + '%' }

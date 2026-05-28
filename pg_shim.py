@@ -21,16 +21,16 @@ class PGShimCursor:
     def fetchall(self): return self._cursor.fetchall()
     def fetchmany(self, size=None): return self._cursor.fetchmany(size) if size else self._cursor.fetchmany()
     def close(self): self._cursor.close()
-    
+
     @property
     def description(self): return self._cursor.description
-    
+
     @property
     def rowcount(self): return self._cursor.rowcount
-    
+
     @property
     def lastrowid(self): return None # Optional: implement if RETURNING id is strictly needed
-    
+
     def __iter__(self): return iter(self._cursor)
 
 class PGShimConnection:
@@ -68,7 +68,7 @@ def connect(database, **kwargs):
         # If passed a function reference (like get_db_path)
         if callable(database):
             database = database()
-            
+
         if isinstance(database, str):
             if database.endswith('_db'):
                 dbname = database
@@ -87,7 +87,7 @@ def connect(database, **kwargs):
                     if t: dbname = f"{t}_db"
                 except Exception: pass
     except Exception: pass
-        
+
     print(f"[PG-SHIM] Routing connection to PostgreSQL database: {dbname}")
     return PGShimConnection(dbname)
 

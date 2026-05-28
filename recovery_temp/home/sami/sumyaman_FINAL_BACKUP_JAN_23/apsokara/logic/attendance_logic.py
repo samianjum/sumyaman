@@ -43,10 +43,10 @@ def render_student_attendance(u):
 
     # Correct Query for your DB format
     query = """
-        SELECT a.date, a.status 
-        FROM apsokara_attendance a 
-        WHERE a.student_id = (SELECT id FROM apsokara_student WHERE id=? OR cnic=?) 
-        AND a.edit_count = (SELECT MAX(edit_count) FROM apsokara_attendance WHERE student_id=a.student_id AND date=a.date) 
+        SELECT a.date, a.status
+        FROM apsokara_attendance a
+        WHERE a.student_id = (SELECT id FROM apsokara_student WHERE id=? OR cnic=?)
+        AND a.edit_count = (SELECT MAX(edit_count) FROM apsokara_attendance WHERE student_id=a.student_id AND date=a.date)
         ORDER BY a.date DESC
     """
     df = pd.read_sql(query, conn, params=(str(std_id), str(std_id)))
@@ -66,7 +66,7 @@ def render_student_attendance(u):
         .main { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcfc; }
         .aesthetic-card {
             background: #ffffff; padding: 22px; border-radius: 20px; text-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.03); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
             border-left: 5px solid #FF3B30; border-bottom: 5px solid #FF3B30;
             transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }

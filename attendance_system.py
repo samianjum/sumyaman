@@ -68,7 +68,7 @@ def render_attendance_system(user_info):
 
     st.markdown("""<style>@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap'); * { font-family: 'Plus Jakarta Sans', sans-serif; }</style>""", unsafe_allow_html=True)
 
-    
+
 
 
     # --- MOBILE INTERFERENCE FIX FOR EXISTING BANNER ---
@@ -127,7 +127,7 @@ def render_attendance_system(user_info):
                     st.markdown('''<div style="background: #fff1f2; border: 1px solid #fecdd3; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; animation: pulse 2s infinite;"><span style="font-size: 20px;">⚠️</span><span style="color: #8b0000; font-weight: 600;"><b>CRITICAL:</b> This is your <b>LAST CHANCE</b>. Database will LOCK after this sync.</span></div><style>@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }</style>''', unsafe_allow_html=True)
 
                 students = pd.read_sql("SELECT id, roll_number, full_name FROM apsokara_student WHERE student_class=? AND wing=? AND student_section=? ORDER BY CAST(roll_number AS INTEGER)", conn, params=(c_name, u_wing, u_sec))
-                
+
                 if students.empty:
                     st.warning(f"No students in {c_name}-{u_sec}")
                 else:
@@ -137,7 +137,7 @@ def render_attendance_system(user_info):
                         attendance_results[s['id']] = {
                             'status': st.segmented_control("Status", ["Present", "Absent", "Leave"], default="Present", key=f"s_{s['id']}_{today}_{cid}", label_visibility="collapsed"),
                         }
-                    
+
                     st.markdown("---")
                     if st.toggle("Verify All Entries", key=f"verify_toggle_{cid}"):
                         btn_label = "🚀 FINAL LOCK & SYNC" if edit_cnt == 1 else "🚀 SYNC TO DATABASE"
@@ -157,25 +157,25 @@ def render_attendance_system(user_info):
                                     conn.rollback()
                                     st.error(f"Critical Error: {e}")
 
-        
+
         with tab2:
             v_date = st.date_input("Select Date", today_obj)
-            
+
             # --- Analytics Injection ---
-            hist = pd.read_sql("""SELECT s.roll_number, s.full_name, 
-                                 CASE WHEN a.status IS NULL THEN 'Not Marked' ELSE a.status END as status 
-                                 FROM apsokara_student s 
-                                 LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND DATE(a.date)=DATE(?) 
-                                 WHERE s.student_class=? AND s.wing=? AND s.student_section=? 
-                                 ORDER BY CAST(s.roll_number AS INTEGER)""", 
+            hist = pd.read_sql("""SELECT s.roll_number, s.full_name,
+                                 CASE WHEN a.status IS NULL THEN 'Not Marked' ELSE a.status END as status
+                                 FROM apsokara_student s
+                                 LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND DATE(a.date)=DATE(?)
+                                 WHERE s.student_class=? AND s.wing=? AND s.student_section=?
+                                 ORDER BY CAST(s.roll_number AS INTEGER)""",
                                  conn, params=(v_date.isoformat(), c_name, u_wing, u_sec))
-            
+
             if not hist.empty:
                 t_str = len(hist)
                 t_pres = len(hist[hist['status'] == 'Present'])
                 t_abs = len(hist[hist['status'] == 'Absent'])
                 t_lev = len(hist[hist['status'] == 'Leave'])
-                
+
                 st.markdown(f"""
                     <div style="display: flex; justify-content: space-around; background: #1b4332; padding: 15px; border-radius: 15px; border: 1px solid #d4af37; margin-bottom: 20px; text-align: center;">
                         <div><p style="color: #d4af37; margin:0; font-size: 10px;">TOTAL</p><b style="color: white; font-size: 18px;">{t_str}</b></div>
@@ -184,11 +184,11 @@ def render_attendance_system(user_info):
                         <div style="border-left: 1px solid rgba(212,175,55,0.3); padding-left: 20px;"><p style="color: #d4af37; margin:0; font-size: 10px;">LEAVE</p><b style="color: #fbbf24; font-size: 18px;">{t_lev}</b></div>
                     </div>
                 """, unsafe_allow_html=True)
-            
+
             st.dataframe(hist, width='stretch', hide_index=True)
 
 
-        
+
         with tab3:
             st.markdown("""<style>
                 .main-card { background: #ffffff; border: 2px solid #1b4332; border-radius: 25px; padding: 25px; border: 1px solid #e2e8f0; }
@@ -199,21 +199,21 @@ def render_attendance_system(user_info):
             </style>""", unsafe_allow_html=True)
 
             st.markdown("<h2 style='color: #1b4332; font-weight: 800;'>💎 Student Intelligence Center</h2>", unsafe_allow_html=True)
-            
+
             # Creating layout: Side flags and Main search
             col_flags, col_intel = st.columns([1, 2.5])
-            
+
             with col_flags:
                 st.markdown("### 🚩 Red Flags")
                 th_val = st.number_input("Threshold %", 0, 100, 75, key="th_val")
-                
+
                 # Logic to find low attendance students
-                rf_query = """SELECT s.id, s.full_name, s.father_name, 
-                                     COUNT(a.id) as total, 
-                                     SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres 
-                              FROM apsokara_student s 
-                              JOIN apsokara_attendance a ON s.id = a.student_id 
-                              WHERE s.student_class=? AND s.wing=? AND s.student_section=? 
+                rf_query = """SELECT s.id, s.full_name, s.father_name,
+                                     COUNT(a.id) as total,
+                                     SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres
+                              FROM apsokara_student s
+                              JOIN apsokara_attendance a ON s.id = a.student_id
+                              WHERE s.student_class=? AND s.wing=? AND s.student_section=?
                               GROUP BY s.id"""
                 rf_df = pd.read_sql(rf_query, conn, params=(c_name, u_wing, u_sec))
                 if not rf_df.empty:
@@ -228,8 +228,8 @@ def render_attendance_system(user_info):
             with col_intel:
                 s_query = st.text_input("🔍 Search Student Name", value=st.session_state.get('s_search', ""), placeholder="Type name...", label_visibility="collapsed")
                 if s_query:
-                    s_data = pd.read_sql("""SELECT id, roll_number, full_name, father_name FROM apsokara_student 
-                                          WHERE (full_name LIKE ? OR father_name LIKE ?) AND student_class=? AND wing=? AND student_section=?""", 
+                    s_data = pd.read_sql("""SELECT id, roll_number, full_name, father_name FROM apsokara_student
+                                          WHERE (full_name LIKE ? OR father_name LIKE ?) AND student_class=? AND wing=? AND student_section=?""",
                                          conn, params=(f"%{s_query}%", f"%{s_query}%", c_name, u_wing, u_sec))
                     if not s_data.empty:
                         sel = s_data.iloc[0]; sid = int(sel["id"])
@@ -263,7 +263,7 @@ def render_attendance_system(user_info):
                                 st.markdown(f'<div style="background: {color}; color: white; padding: 30px 10px; border-radius: 20px; text-align: center;"><h2>{s_val}</h2></div>', unsafe_allow_html=True)
 
                         st.dataframe(stats_df, use_container_width=True, height=200)
-                        
+
                         def make_pdf():
                             b = io.BytesIO(); c = canvas.Canvas(b, pagesize=letter)
                             c.drawString(100, 750, f"INTEL REPORT: {sel['full_name']}"); y=700

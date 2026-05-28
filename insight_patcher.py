@@ -11,18 +11,18 @@ new_styles = """
         .insight-container { background: #0F2A44; padding: 16px 0; overflow: hidden; }
         .insight-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 0 20px; scrollbar-width: none; -ms-overflow-style: none; }
         .insight-scroll::-webkit-scrollbar { display: none; }
-        
-        .insight-card { 
-            flex: 0 0 170px; height: 70px; background: #173A5E; 
+
+        .insight-card {
+            flex: 0 0 170px; height: 70px; background: #173A5E;
             border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);
             display: flex; align-items: center; padding: 0 14px;
             transition: all 0.2s ease; cursor: pointer;
         }
         .insight-card:active { transform: scale(0.96); background: #1c4672; }
-        
-        .icon-circle { 
-            width: 32px; height: 32px; background: #2F80ED; 
-            border-radius: 10px; display: flex; align-items: center; 
+
+        .icon-circle {
+            width: 32px; height: 32px; background: #2F80ED;
+            border-radius: 10px; display: flex; align-items: center;
             justify-content: center; margin-right: 12px; flex-shrink: 0;
         }
         .insight-label { color: rgba(255,255,255,0.6); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1; }
@@ -36,7 +36,7 @@ content = content.replace('.no-scrollbar::-webkit-scrollbar { display: none; }',
 insight_html = '''
         <div class="insight-container">
             <div class="insight-scroll">
-                
+
                 {% if session['user'].role == 'Student' %}
                 <div class="insight-card" onclick="window.location.href='/timetable'">
                     <div class="icon-circle">📚</div>

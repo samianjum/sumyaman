@@ -30,7 +30,7 @@ def remove_vscode_completely():
 
     # 3. Clean apt cache
     os.system("sudo apt autoremove -y && sudo apt autoclean")
-    
+
     print("\n[+] VS Code has been completely wiped from the system.")
     print("[*] Terminal-based environment is now cleaner.")
 

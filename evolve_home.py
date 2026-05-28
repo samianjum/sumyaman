@@ -15,7 +15,7 @@ icons = {
 
 new_home_html = f"""
             <div id="page-home" class="grid grid-cols-2 gap-4 animate-zoom-in">
-                
+
                 {{# --- LEAVE HUB (Student & Class Teacher) --- #}}
                 {% if user.role == 'Student' or (user.role == 'Teacher' and user.is_class_teacher) %}
                 <div onclick="openLeaveHub()" class="relative glass-card flex flex-col items-center justify-center p-6 text-center border-b-4 border-rose-500 active:scale-95 transition-all cursor-pointer group">
@@ -89,7 +89,7 @@ if os.path.exists(file_path):
 
     start_line = -1
     end_line = -1
-    
+
     for i, line in enumerate(lines):
         if 'id="page-home"' in line:
             start_line = i
@@ -103,11 +103,11 @@ if os.path.exists(file_path):
     if start_line != -1 and end_line != -1:
         # Construct new content
         final_lines = lines[:start_line] + [new_home_html] + lines[end_line+1:]
-        
+
         with open(file_path, 'w') as f:
             f.writelines(final_lines)
         print("🚀 Home Page Design Upgraded to SaaS Standard!")
     else:
         print("❌ Could not precisely locate the Home Page grid block.")
-    
+
     os.remove(__file__)

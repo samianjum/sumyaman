@@ -15,11 +15,11 @@ def extract():
         try:
             conn = psycopg2.connect(dbname=db, **db_config)
             cur = conn.cursor()
-            
+
             # Get all tables
             cur.execute("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public';")
             tables = cur.fetchall()
-            
+
             if not tables:
                 print(f"Empty DB: {db}")
                 continue
@@ -29,13 +29,13 @@ def extract():
                 cur.execute(f"SELECT COUNT(*) FROM {t_name};")
                 count = cur.fetchone()[0]
                 print(f"Table: {t_name:30} | Rows: {count}")
-                
+
                 # Agar student ya teacher table hai to sample dikhao
                 if 'student' in t_name or 'teacher' in t_name:
                     cur.execute(f"SELECT * FROM {t_name} LIMIT 1;")
                     sample = cur.fetchone()
                     print(f"   Sample Data: {sample}")
-            
+
             cur.close()
             conn.close()
         except Exception as e:

@@ -9,7 +9,7 @@ class TenantMiddleware:
 
     def __call__(self, request):
         path_parts = request.path.strip('/').split('/')
-        
+
         # Load all schools into settings.DATABASES if not already there
         # This ensures connections exist after server restart
         schools = SchoolClient.objects.all()
@@ -28,7 +28,7 @@ class TenantMiddleware:
                     if not school.is_active:
                         from django.http import HttpResponseForbidden
                         return HttpResponseForbidden("<h1>School Suspended</h1><p>This institution has been deactivated by the Super Admin.</p>")
-                    
+
                     set_current_db(slug)
                     if not request.user.is_authenticated and 'login' not in request.path:
                         return redirect(f'/s/{slug}/admin/login/')
@@ -38,7 +38,7 @@ class TenantMiddleware:
                 set_current_db('default')
         else:
             set_current_db('default')
-            
+
         return self.get_response(request)
 
 class NoCacheMiddleware:

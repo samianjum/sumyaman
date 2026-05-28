@@ -14,7 +14,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apsokara',
-    'super_admin', 
+    'super_admin',
 ]
 
 MIDDLEWARE = [

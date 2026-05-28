@@ -77,7 +77,7 @@ js_logic = """
             document.getElementById('assignment-selector-area').classList.add('hidden');
             document.getElementById('marks-list-area').classList.remove('hidden');
             document.getElementById('active-banner').innerHTML = `<h2 class="font-black text-sm">${sub}</h2><p class="text-[10px] opacity-70">${cls}-${sec} | ${currentExam.name}</p>`;
-            
+
             const res = await fetch(`/api/students-list?cls=${cls}&sec=${sec}&wing=${wing}`);
             const students = await res.json();
             let html = '';

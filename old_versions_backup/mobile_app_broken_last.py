@@ -27,9 +27,9 @@ def get_diary_classes():
     conn = sqlite3.connect('db.sqlite3')
     conn.row_factory = sqlite3.Row
     query = """
-        SELECT a.student_class, a.section, a.wing, a.subject_id, s.name as sub_name 
-        FROM apsokara_subjectassignment a 
-        LEFT JOIN apsokara_subject s ON a.subject_id = s.id 
+        SELECT a.student_class, a.section, a.wing, a.subject_id, s.name as sub_name
+        FROM apsokara_subjectassignment a
+        LEFT JOIN apsokara_subject s ON a.subject_id = s.id
         WHERE a.teacher_id = ?
     """
     rows = conn.execute(query, (user["id"],)).fetchall()
@@ -77,32 +77,32 @@ def get_student_diary():
         .glass-card { background: white; border-radius: 20px; padding: 18px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .hidden { display: none !important; }
         .btn-sync { background: #1B4332; color: white; width: 100%; padding: 15px; border-radius: 15px; font-weight: 800; margin-top: 20px; }
-        
+
         .status-pill { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; }
         {% if user.role == 'Student' %}
         .teacher-only { display: none !important; }
         {% endif %}
-    
+
     </style>
 </head>
 <body>
     <div class="app-shell">
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
+
+
+
+
+
         {% if not logged_in %}
         <div class="fixed inset-0 bg-gray-50 flex items-center justify-center p-6 z-[9999]">
             <div class="w-full max-w-[380px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100">
-                
+
                 <div class="bg-[#1B4332] pt-12 pb-10 px-6 text-center relative">
                     <div class="w-24 h-24 bg-white rounded-full mx-auto flex items-center justify-center shadow-lg mb-4 border-2 border-[#D4AF37]">
                         <img src="/app_logo" class="w-[75%] h-[75%] object-contain" onerror="this.src='https://img.icons8.com/ios-filled/100/1B4332/school.png'">
@@ -120,17 +120,17 @@ def get_student_diary():
                     <div class="space-y-5">
                         <div class="relative">
                             <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Identity ID</label>
-                            <input type="text" id="uid" placeholder="Enter ID Number" 
-                                class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 mt-1 outline-none font-bold text-[#1B4332] focus:border-[#1B4332] transition-all">
-                        </div>
-                        
-                        <div class="relative">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Date of Birth</label>
-                            <input type="date" id="dob" value="2010-01-01" 
+                            <input type="text" id="uid" placeholder="Enter ID Number"
                                 class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 mt-1 outline-none font-bold text-[#1B4332] focus:border-[#1B4332] transition-all">
                         </div>
 
-                        <button onclick="doLogin()" 
+                        <div class="relative">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Date of Birth</label>
+                            <input type="date" id="dob" value="2010-01-01"
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 mt-1 outline-none font-bold text-[#1B4332] focus:border-[#1B4332] transition-all">
+                        </div>
+
+                        <button onclick="doLogin()"
                             class="w-full bg-[#1B4332] text-white py-4 rounded-xl font-black text-sm shadow-lg active:scale-95 transition-all mt-6 uppercase tracking-widest">
                             Sign In
                         </button>
@@ -155,11 +155,11 @@ def get_student_diary():
 
 
 
-        
-        
-        
-        
-        
+
+
+
+
+
         <div id="main-header" class="app-header shadow-md p-4 bg-gradient-to-r from-[#1B4332] to-[#2D6A4F]">
             <div class="flex justify-between items-center mb-3 opacity-80 border-b border-white/10 pb-2">
                 <span id="current-date" class="text-[9px] font-bold tracking-tighter uppercase">-- --- ----</span>
@@ -176,7 +176,7 @@ def get_student_diary():
                 <div class="flex-grow">
                     <h2 class="text-lg font-black leading-tight">{{ user.full_name }}</h2>
                     <p class="text-[10px] font-bold opacity-90">S/O: {{ user.father_name }}</p>
-                    
+
                     <div class="mt-1 flex items-center gap-2">
                         <span class="text-[8px] font-black bg-black/20 px-2 py-0.5 rounded uppercase tracking-tighter text-[#D4AF37]">{{ user.role }}</span>
                         {% if user.role == 'Student' %}
@@ -219,7 +219,7 @@ def get_student_diary():
                 </div>
             </div>
 
-            
+
             <div id="page-diary-grid" class="hidden space-y-4">
                 <button onclick="showTab('diary-hub')" class="text-[10px] font-black text-gray-400">← BACK</button>
                 <div class="sticky top-0 bg-white/95 backdrop-blur-md pb-3 z-10">
@@ -235,7 +235,7 @@ def get_student_diary():
                     <h3 id="ed-title" class="font-black text-2xl text-[#1B4332]">Subject</h3>
                     <p id="ed-sub" class="text-[10px] font-black text-[#D4AF37] mb-4 uppercase"></p>
                     <textarea id="diary-content" rows="6" class="w-full bg-gray-50 rounded-2xl p-4 text-sm font-bold border-2 border-gray-100 focus:border-[#1B4332] outline-none" placeholder="Write homework or announcement..."></textarea>
-                    
+
                     <div class="mt-4 space-y-3">
                         <div class="flex items-center justify-between bg-gray-50 p-4 rounded-2xl border-2 border-dashed border-gray-200" onclick="document.getElementById('diary-files').click()">
                             <div class="flex items-center gap-3">
@@ -351,11 +351,11 @@ def get_student_diary():
                 <input type="date" id="archive-date" onchange="loadArchive()" placeholder="Select date for specific day" class="w-full p-3 rounded-xl bg-gray-50 border-none font-bold">
                 <div id="archive-results" class="space-y-2"></div>
             </div>
-            
-            
-            
-            
-            
+
+
+
+
+
             <div id="page-profile" class="hidden space-y-4">
                 <div class="glass-card bg-[#1B4332] text-white">
                     <h3 class="font-black text-lg">🔒 {{ user.role }} Vault</h3>
@@ -416,7 +416,7 @@ def get_student_diary():
                     </div>
                     {% endif %}
 
-                    
+
                     <button onclick="window.location.href='/logout'" class="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-black text-sm border border-red-100 mt-4">LOGOUT SESSION</button>
                 </div>
             </div>
@@ -520,7 +520,7 @@ def get_student_diary():
             `).join('') : '<div class="text-center py-10"><p class="font-bold text-gray-300 uppercase text-xs">No diary entries found.</p></div>';
         }
 
-        
+
         let allMyClasses = [];
         async function initTeacherDiary() {
             const res = await fetch('/api/diary/teacher-classes');
@@ -561,7 +561,7 @@ def get_student_diary():
         async function submitDiary() {
             const content = document.getElementById('diary-content').value;
             if(!content) return alert("Please enter diary content!");
-            
+
             const fd = new FormData();
             fd.append('content', content);
             fd.append('class', selectedDiaryClass.student_class);
@@ -570,7 +570,7 @@ def get_student_diary():
             fd.append('wing', selectedDiaryClass.wing);
             fd.append('is_scheduled', document.getElementById('is-sched').checked ? '1' : '0');
             fd.append('post_date', document.getElementById('sched-date').value);
-            
+
             const files = document.getElementById('diary-files').files;
             for(let i=0; i<files.length; i++) fd.append('files', files[i]);
 
@@ -608,7 +608,7 @@ def get_student_diary():
                 const vault = document.getElementById('vault-auth');
                 if(details) details.classList.add('hidden');
                 if(vault) vault.classList.remove('hidden');
-                document.getElementById('v-auth-id').value = ''; 
+                document.getElementById('v-auth-id').value = '';
             }
 
             const pages = ['home', 'mark', 'profile', 'marking-view', 'archive-view', 'intel-view', 'diary-hub', 'diary-grid', 'diary-editor', 'diary-student', 'diary-history'];
@@ -619,10 +619,10 @@ def get_student_diary():
             if (document.getElementById("page-" + t)) document.getElementById("page-" + t).classList.remove("hidden");
 
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-nav'));
-            
+
             const targetPage = document.getElementById('page-' + t);
             if (targetPage) targetPage.classList.remove('hidden');
-            
+
             if(document.getElementById('n-' + t)) document.getElementById('n-' + t).classList.add('active-nav');
 
             // --- HEADER VISIBILITY LOGIC ---
@@ -668,7 +668,7 @@ def get_student_diary():
             const list = document.getElementById('marking-list');
             const banner = document.getElementById('lock-banner');
             const footer = document.getElementById('marking-footer');
-            
+
             if(isLocked) {
                 banner.innerHTML = '<div class="glass-card bg-green-50 text-center border-green-200"><h2 class="text-3xl">🛡️</h2><h4 class="font-black text-green-700">ATTENDANCE SECURED</h4><p class="text-[10px] font-bold">Database is finalized for today.</p></div>';
                 footer.innerHTML = '';
@@ -696,7 +696,7 @@ def get_student_diary():
             if(!confirm("Are you sure? This action might lock the record.")) return;
             const students = document.querySelectorAll('[id^="s_"]');
             const attendance = Array.from(students).map(s => ({ id: s.id.split('_')[1], status: s.value }));
-            
+
             const res = await fetch('/api/sync-attendance', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -711,7 +711,7 @@ def get_student_diary():
             let date = dateInput;
             // Agar Student hai aur date select nahi ki, to date parameter khali bhejo
             if ('{{ user.role }}' === 'Student' && !dateInput) {
-                date = ''; 
+                date = '';
             } else if (!dateInput) {
                 date = new Date().toISOString().split('T')[0];
             }
@@ -728,15 +728,15 @@ def get_student_diary():
             `).join('') || '<p class="text-center text-xs py-10 font-bold text-gray-300">No history found.</p>';
         }
 
-        
-        
-        
-        
+
+
+
+
         async function unlockVault() {
             const auth_id = document.getElementById('v-auth-id').value;
             const dob = document.getElementById('v-dob').value;
             if(!auth_id || !dob) { alert("Please fill both fields"); return; }
-            
+
             const res = await fetch('/api/unlock-vault', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -801,7 +801,7 @@ def api_login():
     else:
         cur.execute("SELECT * FROM apsokara_teacher WHERE (cnic=? OR id=?) AND dob=?", (uid, uid_int, dob))
     user = cur.fetchone()
-    
+
     if user:
         u_dict = dict(user)
         u_dict['role'] = role
@@ -809,19 +809,19 @@ def api_login():
         u_dict['assigned_section'] = u_dict.get('assigned_section') or u_dict.get('student_section')
         u_dict['wing'] = u_dict.get('assigned_wing') or u_dict.get('wing')
         u_dict['is_class_teacher'] = u_dict.get('is_class_teacher', 0)
-        
-        
-        
-        
-        
+
+
+
+
+
         # --- NEW: Fetch Subject Assignments for Teachers ---
         if role == "Teacher":
             t_id = u_dict.get('id')
             cur.execute("""
-                SELECT 
+                SELECT
                     COALESCE(s.name, 'Subject ' || sa.subject_id) AS s_name,
-                    sa.student_class AS c_num, 
-                    sa.section AS s_sec, 
+                    sa.student_class AS c_num,
+                    sa.section AS s_sec,
                     sa.wing AS w_wing
                 FROM apsokara_subjectassignment sa
                 LEFT JOIN apsokara_subject s ON sa.subject_id = s.id
@@ -834,7 +834,7 @@ def api_login():
 
 
 
-        
+
         session['user'] = u_dict
 
         conn.close()
@@ -849,9 +849,9 @@ def check_lock():
     today = datetime.datetime.now(PK_TZ).date().isoformat()
     conn = sqlite3.connect(DB_PATH)
     # Check max edit count for this class today
-    res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a 
-                        JOIN apsokara_student s ON a.student_id = s.id 
-                        WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
+    res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a
+                        JOIN apsokara_student s ON a.student_id = s.id
+                        WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""",
                         (today, u['assigned_class'], u['assigned_section'], u['wing'])).fetchone()
     conn.close()
     return jsonify({"edit_count": res[0] if res[0] is not None else 0})
@@ -866,10 +866,10 @@ def students_marking():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     # Get students and their today's status if exists
-    cur = conn.execute("""SELECT s.id, s.full_name, s.roll_number, a.status 
-                        FROM apsokara_student s 
+    cur = conn.execute("""SELECT s.id, s.full_name, s.roll_number, a.status
+                        FROM apsokara_student s
                         LEFT JOIN apsokara_attendance a ON s.id = a.student_id AND a.date=?
-                        WHERE s.student_class=? AND s.student_section=? AND s.wing=? 
+                        WHERE s.student_class=? AND s.student_section=? AND s.wing=?
                         ORDER BY CAST(s.roll_number AS INTEGER)""", (today, u['assigned_class'], u['assigned_section'], u['wing']))
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
@@ -881,26 +881,26 @@ def sync_attendance():
     u = session['user']
     today = datetime.datetime.now(PK_TZ).date().isoformat()
     data = request.json.get('attendance', [])
-    
+
     conn = sqlite3.connect(DB_PATH)
     try:
         # Get current edit count
-        res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a 
-                            JOIN apsokara_student s ON a.student_id = s.id 
-                            WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
+        res = conn.execute("""SELECT MAX(edit_count) FROM apsokara_attendance a
+                            JOIN apsokara_student s ON a.student_id = s.id
+                            WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""",
                             (today, u['assigned_class'], u['assigned_section'], u['wing'])).fetchone()
         count = (res[0] if res[0] is not None else 0)
-        
+
         if count >= 2:
             return jsonify({"success": False, "error": "Record is Locked!"})
 
         cur = conn.cursor()
         cur.execute("BEGIN IMMEDIATE TRANSACTION;")
         # Delete old entries for today
-        cur.execute("""DELETE FROM apsokara_attendance WHERE date=? AND student_id IN 
-                     (SELECT id FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?)""", 
+        cur.execute("""DELETE FROM apsokara_attendance WHERE date=? AND student_id IN
+                     (SELECT id FROM apsokara_student WHERE student_class=? AND student_section=? AND wing=?)""",
                      (today, u['assigned_class'], u['assigned_section'], u['wing']))
-        
+
         # Insert new entries with incremented count
         final_data = [(s['id'], s['status'], today, count+1, u['full_name']) for s in data]
         cur.executemany("INSERT INTO apsokara_attendance (student_id, status, date, edit_count, marked_by) VALUES (?,?,?,?,?)", final_data)
@@ -920,31 +920,31 @@ def api_archive():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    
+
     if u['role'] == 'Student':
         if date:
-            cur.execute("""SELECT a.date, a.status, a.marked_by, 
-                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 / 
+            cur.execute("""SELECT a.date, a.status, a.marked_by,
+                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 /
                          (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id) as stats
-                         FROM apsokara_attendance a 
-                         WHERE a.student_id = ? AND a.date = ? 
+                         FROM apsokara_attendance a
+                         WHERE a.student_id = ? AND a.date = ?
                          ORDER BY a.date DESC""", (u['id'], date))
         else:
             cur.execute("""SELECT a.date, a.status, a.marked_by,
-                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 / 
+                         (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id AND status='Present') * 100.0 /
                          (SELECT COUNT(*) FROM apsokara_attendance WHERE student_id=a.student_id) as stats
-                         FROM apsokara_attendance a 
-                         WHERE a.student_id = ? 
+                         FROM apsokara_attendance a
+                         WHERE a.student_id = ?
                          ORDER BY a.date DESC""", (u['id'],))
     else:
         if not date:
             return jsonify({"error": "Date required for staff"}), 400
-        cur.execute("""SELECT s.full_name, a.status, a.date 
-                     FROM apsokara_student s 
-                     JOIN apsokara_attendance a ON s.id = a.student_id 
-                     WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""", 
+        cur.execute("""SELECT s.full_name, a.status, a.date
+                     FROM apsokara_student s
+                     JOIN apsokara_attendance a ON s.id = a.student_id
+                     WHERE a.date=? AND s.student_class=? AND s.student_section=? AND s.wing=?""",
                      (date, u['assigned_class'], u['assigned_section'], u['wing']))
-    
+
     res = [dict(r) for r in cur.fetchall()]
     conn.close()
     return jsonify(res)
@@ -961,7 +961,7 @@ def unlock_vault():
     auth_id, dob = str(data.get('auth_id')).strip(), str(data.get('dob')).strip()
     # Check role to compare against correct column
     stored_uid = str(u.get('b_form') if u['role'] == 'Student' else u.get('cnic')).strip()
-    
+
     if auth_id == stored_uid and dob == str(u.get('dob')):
         return jsonify({
             "success": True,
@@ -985,8 +985,8 @@ def api_intel():
         return jsonify({"flags": [], "error": "Access Denied"}), 403
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres 
-                        FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id 
+    cur = conn.execute("""SELECT s.full_name, COUNT(a.id) as total, SUM(CASE WHEN a.status='Present' THEN 1 ELSE 0 END) as pres
+                        FROM apsokara_student s LEFT JOIN apsokara_attendance a ON s.id = a.student_id
                         WHERE s.student_class=? AND s.student_section=? AND s.wing=? GROUP BY s.id""", (u['assigned_class'], u['assigned_section'], u['wing']))
     flags = []
     for r in cur.fetchall():

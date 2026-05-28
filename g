@@ -1,85 +1,80 @@
 #!/usr/bin/env python3
 """
-APS OKARA - Auto Fix for missing pagination.html
-This script creates the required pagination template and ensures no manual edits.
+Final APS Fix – Adds extra_head block to base.html and corrects reverse URL error.
+Run once from /home/sami/sumyaman/
 """
 
-import os
+import re
 from pathlib import Path
 
-# ----- CONFIGURATION -----
-BASE_DIR = Path("/home/sami/sumyaman")  # Your project root
-TEMPLATE_DIR = BASE_DIR / "templates"
-PAGINATION_FILE = TEMPLATE_DIR / "pagination.html"
+PROJECT_ROOT = Path(__file__).parent.absolute()
+TEMPLATES_DIR = PROJECT_ROOT / "templates" / "hq_admin_custom"
 
-# ----- PAGINATION.HTML CONTENT (Bootstrap 5) -----
-PAGINATION_HTML = """{% if page_obj.has_other_pages %}
-<nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page=1" aria-label="First">
-                <span aria-hidden="true">&laquo;&laquo;</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled"><span class="page-link">&laquo;&laquo;</span></li>
-        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-        {% endif %}
+def fix_base_html():
+    """Add {% block extra_head %} to base.html if missing."""
+    base_path = TEMPLATES_DIR / "base.html"
+    if not base_path.exists():
+        print("❌ base.html not found!")
+        return
 
-        {% for num in page_obj.paginator.page_range %}
-            {% if page_obj.number == num %}
-                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-            {% endif %}
-        {% endfor %}
+    with open(base_path, 'r') as f:
+        content = f.read()
 
-        {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
-                <span aria-hidden="true">&raquo;&raquo;</span>
-            </a>
-        </li>
-        {% else %}
-        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-        <li class="page-item disabled"><span class="page-link">&raquo;&raquo;</span></li>
-        {% endif %}
-    </ul>
-</nav>
-{% endif %}
-"""
+    # Check if extra_head block already exists
+    if "{% block extra_head %}" in content:
+        print("✓ extra_head block already present in base.html")
+        return
+
+    # Insert the block just before the closing </head> tag
+    new_block = """
+    {% block extra_head %}{% endblock %}
+</head>"""
+    new_content = content.replace("</head>", new_block)
+    if new_content != content:
+        with open(base_path, 'w') as f:
+            f.write(new_content)
+        print("✅ Added {% block extra_head %} to base.html")
+    else:
+        print("⚠️ Could not modify base.html – check file structure")
+
+def fix_student_fee_view():
+    """Fix reverse URL error in student_fee_view.html."""
+    template_path = TEMPLATES_DIR / "student_fee_view.html"
+    if not template_path.exists():
+        print("⚠️ student_fee_view.html not found, skipping.")
+        return
+
+    with open(template_path, 'r') as f:
+        content = f.read()
+
+    # Original: {% url 'student_fee_view' school_slug=school_slug student_id=s.id %}
+    # Should be: {% url 'student_fee_view' student_id=s.id %}
+    new_content = re.sub(
+        r"{% url ['\"]student_fee_view['\"]\s+school_slug=\w+\s+student_id=([^}\s]+)%}",
+        r"{% url 'student_fee_view' student_id=\1 %}",
+        content
+    )
+    # Also fix any other occurrence where school_slug appears as an extra kwarg
+    new_content = re.sub(
+        r"url\('student_fee_view',\s*school_slug=\w+,\s*student_id=([^)]+)\)",
+        r"url('student_fee_view', student_id=\1)",
+        new_content
+    )
+
+    if new_content != content:
+        with open(template_path, 'w') as f:
+            f.write(new_content)
+        print("✅ Fixed reverse URL error in student_fee_view.html")
+    else:
+        print("✓ student_fee_view.html already correct")
 
 def main():
-    print("🔧 APS OKARA Auto Fix - Pagination Template Creator")
-    print("==================================================")
-
-    # Ensure templates directory exists
-    TEMPLATE_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"✅ Ensured template directory: {TEMPLATE_DIR}")
-
-    # Write pagination.html
-    with open(PAGINATION_FILE, "w", encoding="utf-8") as f:
-        f.write(PAGINATION_HTML)
-    print(f"✅ Created/Updated: {PAGINATION_FILE}")
-
-    print("\n" + "="*50)
-    print("🎉 FIX APPLIED SUCCESSFULLY!")
-    print("\n📌 NEXT STEPS:")
-    print("1. Restart your Django server:")
-    print("   python3 manage.py runserver")
-    print("2. Now visit: /s/night/fee/defaulters/  (No more 500 error)")
-    print("="*50)
+    print("🔧 Applying final fixes...")
+    fix_base_html()
+    fix_student_fee_view()
+    print("\n✅ All fixes applied!")
+    print("➡️ Restart your Django server and refresh the fee collection page.")
+    print("➡️ The fee UI should now display correctly with all styles.")
 
 if __name__ == "__main__":
     main()

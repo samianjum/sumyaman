@@ -55,7 +55,7 @@ def render_leave_apply(u):
             if st.form_submit_button("🚀 Submit Request", width='stretch'):
                 if reason.strip():
                     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
-                        conn.execute("INSERT INTO apsokara_studentleave (student_id, class_name, section, wing, reason, from_date, to_date, status) VALUES (?,?,?,?,?,?,?,?)", 
+                        conn.execute("INSERT INTO apsokara_studentleave (student_id, class_name, section, wing, reason, from_date, to_date, status) VALUES (?,?,?,?,?,?,?,?)",
                                      (u.get('id'), u.get('class'), u.get('sec'), u.get('wing'), reason, str(start), str(end), 'Pending'))
                     st.success("Application Sent Successfully!"); st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
@@ -63,22 +63,22 @@ def render_leave_apply(u):
     with tab2:
         st.markdown("### Filter History")
         f_date = st.date_input("Select Date", value=None)
-        
+
         query = "SELECT * FROM apsokara_studentleave WHERE student_id=?"
         params = [u['id_num']]
         if f_date:
             query += " AND ? BETWEEN from_date AND to_date"
             params.append(str(f_date))
-        
+
         with sqlite3.connect("db.sqlite3", timeout=30) as conn:
             df = pd.read_sql(query + " ORDER BY id DESC", conn, params=params)
-        
+
         if df.empty: st.info("No records found.")
         for _, r in df.iterrows():
             read_status = "✅ Viewed" if r['is_read'] == 1 else "📩 Unread"
             color = "#fef2f2" if r['status'] == "Pending" else "#f0fdf4"
             txt_color = "#991b1b" if r['status'] == "Pending" else "#166534"
-            
+
             st.markdown(f"""
             <div class="history-card" style="background: {color};">
                 <div style="display:flex; justify-content:space-between;">

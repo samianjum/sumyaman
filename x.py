@@ -23,11 +23,11 @@ def get_hash(file_path):
 def save_state(current_hashes):
     if not os.path.exists(BACKUP_DIR):
         os.makedirs(BACKUP_DIR)
-    
+
     for f_path in FILES_TO_WATCH:
         if os.path.exists(f_path):
             shutil.copy2(f_path, os.path.join(BACKUP_DIR, os.path.basename(f_path)))
-            
+
     with open(STATE_FILE, 'w') as f:
         json.dump(current_hashes, f)
 

@@ -21,18 +21,18 @@ if start_marker in content:
     # Count actual tags inside template only
     ifs = len(re.findall(r'{% if', template_body))
     endifs = len(re.findall(r'{% endif %}', template_body))
-    
+
     print(f"Inside Template -> Ifs: {ifs}, Endifs: {endifs}")
-    
+
     if ifs > endifs:
         missing = ifs - endifs
         # Template khatam hone se pehle zaroori endifs add karein
         template_body += "\n" + ("{% endif %}\n" * missing)
         print(f"Added {missing} missing endifs to template body.")
-    
+
     # Reconstruct the file
     new_content = parts[0] + start_marker + template_body + end_marker + rest_of_file
-    
+
     with open('mobile_app.py', 'w') as f:
         f.write(new_content)
     print("✅ mobile_app.py recovered and balanced!")

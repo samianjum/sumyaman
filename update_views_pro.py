@@ -8,7 +8,7 @@ new_view = """
 def view_student_result(request, student_id, exam_id=None, subject_id=None):
     from django.db import connection
     student = get_object_or_404(Student, id=student_id)
-    
+
     with connection.cursor() as cursor:
         # 1. Exams List
         cursor.execute("SELECT DISTINCT e.id, e.name, e.start_date FROM exams e JOIN student_marks m ON e.id = m.exam_id WHERE m.student_id = %s ORDER BY e.id DESC", [student_id])
@@ -31,7 +31,7 @@ def view_student_result(request, student_id, exam_id=None, subject_id=None):
             WHERE m.student_id = %s ORDER BY sub.name, m.exam_id ASC
         \"\"\", [student_id])
         raw_rows = cursor.fetchall()
-        
+
         subject_depth = {}
         for row in raw_rows:
             sid, s_name, ob, tot, c_avg = row
@@ -44,13 +44,13 @@ def view_student_result(request, student_id, exam_id=None, subject_id=None):
             subject_depth[s_name]['total_tot'] += tot
             subject_depth[s_name]['total_c_avg'] += ca_p
             subject_depth[s_name]['count'] += 1
-        
+
         # 4. AI Insights Logic
         insights = []
         for s, d in subject_depth.items():
             d['avg'] = round((d['total_ob']/d['total_tot']*100), 1) if d['total_tot'] > 0 else 0
             d['overall_class_avg'] = round(d['total_c_avg']/d['count'], 1) if d['count'] > 0 else 0
-            
+
             if d['avg'] < d['overall_class_avg'] - 10:
                 insights.append(f"{s} is weaker than class average. Teacher focus required.")
             elif d['avg'] > 85:
@@ -72,10 +72,10 @@ def view_student_result(request, student_id, exam_id=None, subject_id=None):
                 p_perc = (r[1]/r[2]*100) if r[2] > 0 else 0
                 ca_perc = (r[4]/r[2]*100) if r[2] > 0 else 0
                 sub_marks.append({
-                    'name': r[0], 'ob': r[1], 'tot': r[2], 'teacher': r[3], 
+                    'name': r[0], 'ob': r[1], 'tot': r[2], 'teacher': r[3],
                     'perc': round(p_perc,1), 'c_avg': round(ca_perc,1)
                 })
-            
+
             t_ob = sum(s['ob'] for s in sub_marks)
             t_tot = sum(s['tot'] for s in sub_marks)
             all_results[ex['id']] = {
@@ -84,7 +84,7 @@ def view_student_result(request, student_id, exam_id=None, subject_id=None):
             }
 
     return render(request, 'hq_admin_custom/student_result_view.html', {
-        'student': student, 'exams': exams_list, 'all_results': all_results, 
+        'student': student, 'exams': exams_list, 'all_results': all_results,
         'subject_depth': subject_depth, 'att_perc': att_perc, 'insights': insights
     })
 """

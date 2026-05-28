@@ -14,14 +14,14 @@ def mega_insert():
     teachers = []
     wings = ['BOYS', 'GIRLS']
     sections = ['A', 'B', 'C', 'D', 'E']
-    
+
     for i in range(1, 101):
         teachers.append((
-            f"Teacher {i}", f"Father {i}", f"35202-{i:07d}-1", '1990-01-01', 
-            'Islam', f"0300{i:07d}", "Okara, Punjab", 
+            f"Teacher {i}", f"Father {i}", f"35202-{i:07d}-1", '1990-01-01',
+            'Islam', f"0300{i:07d}", "Okara, Punjab",
             1, str(random.randint(1, 10)), random.choice(sections), random.choice(wings)
         ))
-    
+
     cur.executemany("""
         INSERT INTO apsokara_teacher (full_name, father_name, cnic, dob, religion, contact, address, is_class_teacher, assigned_class, assigned_section, assigned_wing)
         VALUES (?,?,?,?,?,?,?,?,?,?,?)
@@ -29,7 +29,7 @@ def mega_insert():
 
     # 2. Inject 90,000 Students
     print("🎓 Injecting 90,000 Students...")
-    
+
     def student_generator():
         for i in range(1, 90001):
             cl = str(random.randint(1, 10))
@@ -38,24 +38,24 @@ def mega_insert():
             # Generating unique B-Forms and Roll Numbers
             b_form = f"35202-{i:07d}-1"
             roll = f"R-{i:05d}"
-            
+
             yield (
-                f"Student {i}", f"Father {i}", b_form, '2015-05-15', 
-                cl, sec, wing, roll, 'Pakistani', 'Punjab', 
+                f"Student {i}", f"Father {i}", b_form, '2015-05-15',
+                cl, sec, wing, roll, 'Pakistani', 'Punjab',
                 'Islam', f"0321{i:07d}", "Okara, Pakistan"
             )
 
     gen = student_generator()
     chunk_size = 5000
     total_processed = 0
-    
+
     while True:
         chunk = []
         try:
             for _ in range(chunk_size):
                 chunk.append(next(gen))
             cur.executemany("""
-                INSERT INTO apsokara_student 
+                INSERT INTO apsokara_student
                 (full_name, father_name, b_form, dob, student_class, student_section, wing, roll_number, nationality, province, religion, parents_phone, address)
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, chunk)
@@ -64,7 +64,7 @@ def mega_insert():
         except StopIteration:
             if chunk:
                 cur.executemany("""
-                    INSERT INTO apsokara_student 
+                    INSERT INTO apsokara_student
                     (full_name, father_name, b_form, dob, student_class, student_section, wing, roll_number, nationality, province, religion, parents_phone, address)
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """, chunk)

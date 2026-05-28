@@ -44,7 +44,7 @@ def render_apply_leave(u):
         if st.form_submit_button("🚀 Submit Request", width='stretch'):
             if reason.strip():
                 with sqlite3.connect("db.sqlite3", timeout=30) as conn:
-                    conn.execute("INSERT INTO apsokara_studentleave (student_id, name, class, section, wing, reason, from_date, to_date, status) VALUES (?,?,?,?,?,?,?,?,?)", 
+                    conn.execute("INSERT INTO apsokara_studentleave (student_id, name, class, section, wing, reason, from_date, to_date, status) VALUES (?,?,?,?,?,?,?,?,?)",
                                  (u['id_num'], u['name'], u['class'], u.get('section',''), u.get('wing',''), reason, start, end, 'Pending'))
                 st.success("Application Sent!")
                 st.rerun()
@@ -54,7 +54,7 @@ def render_apply_leave(u):
     st.markdown("<h3 style='color:#4C1D95;'>📜 My Leave History</h3>", unsafe_allow_html=True)
     with sqlite3.connect("db.sqlite3", timeout=30) as conn:
         df = pd.read_sql("SELECT * FROM apsokara_studentleave WHERE student_id=? ORDER BY id DESC", conn, params=(u['id_num'],))
-    
+
     if df.empty:
         st.info("No previous leaves found.")
     else:
