@@ -50,7 +50,21 @@
                 <span class="meta-tag"><i class="fas fa-school me-1"></i> {{ s.student_class }} - {{ s.student_section }}</span>
                 {% if s.wing and s.wing != "None" %}<span class="meta-tag"><i class="fas fa-users me-1"></i> {{ s.wing|upper }} WING</span>{% endif %}
                 <span class="meta-tag"><i class="fas fa-hashtag me-1"></i> {{ s.roll_number }}</span>
+            
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-rupee-sign"></i> Fee Details
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'student_fee_view' student_id=s.id %}" class="btn btn-outline-info">View Full Fee Statement</a>
+                </div>
             </div>
+        </div>
+    </div>
+
+</div>
         </div>
         <div class="no-print d-flex gap-2">
             <a href="/admin/apsokara/student/{{ s.id }}/change/" class="btn btn-warning btn-sm fw-bold px-3">EDIT</a>

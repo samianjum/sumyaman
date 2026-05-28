@@ -1,0 +1,12 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <h2>Fee Reports</h2>
+    <div class="row mt-4">
+        <div class="col-md-4"><div class="card bg-info text-white"><div class="card-body">Total Collected<br><h2>₹{{ total_collected }}</h2></div></div></div>
+        <div class="col-md-4"><div class="card bg-warning"><div class="card-body">Pending Fees<br><h2>₹{{ pending_fees }}</h2></div></div></div>
+        <div class="col-md-4"><div class="card bg-danger text-white"><div class="card-body">Overdue<br><h2>₹{{ overdue_fees }}</h2></div></div></div>
+    </div>
+    <div class="card mt-4"><div class="card-header">Monthly Collection (Last 6 months)</div><div class="card-body"><ul>{% for m in monthly %}<li>{{ m.month|date:"M Y" }}: ₹{{ m.total }}</li>{% empty %}<li>No data</li>{% endfor %}</ul></div></div>
+</div>
+{% endblock %}

@@ -70,3 +70,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 LOGIN_REDIRECT_URL = '/'
+
+# Custom admin site is used from .admin
+
+LOGIN_URL = '/hq-admin/login/'

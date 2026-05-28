@@ -1,0 +1,17 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% block content %}
+<div class="container" id="receipt">
+    <div class="card shadow-lg p-4">
+        <div class="text-center"><img src="/static/logo.png" height="60"><h3>Army Public School & College, Okara</h3><p>Fee Receipt</p></div>
+        <hr>
+        <p><strong>Receipt No:</strong> {{ payment.receipt_number }}</p>
+        <p><strong>Student:</strong> {{ payment.student.full_name }} (Roll: {{ payment.student.roll_number }})</p>
+        <p><strong>Amount:</strong> ₹{{ payment.amount }}</p>
+        <p><strong>Mode:</strong> {{ payment.get_payment_mode_display }}</p>
+        <p><strong>Date:</strong> {{ payment.transaction_date }}</p>
+        <p><strong>Remarks:</strong> {{ payment.remarks }}</p>
+        <hr>
+        <div class="text-center"><button onclick="window.print()" class="btn btn-primary">Print Receipt</button></div>
+    </div>
+</div>
+{% endblock %}

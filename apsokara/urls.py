@@ -1,5 +1,18 @@
+from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
+from .views import TenantAdminLoginView
+from .fee_views import (
+    fee_structure_view,
+    delete_fee_structure,
+    fee_collection_view,
+    fee_collection_print,
+    family_payment_view,
+    defaulters_list,
+    fee_reports,
+    student_fee_view,
+)
+
 
 urlpatterns = [
     path('exams/result/<int:student_id>/<int:exam_id>/<int:subject_id>/', views.view_student_result, name='view_student_result'),
@@ -40,4 +53,21 @@ urlpatterns = [
     path('subjects/', views.subject_manager_view, name='subject_manager'),
     path('settings/', views.school_settings_view, name='school_settings'),
     path('', views.hq_dashboard, name='hq_dashboard'),
+
+    # Fee Management URLs
+    path('fee/structure/', fee_structure_view, name='fee_structure'),
+    path('fee/structure/delete/<int:pk>/', delete_fee_structure, name='delete_fee_structure'),
+    path('fee/collection/', fee_collection_view, name='fee_collection'),
+    path('fee/collection/print/<str:receipt_no>/', fee_collection_print, name='fee_collection_print'),
+    path('fee/family/', family_payment_view, name='family_payment'),
+    path('fee/defaulters/', defaulters_list, name='defaulters'),
+    path('fee/reports/', fee_reports, name='fee_reports'),
+    path('fee/student/<int:student_id>/', student_fee_view, name='student_fee_view'),
+
+]
+
+# Tenant Admin Login/Logout
+urlpatterns += [
+    path('admin/login/', TenantAdminLoginView.as_view(), name='tenant_admin_login'),
+    path('admin/logout/', auth_views.LogoutView.as_view(next_page='/'), name='tenant_admin_logout'),
 ]

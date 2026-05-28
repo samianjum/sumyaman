@@ -22,7 +22,7 @@
     
     <div class="card shadow">
         <div class="card-body p-4">
-            <form method="POST" id="schoolForm">
+            <form method="POST">
                 {% csrf_token %}
                 
                 <div class="mb-3">
@@ -64,7 +64,6 @@
                     <a href="{% url 'super_admin_dashboard' %}" class="btn btn-link btn-sm mt-2 text-muted">Cancel</a>
                 </div>
             </form>
-<script>document.getElementById("schoolForm").addEventListener("submit",function(){let u=document.querySelector("[name=admin_user]").value;let p=document.querySelector("[name=admin_pass]").value;if(u&&p){let env=document.createElement("input");env.type="hidden";env.name="admin_user";env.value=u;this.appendChild(env);let env2=document.createElement("input");env2.type="hidden";env2.name="admin_pass";env2.value=p;this.appendChild(env2);}});</script>
         </div>
     </div>
 </div>

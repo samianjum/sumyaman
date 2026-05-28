@@ -11,6 +11,21 @@ from super_admin.models import SchoolClient
 from .models import Student, Teacher, Attendance, SchoolNews
 from django.db.models import Count, Q
 
+from django.contrib.auth.views import LoginView
+from django.shortcuts import redirect
+from django.urls import reverse
+
+class TenantAdminLoginView(LoginView):
+    template_name = 'hq_admin_custom/login.html'
+    
+    def get_success_url(self):
+        # Get school slug from URL
+        school_slug = self.request.resolver_match.kwargs.get('school_slug')
+        if school_slug:
+            return reverse('hq_dashboard', kwargs={'school_slug': school_slug})
+        return reverse('hq_dashboard')  # fallback (shouldn't happen)
+
+
 @login_required
 def hq_dashboard(request, school_slug=None):
     current_school = get_object_or_404(SchoolClient, slug=school_slug) if school_slug else None
@@ -989,3 +1004,12 @@ def school_settings_view(request, school_slug=None):
         'school_slug': school_slug,
         'current_school': school
     })
+
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def tenant_logout(request, school_slug=None):
+    logout(request)
+    if school_slug:
+        return redirect(f'/s/{school_slug}/admin/login/')
+    return redirect('/hq-admin/login/')

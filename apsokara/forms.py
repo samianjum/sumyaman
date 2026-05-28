@@ -166,3 +166,27 @@ class SubjectAssignmentForm(forms.ModelForm):
 SubjectAssignmentFormSet = inlineformset_factory(
     Teacher, SubjectAssignment, form=SubjectAssignmentForm, extra=1, can_delete=True
 )
+
+# ---------- FEE FORMS ----------
+from django import forms
+from .models import FeeStructure, FeeRecord, PaymentTransaction
+
+class FeeStructureForm(forms.ModelForm):
+    class Meta:
+        model = FeeStructure
+        fields = ['student_class', 'monthly_fee']
+        widgets = {
+            'student_class': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 5'}),
+            'monthly_fee': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+class FeeCollectionForm(forms.Form):
+    student_id = forms.IntegerField(label='Student ID', widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    amount = forms.DecimalField(label='Amount', widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
+    payment_mode = forms.ChoiceField(choices=PaymentTransaction.MODE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+    remarks = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}))
+
+class FamilyPaymentForm(forms.Form):
+    father_cnic = forms.CharField(label='Father CNIC / B-Form', widget=forms.TextInput(attrs={'class': 'form-control'}))
+    amount = forms.DecimalField(required=False, label='Amount (leave blank to pay all pending)', widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
+    payment_mode = forms.ChoiceField(choices=PaymentTransaction.MODE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))

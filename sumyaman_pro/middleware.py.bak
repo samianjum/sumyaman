@@ -16,7 +16,7 @@ class TenantMiddleware:
         for school in schools:
             if school.slug not in settings.DATABASES:
                 db_config = settings.DATABASES['default'].copy()
-                db_config['NAME'] = school.db_name
+                db_config['NAME'] = f"{school.slug}_db"
                 settings.DATABASES[school.slug] = db_config
 
         if len(path_parts) >= 2 and path_parts[0] == 's':

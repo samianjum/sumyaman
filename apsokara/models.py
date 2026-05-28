@@ -112,3 +112,79 @@ class ExamResult(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     marks_obtained = models.DecimalField(max_digits=5, decimal_places=2)
     total_marks = models.DecimalField(max_digits=5, decimal_places=2)
+
+
+# ---------- FEE MANAGEMENT MODELS ----------
+from decimal import Decimal
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+class FeeStructure(models.Model):
+    student_class = models.CharField(max_length=10, unique=True)
+    monthly_fee = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Class {self.student_class} - ₹{self.monthly_fee}"
+
+class FeeRecord(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('partial', 'Partial'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue'),
+    ]
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='fee_records')
+    month = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
+    year = models.IntegerField()
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    due_date = models.DateField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('student', 'month', 'year')
+        ordering = ['-year', '-month']
+
+    @property
+    def pending_amount(self):
+        return self.total_amount - self.paid_amount
+
+    def update_status(self):
+        if self.paid_amount >= self.total_amount:
+            self.status = 'paid'
+        elif self.paid_amount > 0:
+            self.status = 'partial'
+        else:
+            self.status = 'overdue' if self.due_date < timezone.now().date() else 'pending'
+        self.save(update_fields=['status'])
+
+class PaymentTransaction(models.Model):
+    MODE_CHOICES = [
+        ('cash', 'Cash'),
+        ('bank_transfer', 'Bank Transfer'),
+        ('cheque', 'Cheque'),
+        ('online', 'Online'),
+    ]
+    receipt_number = models.CharField(max_length=50, unique=True)
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_mode = models.CharField(max_length=20, choices=MODE_CHOICES)
+    transaction_date = models.DateField(default=timezone.now)
+    remarks = models.TextField(blank=True)
+    fee_records = models.ManyToManyField('FeeRecord', related_name='payments')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Receipt #{self.receipt_number} - ₹{self.amount}"
+
+class SchoolFeeSettings(models.Model):
+    generation_day = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(31)])
+    due_date_offset = models.IntegerField(default=15, help_text="Days after generation when fee is due")
+    late_fee_penalty = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="Percentage added to overdue amount")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Settings (gen day: {self.generation_day})"

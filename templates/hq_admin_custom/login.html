@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Admin Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', system-ui; }
+        .login-card { background: white; border-radius: 24px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .school-icon { width: 70px; height: 70px; background: #2F3E46; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 32px; }
+        .btn-login { background: #2F3E46; color: white; width: 100%; padding: 12px; border-radius: 12px; font-weight: 700; border: none; }
+        .btn-login:hover { background: #1e2a32; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="school-icon">
+            <i class="fas fa-school"></i>
+        </div>
+        <h2 class="text-center mb-2 fw-bold" style="color: #2F3E46;">APSACS Portal</h2>
+        <p class="text-center text-muted mb-4">Sign in to manage your institution</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <input type="text" name="username" class="form-control form-control-lg" placeholder="Username" required>
+            </div>
+            <div class="mb-3">
+                <input type="password" name="password" class="form-control form-control-lg" placeholder="Password" required>
+            </div>
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+        <p class="text-center text-muted small mt-4">Default credentials: admin / admin123</p>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+</body>
+</html>
