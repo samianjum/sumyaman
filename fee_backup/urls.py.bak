@@ -27,6 +27,7 @@ urlpatterns = [
     path('exams/subjects/<int:exam_id>/', views.manage_subjects_view, name='manage_subjects'),
     path('exams/toggle/<int:exam_id>/', views.toggle_exam_status, name='toggle_exam'),
 
+
     # News & Dashboard
     path('news-manager/', views.news_manager_view, name='news_manager'),
     path('news-delete/<int:news_id>/', views.delete_news, name='delete_news'),
@@ -62,8 +63,10 @@ urlpatterns = [
     path('fee/family/', family_payment_view, name='family_payment'),
     path('fee/defaulters/', defaulters_list, name='defaulters'),
     path('fee/reports/', fee_reports, name='fee_reports'),
+    path('fee/student/<int:student_id>/', student_fee_view,
+    generate_fees_view, name='student_fee_view'),
     path('fee/generate/<int:year>/<int:month>/', generate_fees_view, name='generate_fees'),
-    path('fee/student/<int:student_id>/', student_fee_view, name='student_fee_view'),
+
 ]
 
 # Tenant Admin Login/Logout

@@ -58,7 +58,7 @@
                     <i class="fas fa-rupee-sign"></i> Fee Details
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'student_fee_view' student_id=s.id %}" class="btn btn-outline-info">View Full Fee Statement</a>
+                    <a href="{% url 'student_fee_view' school_slug=school_slug student_id=s.id %}" class="btn btn-outline-info">View Full Fee Statement</a>
                 </div>
             </div>
         </div>

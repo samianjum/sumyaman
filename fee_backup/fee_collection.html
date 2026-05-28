@@ -1,0 +1,44 @@
+
+{% extends "hq_admin_custom/base.html" %}
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="fw-bold mb-4"><i class="fas fa-hand-holding-usd me-2"></i>Fee Collection</h2>
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">Collect Fee</div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-success w-100">Process Payment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">Recent Collections</div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Receipt</th><th>Student</th><th>Amount</th><th>Date</th><th>Mode</th></tr></thead>
+                        <tbody>
+                            {% for p in recent %}
+                            <tr>
+                                <td><a href="{% url 'fee_collection_print' school_slug=school_slug receipt_no=p.receipt_number %}" target="_blank">{{ p.receipt_number }}</a></td>
+                                <td>{{ p.student.full_name }}</td>
+                                <td>₹{{ p.amount }}</td>
+                                <td>{{ p.transaction_date }}</td>
+                                <td>{{ p.get_payment_mode_display }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center">No collections yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -17,7 +17,7 @@
                         <td>{{ fs.student_class }}</td>
                         <td>₹{{ fs.monthly_fee }}</td>
                         <td>
-                            <a href="{% url 'delete_fee_structure' fs.pk school_slug %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this structure?')">Delete</a>
+                            <a href="{% url 'delete_fee_structure' pk=fs.pk school_slug=school_slug %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this structure?')">Delete</a>
                         </td>
                     </tr>
                     {% empty %}

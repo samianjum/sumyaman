@@ -3,13 +3,16 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import Sum, Q, F, Value, DecimalField
+from django.db.models import Sum, Q, F, Value, DecimalField, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 from django.urls import reverse
 from django.core.paginator import Paginator
+from django.template.loader import render_to_string
 
 from sumyaman_pro.router import set_current_db
 from .models import Student, FeeStructure, FeeRecord, PaymentTransaction, SchoolFeeSettings
@@ -17,11 +20,13 @@ from .forms import FeeStructureForm, FeeCollectionForm, FamilyPaymentForm
 
 
 def get_fee_settings():
+    """Get or create default fee settings for the school."""
     obj, _ = SchoolFeeSettings.objects.get_or_create(pk=1)
     return obj
 
 
 def generate_fees_for_month(year, month):
+    """Generate fee records for all students for the given month/year."""
     settings = get_fee_settings()
     students = Student.objects.all()
     created_count = 0
@@ -31,8 +36,11 @@ def generate_fees_for_month(year, month):
             total = fee_struct.monthly_fee
         except FeeStructure.DoesNotExist:
             continue
+
         if FeeRecord.objects.filter(student=student, month=month, year=year).exists():
             continue
+
+        # Calculate due date
         if month == 2 and (year % 4 != 0 or (year % 100 == 0 and year % 400 != 0)):
             max_day = 28
         elif month in [4, 6, 9, 11]:
@@ -41,6 +49,7 @@ def generate_fees_for_month(year, month):
             max_day = 31
         due_day = min(settings.due_date_offset, max_day)
         due_date = date(year, month, due_day)
+
         FeeRecord.objects.create(
             student=student,
             month=month,
@@ -55,11 +64,13 @@ def generate_fees_for_month(year, month):
 
 @login_required
 def generate_fees_view(request, year, month, school_slug=None):
+    """Manual trigger to generate fee records for a specific month."""
     if school_slug:
         set_current_db(school_slug)
     if not request.user.is_superuser and not hasattr(request.user, 'teacher'):
         messages.error(request, "Permission denied.")
         return redirect('fee_reports', school_slug=school_slug)
+
     count = generate_fees_for_month(year, month)
     messages.success(request, f"Generated {count} fee records for {month}/{year}.")
     return redirect('fee_reports', school_slug=school_slug)
@@ -77,6 +88,7 @@ def fee_structure_view(request, school_slug=None):
             return redirect('fee_structure', school_slug=school_slug)
     else:
         form = FeeStructureForm()
+
     structures = FeeStructure.objects.all().order_by('student_class')
     return render(request, 'hq_admin_custom/fee/fee_structure.html', {
         'structures': structures,
@@ -149,6 +161,7 @@ def fee_collection_view(request, school_slug=None):
                     remarks=remarks,
                 )
                 payment.fee_records.set(allocated_records)
+                payment.save()
 
             messages.success(request, f"Payment of ₹{amount} received. Receipt: {receipt_no}")
             return redirect('fee_collection_print', school_slug=school_slug, receipt_no=receipt_no)
@@ -246,6 +259,7 @@ def family_payment_view(request, school_slug=None):
                     remarks=f"Family payment for CNIC {father_cnic} covering {len(allocated_all)} fee records",
                 )
                 payment.fee_records.set(allocated_all)
+                payment.save()
 
             messages.success(request, f"Paid ₹{amount} for family. Receipt: {receipt_no}")
             return redirect('fee_collection_print', school_slug=school_slug, receipt_no=receipt_no)
@@ -290,7 +304,10 @@ def fee_reports(request, school_slug=None):
         total=Sum('amount')
     ).order_by('-transaction_date__year', '-transaction_date__month')
 
-    pending_by_class = FeeRecord.objects.filter(status__in=['pending', 'partial', 'overdue'])         .values('student__student_class')         .annotate(pending_total=Sum(F('total_amount') - F('paid_amount')))         .order_by('student__student_class')
+    pending_by_class = FeeRecord.objects.filter(status__in=['pending', 'partial', 'overdue']) \
+        .values('student__student_class') \
+        .annotate(pending_total=Sum(F('total_amount') - F('paid_amount'))) \
+        .order_by('student__student_class')
 
     return render(request, 'hq_admin_custom/fee/fee_reports.html', {
         'collections': collections,

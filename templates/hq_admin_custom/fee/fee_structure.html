@@ -1,0 +1,51 @@
+{% extends "hq_admin_custom/base.html" %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-coins me-2"></i>Fee Structure</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">+ Add Class Fee</button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr><th>Class</th><th>Monthly Fee (₹)</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    {% for s in structures %}
+                    <tr>
+                        <td>{{ s.student_class }}</td>
+                        <td>₹{{ s.monthly_fee }}</td>
+                        <td>
+                            <form method="post" action="{% url 'delete_fee_structure' school_slug=school_slug pk=s.pk %}">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center">No fee structures defined.{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white"><h5 class="modal-title">Add Fee Structure</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {{ form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

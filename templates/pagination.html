@@ -1,19 +1,4 @@
-#!/usr/bin/env python3
-"""
-APS OKARA - Auto Fix for missing pagination.html
-This script creates the required pagination template and ensures no manual edits.
-"""
-
-import os
-from pathlib import Path
-
-# ----- CONFIGURATION -----
-BASE_DIR = Path("/home/sami/sumyaman")  # Your project root
-TEMPLATE_DIR = BASE_DIR / "templates"
-PAGINATION_FILE = TEMPLATE_DIR / "pagination.html"
-
-# ----- PAGINATION.HTML CONTENT (Bootstrap 5) -----
-PAGINATION_HTML = """{% if page_obj.has_other_pages %}
+{% if page_obj.has_other_pages %}
 <nav aria-label="Page navigation" class="mt-4">
     <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
@@ -58,28 +43,3 @@ PAGINATION_HTML = """{% if page_obj.has_other_pages %}
     </ul>
 </nav>
 {% endif %}
-"""
-
-def main():
-    print("🔧 APS OKARA Auto Fix - Pagination Template Creator")
-    print("==================================================")
-
-    # Ensure templates directory exists
-    TEMPLATE_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"✅ Ensured template directory: {TEMPLATE_DIR}")
-
-    # Write pagination.html
-    with open(PAGINATION_FILE, "w", encoding="utf-8") as f:
-        f.write(PAGINATION_HTML)
-    print(f"✅ Created/Updated: {PAGINATION_FILE}")
-
-    print("\n" + "="*50)
-    print("🎉 FIX APPLIED SUCCESSFULLY!")
-    print("\n📌 NEXT STEPS:")
-    print("1. Restart your Django server:")
-    print("   python3 manage.py runserver")
-    print("2. Now visit: /s/night/fee/defaulters/  (No more 500 error)")
-    print("="*50)
-
-if __name__ == "__main__":
-    main()

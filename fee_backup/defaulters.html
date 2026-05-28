@@ -1,0 +1,27 @@
+
+{% extends "hq_admin_custom/base.html" %}
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Defaulters List</h2>
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead><tr><th>Student</th><th>Class</th><th>Pending Amount (₹)</th><th>Action</th></tr></thead>
+                <tbody>
+                    {% for s in page_obj %}
+                    <tr>
+                        <td>{{ s.full_name }}</td>
+                        <td>{{ s.student_class }}-{{ s.student_section }}</td>
+                        <td class="text-danger">₹{{ s.pending_total }}</td>
+                        <td><a href="{% url 'student_fee_view' school_slug=school_slug student_id=s.id %}" class="btn btn-sm btn-outline-primary">View</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center">No defaulters.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% include "pagination.html" with page=page_obj %}
+        </div>
+    </div>
+</div>
+{% endblock %}

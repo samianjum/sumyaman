@@ -1,0 +1,44 @@
+{% extends "hq_admin_custom/base.html" %}
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="fw-bold mb-4"><i class="fas fa-chart-line me-2"></i>Fee Reports</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">Monthly Collection</div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead><tr><th>Year-Month</th><th>Total Collected (₹)</th></tr></thead>
+                        <tbody>
+                            {% for c in collections %}
+                            <tr><td>{{ c.transaction_date__year }}-{{ c.transaction_date__month }}</td><td>₹{{ c.total }}</td></tr>
+                            {% empty %}
+                            <tr><td colspan="2">No data.{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">Pending by Class</div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead><tr><th>Class</th><th>Pending Amount (₹)</th></tr></thead>
+                        <tbody>
+                            {% for p in pending_by_class %}
+                            <td><td>{{ p.student__student_class }}</td><td>₹{{ p.pending_total }}</td></tr>
+                            {% empty %}
+                            <tr><td colspan="2">No pending.{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-4">
+        <a href="{% url 'generate_fees' school_slug=school_slug year=2025 month=1 %}" class="btn btn-warning">Generate Fees for Jan 2025 (Example)</a>
+        <small class="text-muted ms-2">You can create a management command or custom view to generate for any month.</small>
+    </div>
+</div>
+{% endblock %}
