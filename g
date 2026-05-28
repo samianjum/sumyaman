@@ -1,80 +1,52 @@
 #!/usr/bin/env python3
 """
-Final APS Fix – Adds extra_head block to base.html and corrects reverse URL error.
+Fix fee collection reverse URL error – include school_slug in recent-payments URL.
 Run once from /home/sami/sumyaman/
 """
 
 import re
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent.absolute()
-TEMPLATES_DIR = PROJECT_ROOT / "templates" / "hq_admin_custom"
+TEMPLATES_DIR = Path(__file__).parent.absolute() / "templates" / "hq_admin_custom"
 
-def fix_base_html():
-    """Add {% block extra_head %} to base.html if missing."""
-    base_path = TEMPLATES_DIR / "base.html"
-    if not base_path.exists():
-        print("❌ base.html not found!")
-        return
-
-    with open(base_path, 'r') as f:
-        content = f.read()
-
-    # Check if extra_head block already exists
-    if "{% block extra_head %}" in content:
-        print("✓ extra_head block already present in base.html")
-        return
-
-    # Insert the block just before the closing </head> tag
-    new_block = """
-    {% block extra_head %}{% endblock %}
-</head>"""
-    new_content = content.replace("</head>", new_block)
-    if new_content != content:
-        with open(base_path, 'w') as f:
-            f.write(new_content)
-        print("✅ Added {% block extra_head %} to base.html")
-    else:
-        print("⚠️ Could not modify base.html – check file structure")
-
-def fix_student_fee_view():
-    """Fix reverse URL error in student_fee_view.html."""
-    template_path = TEMPLATES_DIR / "student_fee_view.html"
+def fix_recent_payments_url():
+    template_path = TEMPLATES_DIR / "fee_collection.html"
     if not template_path.exists():
-        print("⚠️ student_fee_view.html not found, skipping.")
+        print("❌ fee_collection.html not found!")
         return
 
     with open(template_path, 'r') as f:
         content = f.read()
 
-    # Original: {% url 'student_fee_view' school_slug=school_slug student_id=s.id %}
-    # Should be: {% url 'student_fee_view' student_id=s.id %}
-    new_content = re.sub(
-        r"{% url ['\"]student_fee_view['\"]\s+school_slug=\w+\s+student_id=([^}\s]+)%}",
-        r"{% url 'student_fee_view' student_id=\1 %}",
-        content
-    )
-    # Also fix any other occurrence where school_slug appears as an extra kwarg
-    new_content = re.sub(
-        r"url\('student_fee_view',\s*school_slug=\w+,\s*student_id=([^)]+)\)",
-        r"url('student_fee_view', student_id=\1)",
-        new_content
-    )
-
-    if new_content != content:
-        with open(template_path, 'w') as f:
-            f.write(new_content)
-        print("✅ Fixed reverse URL error in student_fee_view.html")
+    # Replace the meta tag to include school_slug in the URL
+    # Current: <meta name="recent-payments-url" content="{% url "fee_recent_payments" %}">
+    # Should be: <meta name="recent-payments-url" content="{% url 'fee_recent_payments' school_slug=school_slug %}">
+    old_meta = r'<meta name="recent-payments-url" content="{% url ["\']fee_recent_payments["\'] %}"?>'
+    new_meta = '<meta name="recent-payments-url" content="{% url \'fee_recent_payments\' school_slug=school_slug %}">'
+    
+    if re.search(old_meta, content):
+        content = re.sub(old_meta, new_meta, content)
+        print("✅ Fixed meta tag to include school_slug.")
     else:
-        print("✓ student_fee_view.html already correct")
+        # Fallback: replace exact text
+        content = content.replace(
+            '<meta name="recent-payments-url" content="{% url "fee_recent_payments" %}">',
+            '<meta name="recent-payments-url" content="{% url \'fee_recent_payments\' school_slug=school_slug %}">'
+        )
+        content = content.replace(
+            "<meta name=\"recent-payments-url\" content=\"{% url 'fee_recent_payments' %}\">",
+            "<meta name=\"recent-payments-url\" content=\"{% url 'fee_recent_payments' school_slug=school_slug %}\">"
+        )
+        print("✅ Replaced meta tag (alternative pattern).")
+
+    with open(template_path, 'w') as f:
+        f.write(content)
+    print("✅ fee_collection.html updated.")
 
 def main():
-    print("🔧 Applying final fixes...")
-    fix_base_html()
-    fix_student_fee_view()
-    print("\n✅ All fixes applied!")
-    print("➡️ Restart your Django server and refresh the fee collection page.")
-    print("➡️ The fee UI should now display correctly with all styles.")
+    print("🔧 Fixing reverse URL for recent payments...")
+    fix_recent_payments_url()
+    print("\n✅ Done! Restart Django and reload the fee collection page.")
 
 if __name__ == "__main__":
     main()

@@ -254,6 +254,24 @@ def daily_collection_summary(request, school_slug=None):
 
 
 
+
+
+def recent_payments_api(request, school_slug=None):
+    """Return last 10 payment transactions for the dashboard."""
+    if school_slug:
+        set_current_db(school_slug)
+    payments = PaymentTransaction.objects.select_related('student').order_by('-created_at')[:10]
+    data = []
+    for p in payments:
+        data.append({
+            'receipt': p.receipt_number,
+            'student': p.student.full_name,
+            'amount': str(p.amount),
+            'mode': p.get_payment_mode_display(),
+            'date': p.transaction_date.isoformat(),
+        })
+    return JsonResponse({'payments': data})
+
 def get_fee_settings():
     obj, _ = SchoolFeeSettings.objects.get_or_create(pk=1)
     return obj

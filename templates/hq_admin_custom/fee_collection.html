@@ -3,9 +3,9 @@
 {% block title %}Fee Collection | Smart Cashier{% endblock %}
 
 {% block extra_head %}
+<meta name="recent-payments-url" content="{% url 'fee_recent_payments' school_slug=school_slug %}">
 <meta name="csrf-token" content="{{ csrf_token }}">
 <style>
-/* Modern fee collection styles */
 .fee-container { max-width: 1400px; margin: 0 auto; }
 .search-card { background: white; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem; margin-bottom: 1.5rem; }
 .student-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem; transition: all 0.2s; }
@@ -23,6 +23,10 @@
 .receipt-content { background: white; max-width: 500px; width: 90%; border-radius: 24px; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
 .summary-box { background: #f1f5f9; border-radius: 16px; padding: 1rem; text-align: center; }
 .allocation-preview { background: #eef2ff; border-radius: 12px; padding: 0.8rem; font-size: 0.8rem; margin: 0.5rem 0; }
+.empty-state { text-align: center; padding: 3rem; color: #64748b; }
+.history-table { width: 100%; border-collapse: collapse; }
+.history-table th { text-align: left; padding: 0.5rem; border-bottom: 1px solid #e2e8f0; font-size: 0.7rem; text-transform: uppercase; color: #64748b; }
+.history-table td { padding: 0.5rem; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; }
 @media (max-width: 768px) { .mode-buttons { flex-direction: column; } }
 </style>
 {% endblock %}
@@ -39,7 +43,7 @@
   <!-- Step 1: Instant Student Lookup -->
   <div class="search-card">
     <div class="mb-3">
-      <label class="form-label fw-bold">🔍 Find Student</label>
+      <label class="form-label fw-bold"><i class="fas fa-search me-2"></i> Find Student</label>
       <div class="input-group">
         <input type="text" id="studentSearch" class="form-control form-control-lg" placeholder="Roll number, name, father CNIC, or mobile..." autocomplete="off">
         <button class="btn btn-primary" type="button" id="searchBtn"><i class="fas fa-search"></i> Search</button>
@@ -56,7 +60,7 @@
 
   <!-- Step 3: Payment panel (initially hidden) -->
   <div id="paymentPanel" style="display: none;" class="search-card">
-    <h5 class="fw-bold mb-3"><i class="fas fa-coins me-2"></i>Collect Payment</h5>
+    <h5 class="fw-bold mb-3"><i class="fas fa-coins me-2"></i> Collect Payment</h5>
     <div class="mb-3">
       <label class="form-label fw-bold">Amount Paying Today (₹)</label>
       <input type="number" id="payAmount" class="amount-input" step="0.01" value="0">
@@ -65,14 +69,22 @@
     <div class="mb-3">
       <label class="form-label fw-bold">Payment Mode</label>
       <div class="mode-buttons" id="modeButtons">
-        <button type="button" class="mode-btn" data-mode="cash">💵 Cash</button>
-        <button type="button" class="mode-btn" data-mode="bank_transfer">🏦 Bank Transfer</button>
-        <button type="button" class="mode-btn" data-mode="cheque">📝 Cheque</button>
-        <button type="button" class="mode-btn" data-mode="online">💻 Online</button>
+        <button type="button" class="mode-btn" data-mode="cash"><i class="fas fa-money-bill-wave me-2"></i> Cash</button>
+        <button type="button" class="mode-btn" data-mode="bank_transfer"><i class="fas fa-university me-2"></i> Bank Transfer</button>
+        <button type="button" class="mode-btn" data-mode="cheque"><i class="fas fa-receipt me-2"></i> Cheque</button>
+        <button type="button" class="mode-btn" data-mode="online"><i class="fas fa-globe me-2"></i> Online</button>
       </div>
       <input type="text" id="remarks" class="form-control mt-2" placeholder="Cheque number / reference (optional)">
     </div>
     <button id="collectBtn" class="payment-btn"><i class="fas fa-receipt me-2"></i> Collect & Print Receipt</button>
+  </div>
+
+  <!-- Recent Payments History -->
+  <div class="search-card">
+    <h5 class="fw-bold mb-3"><i class="fas fa-history me-2"></i> Recent Payments</h5>
+    <div id="recentPaymentsList">
+      <div class="text-center text-muted py-3"><i class="fas fa-spinner fa-pulse"></i> Loading...</div>
+    </div>
   </div>
 </div>
 
@@ -80,12 +92,12 @@
 <div id="receiptModal" class="receipt-modal" style="display: none;">
   <div class="receipt-content">
     <div class="d-flex justify-content-between mb-3">
-      <h5 class="fw-bold">Payment Receipt</h5>
+      <h5 class="fw-bold"><i class="fas fa-receipt me-2"></i> Payment Receipt</h5>
       <button type="button" class="btn-close" onclick="closeReceipt()"></button>
     </div>
     <div id="receiptBody"></div>
     <div class="d-grid gap-2 mt-3">
-      <button onclick="window.print()" class="btn btn-secondary"><i class="fas fa-print"></i> Print</button>
+      <button onclick="window.print()" class="btn btn-secondary"><i class="fas fa-print me-2"></i> Print</button>
       <button onclick="closeReceipt()" class="btn btn-light">Close</button>
     </div>
   </div>
@@ -109,9 +121,11 @@ function getCookie(name) {
 const csrftoken = getCookie('csrftoken');
 
 let currentStudent = null;
+let currentStudentDetails = null; // store full details from search
 let pendingRecords = [];
 let totalPending = 0;
 
+// Load daily summary and recent payments
 async function loadDailySummary() {
     try {
         const res = await fetch(window.location.pathname.replace(/\/fee\/collection\/$/, '/fee/daily-summary/'));
@@ -120,7 +134,37 @@ async function loadDailySummary() {
         document.getElementById('todayCount').innerText = data.count || '0';
     } catch(e) { console.error(e); }
 }
+
+async function loadRecentPayments() {
+    try {
+        const url = window.location.pathname.replace(/\/fee\/collection\/$/, '/fee/recent-payments/');
+        const res = await fetch(url);
+        const data = await res.json();
+        const container = document.getElementById('recentPaymentsList');
+        if (data.payments && data.payments.length) {
+            let html = `<table class="history-table"><thead><tr><th>Date</th><th>Receipt No.</th><th>Student</th><th>Amount</th><th>Mode</th></tr></thead><tbody>`;
+            data.payments.forEach(p => {
+                html += `<tr>
+                    <td>${p.date}</td>
+                    <td>${p.receipt}</td>
+                    <td>${escapeHtml(p.student)}</td>
+                    <td>₹${parseFloat(p.amount).toFixed(2)}</td>
+                    <td>${p.mode}</td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = `<div class="empty-state"><i class="fas fa-receipt fa-3x mb-2"></i><p>No recent payments yet.</p></div>`;
+        }
+    } catch(e) { 
+        console.error('Failed to load recent payments:', e);
+        document.getElementById('recentPaymentsList').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle fa-3x mb-2"></i><p>Could not load recent payments.</p></div>`;
+    }
+}
+
 loadDailySummary();
+loadRecentPayments();
 
 const searchInput = document.getElementById('studentSearch');
 const searchResultsDiv = document.getElementById('searchResults');
@@ -144,7 +188,7 @@ async function performSearch(q) {
     const data = await res.json();
     if (data.results && data.results.length) {
         searchResultsDiv.innerHTML = data.results.map(s => `
-            <button class="list-group-item list-group-item-action" onclick="selectStudent(${s.id})">
+            <button class="list-group-item list-group-item-action" onclick="selectStudent(${s.id}, ${JSON.stringify(s).replace(/"/g, '&quot;')})">
                 <div class="d-flex justify-content-between">
                     <strong>${escapeHtml(s.full_name)}</strong>
                     <span class="badge bg-secondary">${s.roll_number}</span>
@@ -169,7 +213,16 @@ function escapeHtml(str) {
     });
 }
 
-async function selectStudent(studentId) {
+async function selectStudent(studentId, studentDetailsJson) {
+    // Store student details from search result
+    let details = null;
+    if (studentDetailsJson) {
+        try {
+            details = JSON.parse(studentDetailsJson);
+        } catch(e) { console.error(e); }
+    }
+    currentStudentDetails = details;
+    
     searchResultsDiv.style.display = 'none';
     searchInput.value = '';
     const res = await fetch(`${window.location.pathname.replace(/\/fee\/collection\/$/, '/fee/student/pending/')}?student_id=${studentId}`);
@@ -182,50 +235,75 @@ async function selectStudent(studentId) {
     pendingRecords = data.pending;
     totalPending = pendingRecords.reduce((sum, r) => sum + parseFloat(r.pending_amount), 0);
     
-    document.getElementById('studentInfo').innerHTML = `
+    // Build student info card using either stored details or fallback from pending records
+    let roll = '—', father = '—', classSec = '—', wing = '';
+    if (currentStudentDetails) {
+        roll = currentStudentDetails.roll_number;
+        father = currentStudentDetails.father_name;
+        classSec = `${currentStudentDetails.student_class}-${currentStudentDetails.student_section}`;
+        wing = currentStudentDetails.wing !== 'None' ? ` (${currentStudentDetails.wing})` : '';
+    } else if (pendingRecords.length > 0) {
+        roll = pendingRecords[0].roll_number || '—';
+        father = pendingRecords[0].father_name || '—';
+        classSec = `${pendingRecords[0].student_class}-${pendingRecords[0].student_section}`;
+        wing = pendingRecords[0].wing && pendingRecords[0].wing !== 'None' ? ` (${pendingRecords[0].wing})` : '';
+    }
+    let studentHtml = `
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <div>
-                <h4 class="fw-bold mb-1">${escapeHtml(data.student_name)}</h4>
-                <div class="mt-1"><i class="fas fa-id-card"></i> Roll: ${pendingRecords[0]?.roll_number || '—'}</div>
-                <div><i class="fas fa-user-friends"></i> Father: ${pendingRecords[0]?.father_name || '—'}</div>
-                <div><i class="fas fa-school"></i> Class: ${pendingRecords[0]?.student_class || '—'}-${pendingRecords[0]?.student_section || '—'} ${pendingRecords[0]?.wing ? '('+pendingRecords[0].wing+')' : ''}</div>
+                <h4 class="fw-bold mb-1"><i class="fas fa-user-graduate me-2"></i>${escapeHtml(data.student_name)}</h4>
+                <div class="mt-1"><i class="fas fa-id-card me-1"></i> Roll: ${roll}</div>
+                <div><i class="fas fa-user-friends me-1"></i> Father: ${father}</div>
+                <div><i class="fas fa-school me-1"></i> Class: ${classSec}${wing}</div>
             </div>
             <div class="text-end">
                 <span class="pending-badge">Total Pending: ₹${totalPending.toFixed(2)}</span>
             </div>
         </div>
     `;
+    document.getElementById('studentInfo').innerHTML = studentHtml;
     
-    let pendingHtml = `
-        <div class="search-card">
-            <h5 class="fw-bold mb-3"><i class="fas fa-list-ul me-2"></i>Unpaid Months</h5>
-            <table class="fee-table">
-                <thead><tr><th>Month/Year</th><th>Original Fee</th><th>Paid</th><th>Due</th><th>Due Date</th><th>Status</th></tr></thead>
-                <tbody>
-    `;
-    pendingRecords.forEach(r => {
-        let statusClass = r.status === 'overdue' ? 'text-danger' : (r.status === 'partial' ? 'text-warning' : 'text-secondary');
-        pendingHtml += `
-            <tr>
-                <td><strong>${r.month}/${r.year}</strong></td>
-                <td>₹${parseFloat(r.total_amount).toFixed(2)}</td>
-                <td>₹${parseFloat(r.paid_amount).toFixed(2)}</td>
-                <td>₹${parseFloat(r.pending_amount).toFixed(2)}</td>
-                <td>${r.due_date}</td>
-                <td class="${statusClass} fw-bold">${r.status.toUpperCase()}</td>
-            </tr>
+    if (totalPending === 0) {
+        // No pending fees – show message instead of table
+        document.getElementById('pendingListContainer').innerHTML = `
+            <div class="search-card text-center text-success">
+                <i class="fas fa-check-circle fa-3x mb-2"></i>
+                <h5>No pending fees</h5>
+                <p>This student has no outstanding fee records.</p>
+            </div>
         `;
-    });
-    pendingHtml += `</tbody></table></div>`;
-    document.getElementById('pendingListContainer').innerHTML = pendingHtml;
-    
-    document.getElementById('paymentPanel').style.display = 'block';
+        document.getElementById('paymentPanel').style.display = 'none';
+    } else {
+        // Build pending months table
+        let pendingHtml = `
+            <div class="search-card">
+                <h5 class="fw-bold mb-3"><i class="fas fa-list-ul me-2"></i>Unpaid Months</h5>
+                <table class="fee-table">
+                    <thead><tr><th>Month/Year</th><th>Original Fee</th><th>Paid</th><th>Due</th><th>Due Date</th><th>Status</th></tr></thead>
+                    <tbody>
+        `;
+        pendingRecords.forEach(r => {
+            let statusClass = r.status === 'overdue' ? 'text-danger' : (r.status === 'partial' ? 'text-warning' : 'text-secondary');
+            pendingHtml += `
+                <tr>
+                    <td><strong>${r.month}/${r.year}</strong></td>
+                    <td>₹${parseFloat(r.total_amount).toFixed(2)}</td>
+                    <td>₹${parseFloat(r.paid_amount).toFixed(2)}</td>
+                    <td>₹${parseFloat(r.pending_amount).toFixed(2)}</td>
+                    <td>${r.due_date}</td>
+                    <td class="${statusClass} fw-bold">${r.status.toUpperCase()}</td>
+                </tr>
+            `;
+        });
+        pendingHtml += `</tbody></table></div>`;
+        document.getElementById('pendingListContainer').innerHTML = pendingHtml;
+        document.getElementById('paymentPanel').style.display = 'block';
+        const amountInput = document.getElementById('payAmount');
+        amountInput.value = totalPending.toFixed(2);
+        amountInput.max = totalPending;
+        updateAllocationPreview(amountInput.value);
+    }
     document.getElementById('studentSection').style.display = 'block';
-    const amountInput = document.getElementById('payAmount');
-    amountInput.value = totalPending.toFixed(2);
-    amountInput.max = totalPending;
-    updateAllocationPreview(amountInput.value);
-    
     document.getElementById('paymentPanel').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -298,6 +376,7 @@ document.getElementById('collectBtn').addEventListener('click', async () => {
         document.getElementById('receiptModal').style.display = 'flex';
         await selectStudent(currentStudent.id);
         loadDailySummary();
+        loadRecentPayments();  // Refresh recent payments list
         document.getElementById('remarks').value = '';
         document.getElementById('payAmount').value = totalPending.toFixed(2);
         updateAllocationPreview(totalPending);

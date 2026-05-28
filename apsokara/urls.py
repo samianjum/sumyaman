@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 from .views import TenantAdminLoginView
 from .fee_views import (
+    recent_payments_api,
     fee_structure_view,
     delete_fee_structure,
     fee_collection_view,
@@ -83,4 +84,6 @@ urlpatterns += [
     path('fee/undo/<str:receipt_no>/', undo_payment, name='fee_undo'),
     path('fee/family-pay/', family_payment_api, name='family_payment_api'),
     path('fee/daily-summary/', daily_collection_summary, name='daily_summary'),
+        path('fee/recent-payments/', recent_payments_api, name='fee_recent_payments'),
+
 ]
