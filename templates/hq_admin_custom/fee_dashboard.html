@@ -1,0 +1,41 @@
+{% extends 'hq_admin_custom/base.html' %}
+{% load static %}
+{% block title %}Fee Dashboard | {{ current_school.name }}{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  .kpi-card { background: white; border-radius: 20px; padding: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.2s; }
+  .kpi-card:hover { transform: translateY(-3px); }
+  .alert-item { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 12px; padding: 0.8rem; margin-bottom: 0.8rem; }
+  .transaction-row { border-bottom: 1px solid #f1f5f9; padding: 0.6rem 0; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container-fluid p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="fas fa-chart-line me-2 text-success"></i>Fee Dashboard</h2>
+    <div class="btn-group">
+      <a href="{% url 'fee_collection' school_slug %}" class="btn btn-primary"><i class="fas fa-hand-holding-usd"></i> New Collection</a>
+      <a href="{% url 'family_payment' school_slug %}" class="btn btn-outline-secondary"><i class="fas fa-users"></i> Family Payment</a>
+    </div>
+  </div>
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-5">
+    <div class="col-md-3"><div class="kpi-card"><small class="text-muted text-uppercase">Today's Collection</small><h2 class="fw-bold mb-0">₹{{ today_collection|floatformat:2 }}</h2></div></div>
+    <div class="col-md-3"><div class="kpi-card"><small class="text-muted text-uppercase">This Month</small><h2 class="fw-bold mb-0">₹{{ month_collection|floatformat:2 }}</h2></div></div>
+    <div class="col-md-3"><div class="kpi-card"><small class="text-muted text-uppercase">Total Pending</small><h2 class="fw-bold text-danger">₹{{ pending_total|floatformat:2 }}</h2></div></div>
+    <div class="col-md-3"><div class="kpi-card"><small class="text-muted text-uppercase">Defaulters</small><h2 class="fw-bold">{{ defaulter_count }}</h2><small>Efficiency: {{ efficiency }}%</small></div></div>
+  </div>
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4"><div class="card-body"><canvas id="collectionChart" height="200"></canvas></div></div>
+      <div class="card border-0 shadow-sm"><div class="card-header bg-white fw-bold">Recent Transactions</div><div class="card-body p-0">{% for t in recent %}<div class="transaction-row px-3 py-2 d-flex justify-content-between"><span>{{ t.receipt_number }}</span><span>{{ t.student.full_name }}</span><span>₹{{ t.amount }}</span><span>{{ t.transaction_date }}</span></div>{% empty %}<div class="p-3 text-muted">No transactions yet</div>{% endfor %}</div></div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white fw-bold">Pending Alerts</div><div class="card-body p-0">{% for d in defaulters %}<div class="alert-item px-3 py-2"><div><strong>{{ d.student.full_name }}</strong> - ₹{{ d.pending|floatformat:2 }}</div><div><small class="text-danger">{{ d.days_overdue }} days overdue</small></div><a href="{% url 'fee_collection' school_slug %}?student_id={{ d.student.id }}" class="btn btn-sm btn-outline-primary mt-1">Collect Now</a></div>{% empty %}<div class="p-3">All clear!</div>{% endfor %}</div></div>
+      <div class="card border-0 shadow-sm"><div class="card-header bg-white fw-bold">Upcoming Due Dates</div><div class="card-body">{% for u in upcoming %}<div class="mb-2"><strong>{{ u.student.full_name }}</strong><br><small>Due: {{ u.due_date }} - ₹{{ u.amount|floatformat:2 }}</small></div>{% empty %}No upcoming dues{% endfor %}</div></div>
+    </div>
+  </div>
+</div>
+<script>new Chart(document.getElementById('collectionChart'), { type: 'line', data: { labels: {{ chart_months|safe }}, datasets: [{ label: 'Monthly Collection (₹)', data: {{ chart_amounts|safe }}, borderColor: '#10b981', tension: 0.3, fill: false }] }, options: { responsive: true } });</script>
+{% endblock %}

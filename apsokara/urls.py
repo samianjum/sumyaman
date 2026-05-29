@@ -2,6 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
 from .views import TenantAdminLoginView
+import apsokara.fee_views as fee_views
 from .fee_views import (
     recent_payments_api,
     fee_structure_view,
@@ -18,8 +19,8 @@ from .fee_views import (
     collect_payment_api,
     undo_payment,
     family_payment_api,
-    daily_collection_summary)
-
+    daily_collection_summary
+)
 
 urlpatterns = [
     path('exams/result/<int:student_id>/<int:exam_id>/<int:subject_id>/', views.view_student_result, name='view_student_result'),
@@ -61,6 +62,16 @@ urlpatterns = [
     path('', views.hq_dashboard, name='hq_dashboard'),
 
     # Fee Management URLs
+    # Upgraded Fee Management URLs
+    path('fee/dashboard/', fee_views.fee_dashboard, name='fee_dashboard'),
+    path('fee/collection/counter/', fee_views.collection_counter, name='collection_counter'),
+    path('fee/automation/', fee_views.automation_settings, name='automation_settings'),
+    path('fee/reports/', fee_views.reports_view, name='reports_view'),
+    path('fee/audit-log/', fee_views.audit_log_view, name='audit_log_view'),
+    path('fee/defaulters-list/', fee_views.defaulters_list_upgraded, name='defaulters_upgraded'),
+    path('fee/manual-generate/', fee_views.manual_fee_generation, name='manual_fee_generation'),
+    path('fee/sibling-search/', fee_views.sibling_search_api, name='sibling_search_api'),
+
     path('fee/structure/', fee_structure_view, name='fee_structure'),
     path('fee/structure/delete/<int:pk>/', delete_fee_structure, name='delete_fee_structure'),
     path('fee/collection/', fee_collection_view, name='fee_collection'),
@@ -84,6 +95,5 @@ urlpatterns += [
     path('fee/undo/<str:receipt_no>/', undo_payment, name='fee_undo'),
     path('fee/family-pay/', family_payment_api, name='family_payment_api'),
     path('fee/daily-summary/', daily_collection_summary, name='daily_summary'),
-        path('fee/recent-payments/', recent_payments_api, name='fee_recent_payments'),
-
+    path('fee/recent-payments/', recent_payments_api, name='fee_recent_payments'),
 ]

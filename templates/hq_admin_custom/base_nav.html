@@ -59,22 +59,24 @@
 
         
         <div class="sidebar-label mt-4 mb-2">Finance</div>
-        <a href="{% url 'fee_structure' school_slug=school_slug %}" class="nav-btn">
-            <i class="fas fa-coins"></i> <span>Fee Structure</span>
-        </a>
-        <a href="{% url 'fee_collection' school_slug=school_slug %}" class="nav-btn">
-            <i class="fas fa-hand-holding-usd"></i> <span>Collect Fee</span>
-        </a>
-        <a href="{% url 'family_payment' school_slug=school_slug %}" class="nav-btn">
-            <i class="fas fa-users"></i> <span>Family Payment</span>
-        </a>
-        <a href="{% url 'defaulters' school_slug=school_slug %}" class="nav-btn">
-            <i class="fas fa-exclamation-triangle"></i> <span>Defaulters</span>
-        </a>
-        <a href="{% url 'fee_reports' school_slug=school_slug %}" class="nav-btn">
-            <i class="fas fa-chart-line"></i> <span>Fee Reports</span>
-        </a>
 
+        <div class="nav-item">
+            <a href="#" class="nav-btn" data-bs-toggle="collapse" data-bs-target="#feeSubmenu" aria-expanded="false">
+                <i class="fas fa-money-bill-wave"></i> <span>FEE MANAGEMENT</span> <i class="fas fa-chevron-down ms-auto"></i>
+            </a>
+            <div class="collapse" id="feeSubmenu">
+                <div class="ps-4">
+                    <a href="{% url 'fee_dashboard' school_slug=school_slug %}" class="nav-btn"><i class="fas fa-tachometer-alt"></i> Fee Dashboard</a>
+                    <a href="{% url 'collection_counter' school_slug=school_slug %}" class="nav-btn"><i class="fas fa-cash-register"></i> Collection Counter</a>
+                    <a href="{% url 'fee_structure' school_slug=school_slug %}" class="nav-btn"><i class="fas fa-coins"></i> Fee Structure</a>
+                    <a href="{% url 'automation_settings' school_slug=school_slug %}" class="nav-btn"><i class="fas fa-cogs"></i> Automation Settings</a>
+                    <a href="{% url 'reports_view' school_slug=school_slug %}" class="nav-btn"><i class="fas fa-chart-line"></i> Reports</a>
+                    <a href="{% url 'defaulters_upgraded' school_slug=school_slug %}" class="nav-btn"><i class="fas fa-exclamation-triangle"></i> Defaulters</a>
+                    <a href="{% url 'audit_log_view' school_slug=school_slug %}" class="nav-btn"><i class="fas fa-history"></i> Audit Log</a>
+                </div>
+            </div>
+        </div>
+    
         <div class="sidebar-label mt-4 mb-2">System Config</div>
         
         <a href="{% url 'school_settings' school_slug=school_slug %}" class="nav-btn {% if 'settings' in request.path %}active{% endif %}">

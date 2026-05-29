@@ -41,7 +41,6 @@ class Student(models.Model):
     student_class = models.CharField(max_length=10)
     student_section = models.CharField(max_length=10)
     wing = models.CharField(max_length=10, choices=WING_CHOICES)
-    custom_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text='Override monthly fee if set')
     roll_number = models.CharField(max_length=20, unique=True)
 
     nationality = models.CharField(max_length=50, default="Pakistani")
@@ -142,8 +141,6 @@ class FeeRecord(models.Model):
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     due_date = models.DateField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    waived = models.BooleanField(default=False)
-    waived_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -187,35 +184,8 @@ class SchoolFeeSettings(models.Model):
     generation_day = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(31)])
     due_date_offset = models.IntegerField(default=15, help_text="Days after generation when fee is due")
     late_fee_penalty = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="Percentage added to overdue amount")
+    grace_period_days = models.IntegerField(default=0, help_text="Days after due date before penalty applies")
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Settings (gen day: {self.generation_day})"
-
-
-# ---------- NEW FEE MODELS (Upgrade) ----------
-class FeeGenerationLog(models.Model):
-    generated_on = models.DateTimeField(auto_now_add=True)
-    trigger = models.CharField(max_length=20, choices=[('auto', 'Auto Cron'), ('manual', 'Manual')])
-    month = models.IntegerField()
-    year = models.IntegerField()
-    students_processed = models.IntegerField()
-    records_created = models.IntegerField()
-    skipped_count = models.IntegerField(default=0)
-    error_log = models.TextField(blank=True)
-
-    def __str__(self):
-        return f"{self.trigger} - {self.month}/{self.year} on {self.generated_on}"
-
-class AuditLog(models.Model):
-    user = models.CharField(max_length=100)
-    action = models.CharField(max_length=100)
-    model_name = models.CharField(max_length=50)
-    object_id = models.CharField(max_length=20, blank=True)
-    old_value = models.TextField(blank=True)
-    new_value = models.TextField(blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.user} - {self.action} at {self.timestamp}"
