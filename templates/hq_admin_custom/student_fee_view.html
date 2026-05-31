@@ -30,6 +30,6 @@
             {% empty %}<tr><td colspan="4">No payments</td></tr>{% endfor %}
         </tbody>
     </table>
-    <a href="{% url 'fee_collection' school_slug=school_slug school_slug %}" class="btn btn-primary">Record Payment</a>
+    <a href="{% url 'fee_collection' school_slug=school_slug %}" class="btn btn-primary">Record Payment</a>
 </div>
 {% endblock %}

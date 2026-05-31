@@ -90,10 +90,14 @@ urlpatterns += [
 
     # Fee Collection APIs
     path('fee/student/search/', student_search_api, name='fee_student_search'),
+        path('fee/student/list-all/', fee_views.list_all_students_api, name='fee_list_all_students'),
     path('fee/student/pending/', get_pending_details, name='fee_pending_details'),
     path('fee/collect/', collect_payment_api, name='fee_collect_api'),
     path('fee/undo/<str:receipt_no>/', undo_payment, name='fee_undo'),
     path('fee/family-pay/', family_payment_api, name='family_payment_api'),
     path('fee/daily-summary/', daily_collection_summary, name='daily_summary'),
     path('fee/recent-payments/', recent_payments_api, name='fee_recent_payments'),
-]
+    path('fee/api/subject-marks/', fee_views.get_subject_marks_details, name='get_subject_marks_details'),
+    path('fee/api/student-report/', fee_views.get_student_report_card, name='get_student_report_card'),
+    path('fee/api/publish-result/', fee_views.publish_final_result, name='publish_final_result'),
+    path('promotion/execute/', views.execute_promotion, name='execute_promotion'),]

@@ -72,7 +72,8 @@ def student_search_api(request, school_slug=None):
         Q(full_name__icontains=query) |
         Q(father_name__icontains=query) |
         Q(parents_phone__icontains=query) |
-        Q(b_form__icontains=query) | Q(father_cnic__icontains=query))[:10]
+        Q(b_form__icontains=query)
+    )[:10]
 
     results = []
     for s in students:
@@ -206,8 +207,44 @@ def undo_payment(request, receipt_no, school_slug=None):
     payment.save()
     return JsonResponse({'success': True, 'message': 'Payment marked as reversed. Please manually adjust fee records if needed.'})
 
+def family_payment_api(request, school_slug=None):
+    """Process payment for all children of a father (by CNIC)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    data = json.loads(request.body)
+    father_cnic = data.get('father_cnic')
+    amount = Decimal(str(data.get('amount'))) if data.get('amount') else None
+    payment_mode = data.get('payment_mode')
+    remarks = data.get('remarks', '')
 
+    students = Student.objects.filter(b_form=father_cnic)
+    if not students.exists():
+        return JsonResponse({'error': 'No student found with this CNIC'}, status=404)
 
+    total_paid = Decimal('0.00')
+    details = []
+    with transaction.atomic():
+        for student in students:
+            if amount is None:
+                            pending_data = FeeRecord.objects.filter(student=s, status__in=['pending','partial','overdue']).aggregate(
+
+                                total=Sum('total_amount'), paid=Sum('paid_amount')
+
+                            )
+
+                            total = pending_data['total'] or Decimal('0.00')
+
+                            paid = pending_data['paid'] or Decimal('0.00')
+
+                            pending_total = total - paid
+                            if pending_total > 0:
+                                alloc, paid, rem = allocate_payment(student, pending_total, payment_mode, remarks)
+                                if paid > 0:
+                                    total_paid += paid
+                                    details.append({'student': student.full_name, 'paid': str(paid), 'remaining': str(rem)})
+        if total_paid == 0:
+            return JsonResponse({'error': 'No pending fees for any student'}, status=400)
+    return JsonResponse({'success': True, 'total_paid': str(total_paid), 'details': details})
 
 def daily_collection_summary(request, school_slug=None):
     """Return today's collection total and count."""
@@ -218,59 +255,7 @@ def daily_collection_summary(request, school_slug=None):
     return JsonResponse({'total': str(total), 'count': count})
 
 
-def family_payment_api(request, school_slug=None):
-    """Process payment for family: by father CNIC or list of student IDs."""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    data = json.loads(request.body)
-    student_ids = data.get('student_ids')
-    father_cnic = data.get('father_cnic')
-    amount = Decimal(str(data.get('amount'))) if data.get('amount') else None
-    payment_mode = data.get('payment_mode')
-    remarks = data.get('remarks', '')
 
-    if student_ids:
-        students = Student.objects.filter(id__in=student_ids)
-    elif father_cnic:
-        students = Student.objects.filter(father_cnic=father_cnic)
-    else:
-        return JsonResponse({'error': 'No student identifiers provided'}, status=400)
-
-    if not students.exists():
-        return JsonResponse({'error': 'No students found'}, status=404)
-
-    total_paid = Decimal('0.00')
-    details = []
-    with transaction.atomic():
-        remaining_amount = amount
-        for student in students:
-            pending_records = FeeRecord.objects.filter(
-                student=student,
-                status__in=['pending', 'partial', 'overdue']
-            ).order_by('year', 'month')
-            total_pending = sum(r.pending_amount for r in pending_records)
-            if total_pending <= 0:
-                continue
-            if remaining_amount is None:
-                pay_this = total_pending
-            else:
-                pay_this = min(remaining_amount, total_pending)
-            if pay_this <= 0:
-                continue
-            alloc, paid_this, _ = allocate_payment(student, pay_this, payment_mode, remarks)
-            if paid_this > 0:
-                total_paid += paid_this
-                if remaining_amount is not None:
-                    remaining_amount -= paid_this
-                details.append({
-                    'student': student.full_name,
-                    'paid': str(paid_this),
-                    'remaining': str(total_pending - paid_this)
-                })
-        if total_paid == 0:
-            return JsonResponse({'error': 'No pending fees for any student'}, status=400)
-
-    return JsonResponse({'success': True, 'total_paid': str(total_paid), 'details': details})
 
 
 def recent_payments_api(request, school_slug=None):
@@ -369,8 +354,6 @@ def delete_fee_structure(request, pk, school_slug=None):
 
 
 @login_required
-
-@login_required
 def fee_collection_view(request, school_slug=None):
     # Redirect to new upgraded collection counter
     return collection_counter(request, school_slug)
@@ -425,8 +408,7 @@ def fee_collection_view(request, school_slug=None):
                     payment_mode=payment_mode,
                     remarks=remarks,
                 )
-                AuditLog.objects.create(user=request.user.username, action="CREATE", model_name="PaymentTransaction", object_id=str(payment.id), new_value=f"Amount {amount} for student {student.id}")
-                payment.fee_records.set(allocated_records)
+    AuditLog.objects.create(user=request.user.username, action="CREATE", model_name="PaymentTransaction", object_id=str(payment.id), new_value=f"Amount {amount} for student {student.id}")                payment.fee_records.set(allocated_records)
 
             messages.success(request, f"Payment of ₹{amount} received. Receipt: {receipt_no}")
             return redirect('fee_collection_print', school_slug=school_slug, receipt_no=receipt_no)
@@ -439,6 +421,9 @@ def fee_collection_view(request, school_slug=None):
         'recent': recent,
         'school_slug': school_slug,
     })
+
+
+@login_required
 def fee_collection_print(request, receipt_no, school_slug=None):
     if school_slug:
         set_current_db(school_slug)
@@ -460,7 +445,7 @@ def family_payment_view(request, school_slug=None):
             amount = form.cleaned_data['amount']
             payment_mode = form.cleaned_data['payment_mode']
 
-            students = Student.objects.filter(father_cnic=father_cnic)
+            students = Student.objects.filter(b_form=father_cnic)
             if not students.exists():
                 messages.error(request, "No students found with this CNIC.")
                 return redirect('family_payment', school_slug=school_slug)
@@ -789,15 +774,15 @@ def defaulters_list_upgraded(request, school_slug=None):
     context = {'students': students, 'school_slug': school_slug}
     return render(request, 'hq_admin_custom/defaulters_upgraded.html', context)
 
-
 # API endpoint for sibling search
 @login_required
+
 def sibling_search_api(request, school_slug=None):
     """Return siblings by father's CNIC (B-Form)."""
     father_cnic = request.GET.get('father_cnic')
     if not father_cnic:
         return JsonResponse({'error': 'No CNIC provided'}, status=400)
-    students = Student.objects.filter(father_cnic=father_cnic).values('id', 'full_name', 'roll_number', 'student_class', 'student_section')
+    students = Student.objects.filter(b_form=father_cnic).values('id', 'full_name', 'roll_number', 'student_class', 'student_section')
     siblings = []
     for s in students:
         pending = FeeRecord.objects.filter(student_id=s['id'], status__in=['pending','partial','overdue']).aggregate(
@@ -805,32 +790,6 @@ def sibling_search_api(request, school_slug=None):
         )['total'] or 0
         siblings.append({**s, 'pending_total': str(pending)})
     return JsonResponse({'siblings': siblings})
-
-@login_required
-def list_all_students_api(request, school_slug=None):
-    """Return minimal info for all students (used for fuzzy search indexing)."""
-    if school_slug:
-        set_current_db(school_slug)
-    students = Student.objects.all().values(
-        'id', 'full_name', 'roll_number', 'father_name', 'b_form', 'father_cnic',
-        'student_class', 'student_section', 'wing'
-    )
-    # Compute pending total for each student efficiently using a subquery
-    from django.db.models import OuterRef, Sum, F, Value, DecimalField
-    from django.db.models.functions import Coalesce
-    pending_subquery = Coalesce(
-        Sum(F('fee_records__total_amount') - F('fee_records__paid_amount'),
-            filter=Q(fee_records__status__in=['pending','partial','overdue'])),
-        Value(0, output_field=DecimalField())
-    )
-    students_with_pending = Student.objects.annotate(pending_total=pending_subquery).values(
-        'id', 'full_name', 'roll_number', 'father_name', 'b_form',
-        'student_class', 'student_section', 'wing', 'pending_total'
-    )
-    data = list(students_with_pending)
-    for item in data:
-        item['pending_total'] = str(item['pending_total'])
-    return JsonResponse({'students': data})
 
 
 def manual_fee_generation(request, school_slug=None):

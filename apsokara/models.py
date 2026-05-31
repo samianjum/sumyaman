@@ -34,7 +34,10 @@ class Student(models.Model):
 
     full_name = models.CharField(max_length=100)
     father_name = models.CharField(max_length=100)
+    
+
     b_form = models.CharField(max_length=20, unique=True, verbose_name="B-Form Number")
+    father_cnic = models.CharField(max_length=15, verbose_name="Father CNIC", help_text="Father\'s CNIC for family payments")
     dob = models.DateField(verbose_name="Date of Birth")
     profile_pic = models.ImageField(upload_to='students/', null=True, blank=True)
 
@@ -125,6 +128,14 @@ class FeeStructure(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    grace_period_days = models.IntegerField(default=0, help_text="Days after due date before penalty applies")
+    penalty_type = models.CharField(max_length=20, choices=[('percentage','Percentage'),('fixed','Fixed')], default='percentage')
+    penalty_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Penalty amount or percentage")
+    max_penalty = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Maximum penalty (0 = no max)")
+    pro_rata_type = models.CharField(max_length=20, choices=[('full','Full Month'),('half','Half Month'),('daily','Daily')], default='full')
+    notify_email = models.BooleanField(default=False, help_text="Send email reminders to defaulters")
+
+
     def __str__(self):
         return f"Class {self.student_class} - ₹{self.monthly_fee}"
 
@@ -146,6 +157,14 @@ class FeeRecord(models.Model):
     waived_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    grace_period_days = models.IntegerField(default=0, help_text="Days after due date before penalty applies")
+    penalty_type = models.CharField(max_length=20, choices=[('percentage','Percentage'),('fixed','Fixed')], default='percentage')
+    penalty_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Penalty amount or percentage")
+    max_penalty = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Maximum penalty (0 = no max)")
+    pro_rata_type = models.CharField(max_length=20, choices=[('full','Full Month'),('half','Half Month'),('daily','Daily')], default='full')
+    notify_email = models.BooleanField(default=False, help_text="Send email reminders to defaulters")
+
 
     class Meta:
         unique_together = ('student', 'month', 'year')
@@ -189,6 +208,14 @@ class SchoolFeeSettings(models.Model):
     late_fee_penalty = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="Percentage added to overdue amount")
     updated_at = models.DateTimeField(auto_now=True)
 
+    grace_period_days = models.IntegerField(default=0, help_text="Days after due date before penalty applies")
+    penalty_type = models.CharField(max_length=20, choices=[('percentage','Percentage'),('fixed','Fixed')], default='percentage')
+    penalty_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Penalty amount or percentage")
+    max_penalty = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Maximum penalty (0 = no max)")
+    pro_rata_type = models.CharField(max_length=20, choices=[('full','Full Month'),('half','Half Month'),('daily','Daily')], default='full')
+    notify_email = models.BooleanField(default=False, help_text="Send email reminders to defaulters")
+
+
     def __str__(self):
         return f"Settings (gen day: {self.generation_day})"
 
@@ -219,3 +246,11 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.action} at {self.timestamp}"
+
+class LateFeeLog(models.Model):
+    fee_record = models.ForeignKey('FeeRecord', on_delete=models.CASCADE, related_name='late_fee_logs')
+    penalty_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    applied_on = models.DateField(auto_now_add=True)
+    def __str__(self):
+        return f"Late fee ₹{self.penalty_amount} on {self.fee_record}"
+

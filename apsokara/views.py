@@ -1013,3 +1013,45 @@ def tenant_logout(request, school_slug=None):
     if school_slug:
         return redirect(f'/s/{school_slug}/admin/login/')
     return redirect('/hq-admin/login/')
+
+
+@login_required
+def execute_promotion(request, school_slug=None):
+    """Execute class promotion based on exam results."""
+    if school_slug:
+        set_current_db(school_slug)
+    if request.method != 'POST':
+        return redirect('promotion_center', school_slug=school_slug)
+    exam_id = request.POST.get('exam_id')
+    pass_perc = float(request.POST.get('pass_perc', 33))
+    if not exam_id:
+        messages.error(request, "No exam selected.")
+        return redirect('promotion_center', school_slug=school_slug)
+    from django.db import connection
+    # Get all students who passed (overall percentage >= pass_perc)
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT st.id, st.student_class, st.student_section, st.wing,
+                   SUM(m.obtained_marks) as obt, SUM(m.total_marks) as tot
+            FROM apsokara_student st
+            JOIN student_marks m ON st.id = m.student_id
+            WHERE m.exam_id = %s AND m.is_locked = 1
+            GROUP BY st.id
+        """, [exam_id])
+        rows = cursor.fetchall()
+    promoted = 0
+    for row in rows:
+        student_id, curr_class, section, wing, obt, tot = row
+        obt = float(obt or 0)
+        tot = float(tot or 1)
+        perc = (obt / tot) * 100
+        if perc >= pass_perc:
+            # Promote to next class (simple increment)
+            try:
+                next_class = int(curr_class) + 1
+            except:
+                next_class = curr_class  # fallback
+            Student.objects.filter(id=student_id).update(student_class=str(next_class))
+            promoted += 1
+    messages.success(request, f"Promoted {promoted} students to next class based on exam results.")
+    return redirect('promotion_center', school_slug=school_slug)
